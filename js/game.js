@@ -308,7 +308,7 @@ function tryMove(dx,dy){
   const gi=items.findIndex(i=>i.x===nx&&i.y===ny);
   if(gi>=0)pickup(gi);
   if(map[ny*W+nx]===2){
-    if(stairsLocked){msg('มนตร์ดำผนึกบันไดไว้ — ต้องสังหารนายทัพเสียก่อน!','warn');}
+    if(stairs.locked){msg('มนตร์ดำผนึกบันไดไว้ — ต้องสังหารนายทัพเสียก่อน!','warn');}
     else{
       if(floor>=FINAL){victory();return;}
       $('stairsInfo').textContent='เบื้องล่างคือชั้น '+thaiNum(floor+1)+(BOSSES[floor+1]?' …มีไอสังหารแรงกล้า':'');
@@ -345,7 +345,7 @@ function killFoe(e){
   enemies=enemies.filter(o=>o!==e);
   if(e.boss){
     if(floor===FINAL){victory();return;}
-    stairsLocked=false;sfx.stairs();
+    stairs.locked=false;sfx.stairs();
     msg('ผนึกบันไดสลายแล้ว! ทางลงเปิดออก…','good');
     items.push({x:e.x,y:e.y,...genGroundItem()});
     player.gold+=30+floor*2;
@@ -641,23 +641,37 @@ function updateHud(){
   $('floorChip').textContent='ชั้น '+thaiNum(floor);
   $('goldChip').textContent='◉ '+player.gold;
   $('punyaChip').textContent='✦ '+player.punya;
-}
-function drawTile(x,y){
-  const t=map[y*W+x];
-  if(t===0){const v=((x*7+y*13)&1);ctx.drawImage(TILEC[0][v],x*T,y*T);}
-  else if(t===1){const v=((x*5+y*11)&1);ctx.drawImage(TILEC[1][v],x*T,y*T);}
-  else if(t===2){ctx.drawImage(TILEC[1][0],x*T,y*T);
-    ctx.drawImage(TILEC[2][0],x*T,y*T);
-    if(!stairsLocked){ // แสงบันไดเต้นรำ
-      ctx.fillStyle='rgba(46,196,166,'+(0.15+0.15*Math.sin(time*0.15+x)).toFixed(2)+')';
-      ctx.fillRect(x*T,y*T,T,T);}
-    else{ctx.fillStyle='rgba(120,10,20,.45)';ctx.fillRect(x*T,y*T,T,T);}
+function drawTile(mx, my, sx, sy){
+  const t = map[my * W + mx];
+  const px = sx * T, py = sy * T;
+  if(t === 0){
+    const v = ((mx * 7 + my * 13) & 1);
+    ctx.drawImage(TILEC[0][v], px, py);
   }
-  else if(t===3){ctx.drawImage(TILEC[3][0],x*T,y*T);
-    const fl=Math.sin(time*0.3+x*3)>0; // เปลวเทียน
-    ctx.fillStyle='#ff8b1f';ctx.fillRect(x*T+7,y*T+(fl?0:1),2,2);
-    ctx.fillStyle='#ffe9a3';ctx.fillRect(x*T+7,y*T+1,1,1);}
-  else if(t===4){ctx.drawImage(TILEC[4][0],x*T,y*T);}
+  else if(t === 1){
+    const v = ((mx * 5 + my * 11) & 1);
+    ctx.drawImage(TILEC[v], px, py);
+  }
+  else if(t === 2){
+    ctx.drawImage(TILEC[0], px, py);
+    ctx.drawImage(TILEC[0], px, py);
+    if(!stairs.locked){ // แสงบันไดเต้นรำ (แก้ stairsLocked เป็น stairs.locked)
+      ctx.fillStyle = 'rgba(46,196,166,' + (0.15 + 0.15 * Math.sin(time * 0.15 + mx)).toFixed(2) + ')';
+      ctx.fillRect(px, py, T, T);
+    } else {
+      ctx.fillStyle = 'rgba(120,10,20,.45)';
+      ctx.fillRect(px, py, T, T);
+    }
+  }
+  else if(t === 3){
+    ctx.drawImage(TILEC[0], px, py);
+    const fl = Math.sin(time * 0.3 + mx * 3) > 0; // เปลวเทียน
+    ctx.fillStyle = '#ff8b1f'; ctx.fillRect(px + 7, py + (fl ? 0 : 1), 2, 2);
+    ctx.fillStyle = '#ffe9a3'; ctx.fillRect(px + 7, py + 1, 1, 1);
+  }
+  else if(t === 4){
+    ctx.drawImage(TILEC[0], px, py);
+  }
 }
 function render(){
   if(state==='title'||state==='classSel'){drawMandala();return;}
@@ -667,11 +681,11 @@ function render(){
   let ox=0,oy=0;
   if(shake>0){shake*=.86;if(shake<.5)shake=0;ox=(Math.random()-.5)*shake;oy=(Math.random()-.5)*shake;}
   ctx.translate(ox|0,oy|0);
-  const camX=clamp(player.x-(VW>>1),0,W-VW),camY=clamp(player.y-(VH>>1),0,H-VH);
-  for(let vy=0;vy<VH;vy++)for(let vx=0;vx<VW;vx++){
-    const x=camX+vx,y=camY+vy;
-    if(!seen[y*W+x])continue;
-    drawTile(x-camX,y-camY);
+const camX = clamp(player.x - (VW >> 1), 0, W - VW), camY = clamp(player.y - (VH >> 1), 0, H - VH);
+  for(let vy = 0; vy < VH; vy++) for(let vx = 0; vx < VW; vx++){
+    const x = camX + vx, y = camY + vy;
+    if(!seen[y * W + x]) continue;
+    drawTile(x, y, vx, vy); // <-- ส่ง x, y (พิกัดแมพ) และ vx, vy (พิกัดจอ)
   }
   for(const it of items){ // ของบนพื้น
     if(!seen[it.y*W+it.x])continue;
