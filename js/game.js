@@ -2,6 +2,8 @@
    ลงกา · วิถีแห่งกรรม — 8-bit Roguelike (ออฟไลน์ 100%)
    ระบบ: ดันเจี้ยนสุ่ม / เทิร์นเบส / เลเวล / ของ / ร้านค้า / เควสต์
          อาคม / กรรม-ปุญ / บอส / มินิแมป / เซฟ-โหลด / เสียงชิปจูน
+         [อัปเกรด]: เอฟเฟกต์ต่อสู้ (พุ่งชน/ฟันดาบ/สะเก็ดไฟ/ศัตรูกระพริบ)
+                   มอนสเตอร์บึกบึน / สลับของไม่หาย / จำหมอกแผนที่
    ================================================================ */
 'use strict';
 /* ── พื้นฐาน ── */
@@ -12,7 +14,6 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a
 let rng=Math.random, floorR=Math.random;
 const R=n=>Math.floor(rng()*n), pick=a=>a[R(a.length)], clamp=(v,a,b)=>v<a?a:v>b?b:v;
 function thaiNum(n){return String(n).replace(/\d/g,d=>'๐๑๒๓๔๕๖๗๘๙'[d])}
-function frange(list,fn){for(let i=0;i<list.length;i++)fn(list[i])}
 
 const cv=$('game'),ctx=cv.getContext('2d');ctx.imageSmoothingEnabled=false;
 const mcv=$('minimap'),mctx=mcv.getContext('2d');
@@ -56,6 +57,7 @@ const sfx={
   dead:()=>[220,185,147,110].forEach((f,i)=>setTimeout(()=>beep(f,.22,'sawtooth',.15),i*170)),
   boss:()=>beep(65,.6,'sawtooth',.25,-25),
   buy:()=>beep(784,.1,'triangle',.13),
+  slash:()=>beep(440,.06,'sawtooth',.12,300),
 };
 function toggleSound(){
   soundOn=!soundOn;
@@ -63,39 +65,207 @@ function toggleSound(){
   $('btnSnd').textContent=soundOn?'♪':'✕';
 }
 
-/* ── สไปรต์ 8 บิต (วาดจากโค้ด) ── */
+/* ── สไปรต์ 8 บิต (ปรับสัดส่วนให้หนาแน่น ทรงพลัง ไม่ก้าง) ── */
 const PAL={k:'#14080f',w:'#f4ecdc',g:'#f5c542',o:'#ff8b1f',r:'#d43d2a',t:'#2ec4a6',
   b:'#3a6ea5',p:'#8d55c9',s:'#e8b06a',d:'#7a4a22',f:'#ffe9a3',e:'#43b05c',
   m:'#8f2438',E:'#7fae7a',c:'#c9a86a','0':'#000000'};
 const SPRD={
-warrior:["..gggg..","..ssss..","..skks..",".ggrrgg.",".g.rr.g.","..rrrr..","..ww.ww.","..d..d.."],
-brahmin:["...ww...","..wwww..","..ssss..","..skks..",".wwwwww.",".wwooww.","..wwww..","..d..d.."],
-vanara: [".w....w.",".wwwwww.",".wkwwkw.","..wssw..",".gggggg.",".g.ww.g.","..wwww..","..w..w.."],
-rishi:  ["..kkkk..","..ssss..","..skks..",".wwwwww.",".oooooo.",".o.oo.o.","..oooo..","..d..d.."],
-preta:  ["..EEEE..","..E00E..","...EE...","..E..E..","..E..E..","...EE...","..E..E..",".E....E."],
-asura:  [".r....r.",".rrrrrr.",".rgrrgr.",".rrrrrr.",".mmmmmm.",".m.mm.m.","..mmmm..","..r..r.."],
-naga:   [".tt..tt.","tttttttt","tgttttgt",".tttttt.","..tttt..","..t..t..","..t..t..","...tt..."],
-rakshasa:[".p....p.",".pppppp.",".pgppgp.",".ppwwpp.",".pppppp.",".p.pp.p.","..pppp..","..p..p.."],
-yaksha: ["..gggg..","..eeee..","..e00e..",".gggggg.",".g.rr.g.","..rrrr..","..e..e..","..d..d.."],
-boss:   [".g.gg.g.",".gggggg.","..eeee..","..e00e..","..ewwe..",".rrrrrr.",".r.rr.r.","..r..r.."],
-merchant:["..oooo..","..oooo..","..ssss..","..skks..",".gggggg.",".g.gg.g.","..oooo..","..d..d.."],
-hermit: ["..kkkk..","..ssss..","..skks..",".wwwwww.",".oooooo.",".o.oo.o.","..oooo..","........"],
-pot:    ["...ww...","...ww...","..rrrr..",".rrwwrr.",".rrrrrr.","..rrrr..","........","........"],
-mana:   ["...ww...","...ww...","..tttt..",".ttwwtt.",".tttttt.","..tttt..","........","........"],
-gold:   ["........","........","..gggg..",".gffffg.",".gffffg.","..gggg..","........","........"],
-wpn:    ["....w...","....w...","....w...","....w...","...ggg..","....d...","....d...","........"],
-arm:    ["........",".cc..cc.",".cccccc.",".cccccc.",".c.cc.c.","..cccc..","..cccc..","........"],
-scr:    ["........",".wwwwww.",".wkkkkw.",".wwwwww.",".wkkkkw.",".wwwwww.","........","........"],
+warrior:[
+  "..gggg..",
+  ".gssssg.",
+  ".gskksg.",
+  "ggrrrrgg",
+  "ggrrrrgg",
+  ".rrrrrr.",
+  ".dww.wwd",
+  ".dd...dd"
+],
+brahmin:[
+  "..wwww..",
+  ".wwwwww.",
+  ".wskksw.",
+  ".wwwwww.",
+  "wwwoowww",
+  ".wwwwww.",
+  ".dwwwwd.",
+  ".dd..dd."
+],
+vanara:[
+  "ww....ww",
+  "wwwwwwww",
+  "wwkwwkww",
+  ".wwssww.",
+  "gggggggg",
+  "ggwwwwgg",
+  ".wwwwww.",
+  ".ww..ww."
+],
+rishi:[
+  "..kkkk..",
+  ".kssssk.",
+  ".kskksk.",
+  "wwwwwwww",
+  "woooooww",
+  ".oooooo.",
+  ".doooood",
+  ".dd..dd."
+],
+// มอนสเตอร์ใหม่: หนา บึกบึน ตัน ไม่ก้างปลา
+preta:[
+  "..EEEE..",
+  ".EEEEEE.",
+  ".EE00EE.",
+  ".EEEEEE.",
+  "..EEEE..",
+  ".EEEEEE.",
+  "EEEEEEEE",
+  ".EE..EE."
+],
+asura:[
+  "rr....rr",
+  "rrrrrrrr",
+  "rrgrrgrr",
+  "rrrrrrrr",
+  "mmmmmmmm",
+  "mmmmmmmm",
+  ".mmmmmm.",
+  ".rr..rr."
+],
+naga:[
+  ".tttttt.",
+  "tttttttt",
+  "ttgttgtt",
+  "tttttttt",
+  ".tttttt.",
+  "tttttttt",
+  ".tttttt.",
+  "..tttt.."
+],
+rakshasa:[
+  "pp....pp",
+  "pppppppp",
+  "ppgppgpp",
+  "ppwwppww",
+  "pppppppp",
+  "pppppppp",
+  ".pppppp.",
+  ".pp..pp."
+],
+yaksha:[
+  ".dggggd.",
+  "deeeeeed",
+  "de00e0ed",
+  "gggggggg",
+  "ggrrrrgg",
+  ".rrrrrr.",
+  ".eeeeee.",
+  ".dd..dd."
+],
+boss:[
+  "f.gggg.f",
+  "fggggggf",
+  "geeeeeeg",
+  "ge00e0eg",
+  "gewwweeg",
+  "rrrrrrrr",
+  "rrrrrrrr",
+  ".rr..rr."
+],
+merchant:[
+  "..oooo..",
+  ".oooooo.",
+  ".oskkso.",
+  ".gggggg.",
+  "gggggggg",
+  ".gggggg.",
+  ".oooooo.",
+  ".dd..dd."
+],
+hermit:[
+  "..kkkk..",
+  ".kssssk.",
+  ".kskksk.",
+  "wwwwwwww",
+  ".oooooo.",
+  "oooooooo",
+  ".oooooo.",
+  ".dd..dd."
+],
+pot:[
+  "...ww...",
+  "..wwww..",
+  ".rrrrrr.",
+  ".rrwwrr.",
+  ".rrrrrr.",
+  ".rrrrrr.",
+  "..rrrr..",
+  "........"
+],
+mana:[
+  "...ww...",
+  "..wwww..",
+  ".tttttt.",
+  ".ttwwtt.",
+  ".tttttt.",
+  ".tttttt.",
+  "..tttt..",
+  "........"
+],
+gold:[
+  "........",
+  "..gggg..",
+  ".gffffg.",
+  ".gffffg.",
+  ".gffffg.",
+  ".gffffg.",
+  "..gggg..",
+  "........"
+],
+wpn:[
+  "....ww..",
+  "....ww..",
+  "....ww..",
+  "....ww..",
+  "...gggg.",
+  "....dd..",
+  "....dd..",
+  "........"
+],
+arm:[
+  ".cc..cc.",
+  ".cccccc.",
+  "cccccccc",
+  "cccccccc",
+  "cccccccc",
+  ".cccccc.",
+  "..cccc..",
+  "........"
+],
+scr:[
+  ".wwwwww.",
+  "wwwwwwww",
+  "wwkkkkww",
+  "wwwwwwww",
+  "wwkkkkww",
+  "wwwwwwww",
+  ".wwwwww.",
+  "........"
+],
 };
 const SPR={};
 for(const name in SPRD){
-  const c=document.createElement('canvas');c.width=8;c.height=8;
+  const rows=SPRD[name];
+  const sw=rows[0].length,sh=rows.length;
+  const c=document.createElement('canvas');c.width=sw;c.height=sh;
   const g=c.getContext('2d');
-  SPRD[name].forEach((row,y)=>{for(let x=0;x<8;x++){const ch=row[x];
+  rows.forEach((row,y)=>{for(let x=0;x<sw;x++){const ch=row[x];
     if(ch!=='.'&&PAL[ch]){g.fillStyle=PAL[ch];g.fillRect(x,y,1,1);}}});
   SPR[name]=c;
 }
-function drawSpr(s,dx,dy,w=16,h=16){ctx.drawImage(SPR[s],0,0,8,8,dx,dy,w,h)}
+function drawSpr(s,dx,dy,w=16,h=16){
+  const img=SPR[s];
+  if(img)ctx.drawImage(img,0,0,img.width,img.height,dx,dy,w,h);
+}
 
 /* ── แผ่นกระเบื้อง (วาดแบบสุ่มมีพื้นผิว) ── */
 const TILEC=[];
@@ -172,16 +342,18 @@ const ARMORS=[null,{n:'ผ้ามัสลิน',d:1},{n:'เกราะโ�
   {n:'เกราะวัชรัง',d:8},{n:'เกราะเทพ',d:11}];
 const FLOOR_TITLES=['ประตูวิหาร','โถงเทียน','ระเบียงอสูร','คุกเปรต','ลานรากษส','ห้องมนตรา','อุโมงค์นาค','ท้องพระโรง'];
 
-/* ── สถานะเกม ── */
+/* ── สถานะเกม & เอฟเฟกต์ ── */
 let state='title',map,seen,vis,player=null,enemies=[],npcs=[],items=[];
 let floor=1,seed=0,stairs={x:0,y:0,locked:false},kills={},time=0;
 let shake=0,flash=0,floats=[],logs=[];
+let slashes=[],sparks=[]; // เอฟเฟกต์คมดาบและประกายไฟ
+let playerBump={x:0,y:0,time:0}; // อนิเมชันพุ่งกระแทก
 
 /* ── สร้างดันเจี้ยน ── */
 function genFloor(fl){
   floor=fl;floorR=mulberry32((seed^(fl*2654435761))>>>0);
   map=new Uint8Array(W*H);seen=new Uint8Array(W*H);vis=new Uint8Array(W*H);
-  enemies=[];npcs=[];items=[];kills={};
+  enemies=[];npcs=[];items=[];kills={};slashes=[];sparks=[];
   const rooms=[];
   for(let i=0;i<70&&rooms.length<10;i++){
     const w=4+Math.floor(floorR()*7),h=3+Math.floor(floorR()*5);
@@ -209,6 +381,7 @@ function genFloor(fl){
     const r=rooms[1+Math.floor(floorR()*(rooms.length-1))];
     const x=r.x+Math.floor(floorR()*r.w),y=r.y+Math.floor(floorR()*r.h);
     if(map[y*W+x]!==1||(x===player.x&&y===player.y))continue;
+    if(items.some(it=>it.x===x&&it.y===y))continue;
     items.push({x,y,...genGroundItem()});
   }
   if(fl%3===0&&fl<FINAL){ // วาณิช + เควสต์
@@ -237,6 +410,7 @@ function genFloor(fl){
     const r=rooms[1+Math.floor(floorR()*(rooms.length-1))];
     const x=r.x+Math.floor(floorR()*r.w),y=r.y+Math.floor(floorR()*r.h);
     if(map[y*W+x]!==1||(Math.abs(x-player.x)+Math.abs(y-player.y))<6)continue;
+    if(enemies.some(e=>e.x===x&&e.y===y))continue;
     const pool=FOES.filter(f=>fl>=f.min&&fl<=f.max);
     const b=pool[Math.floor(floorR()*pool.length)];
     enemies.push(spawnFoe(b,x,y));
@@ -252,7 +426,7 @@ function genFloor(fl){
 }
 function spawnFoe(base,x,y){
   return {...base,x,y,awake:false,maxhp:base.hp+floor,hp:base.hp+floor,
-    atk:base.atk+(floor*0.35|0),g:base.g+(floor>>1)};
+    atk:base.atk+(floor*0.35|0),g:base.g+(floor>>1),flash:0,bumpX:0,bumpY:0};
 }
 function genW(t){return{t:'wpn',name:WEAPONS[t].n,v:WEAPONS[t].a,tier:t,price:t*45}}
 function genA(t){return{t:'arm',name:ARMORS[t].n,v:ARMORS[t].d,tier:t,price:t*40}}
@@ -292,6 +466,21 @@ function computeFov(){
   }
 }
 
+/* ── เอฟเฟกต์ต่อสู้ ── */
+function triggerSlash(x,y,color='#ffffff'){
+  slashes.push({x,y,color,life:1});
+  sfx.slash();
+  // สร้างสะเก็ดไฟกระจาย
+  for(let i=0;i<6;i++){
+    const ang=Math.random()*Math.PI*2,spd=1+Math.random()*2.5;
+    sparks.push({
+      x:x*T+8,y:y*T+8,
+      vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,
+      c:color,life:1
+    });
+  }
+}
+
 /* ── การกระทำของผู้เล่น ── */
 function canWalk(x,y){return x>=0&&y>=0&&x<W&&y<H&&map[y*W+x]!==0}
 function enemyAt(x,y){return enemies.find(e=>e.x===x&&e.y===y&&e.hp>0)}
@@ -301,7 +490,11 @@ function tryMove(dx,dy){
   const nx=player.x+dx,ny=player.y+dy;
   if(!canWalk(nx,ny))return;
   const e=enemyAt(nx,ny);
-  if(e){attackFoe(e);endTurn();return;}
+  if(e){
+    // พุ่งกระแทกเข้าหาศัตรู
+    playerBump={x:dx*8,y:dy*8,time:4};
+    attackFoe(e);endTurn();return;
+  }
   const n=npcAt(nx,ny);
   if(n){interact(n);return;}
   player.x=nx;player.y=ny;
@@ -319,19 +512,19 @@ function tryMove(dx,dy){
 }
 function waitTurn(){
   if(state!=='play')return;
-  player.mp=Math.min(player.mmp,player.mp+2);
-  player.hp=Math.min(player.mhp,player.hp+1);
+  player.mp=Math.min(player.mmp,player.mp+1);
   msg('เจ้าสำรวมลมปราณ…');
   endTurn();
 }
 function attackFoe(e){
-  const crit=rng()<.12;
+  const crit=rng()<.15;
   let d=Math.max(1,player.atk+player.wpn.v+R(3)-(e.def>>1));
   if(crit)d<<=1;
-  e.hp-=d;e.awake=true;
+  e.hp-=d;e.awake=true;e.flash=5; // ศัตรูกระพริบขาวเมื่อโดนฟัน
+  triggerSlash(e.x,e.y,crit?'#f5c542':'#f4ecdc');
   floats.push({x:e.x,y:e.y,t:'-'+d,c:crit?'#f5c542':'#ffffff',life:1});
-  shake=crit?7:4;sfx.hit();
-  if(e.hp<=0)killFoe(e);else msg((crit?'✦ โจมตีวิกฤต! ':'')+'เจ้าฟัน'+e.name+' -'+d);
+  shake=crit?8:4;sfx.hit();
+  if(e.hp<=0)killFoe(e);else msg((crit?'✦ คมขรรค์ฟันจุดตาย! ':'')+'เจ้าฟัน'+e.name+' -'+d);
 }
 function killFoe(e){
   floats.push({x:e.x,y:e.y,t:'✝',c:'#ff8b1f',life:1});
@@ -360,6 +553,7 @@ function checkLevel(){
     player.hp=Math.min(player.mhp,player.hp+(player.mhp>>1));
     player.mp=player.mmp;
     for(const s of CLASSES[player.cls].mantras){
+      if(!s.includes('@'))continue;
       const [k,l]=s.split('@');
       if(player.lvl>=+l&&!player.mantras.includes(k)){
         player.mantras.push(k);msg('แจ้งแจ้งอาคม «'+MANTRAS[k].n+'» แล้ว!','good');
@@ -376,7 +570,8 @@ const xpNeed=l=>l*25+(l-1)*(l-1)*5;
 function hurtPlayer(d,src){
   if(rng()*100<player.dodge){msg('เจ้าพลิกตัวหลบ'+src+'ได้!');
     floats.push({x:player.x,y:player.y,t:'พลาด!',c:'#2ec4a6',life:1});return;}
-  player.hp-=d;flash=.4;shake=5;sfx.hurt();
+  player.hp-=d;flash=.4;shake=6;sfx.hurt();
+  triggerSlash(player.x,player.y,'#e5482e');
   floats.push({x:player.x,y:player.y,t:'-'+d,c:'#ff5a4d',life:1});
   msg(src+'ทำร้ายเจ้า -'+d,'warn');
   if(player.hp<=0)die();
@@ -394,15 +589,20 @@ function enemiesAct(){
           &&!(player.x===e.x+d[0]&&player.y===e.y+d[1])){e.x+=d[0];e.y+=d[1];}}
       continue;
     }
+    const playerArmDef = player.arm ? player.arm.v : 0;
     if(dist===1){
-      let d=Math.max(1,e.atk+R(3)-(player.def+(player.arm?player.arm.v:0)>>1));
-      if(rng()<.07){d<<=1;msg(e.name+'จู่โจมเข้าจุดตาย!','warn');}
+      // ศัตรูพุ่งกระแทกเข้าหาผู้เล่น
+      e.bumpX = Math.sign(dx)*6; e.bumpY = Math.sign(dy)*6;
+      let d=Math.max(1,e.atk+R(3)-((player.def+playerArmDef)>>1));
+      if(rng()<.08){d<<=1;msg(e.name+'จู่โจมเข้าจุดตาย!','warn');}
       hurtPlayer(d,e.name);
       continue;
     }
     if(e.ranged&&dist<=5&&dist>1&&los(e.x,e.y,player.x,player.y)){
-      hurtPlayer(Math.max(1,e.atk+R(2)-(player.def>>1)),e.name+' (พ่นพิษ)');
-      floats.push({x:player.x,y:player.y,t:'☠',c:'#5ae05a',life:1});
+      // พ่นพิษคิดเกราะป้องกันด้วย
+      const d=Math.max(1,e.atk+R(2)-((player.def+playerArmDef)>>1));
+      hurtPlayer(d,e.name+' (พ่นพิษ)');
+      triggerSlash(player.x,player.y,'#43b05c');
       continue;
     }
     const sx=Math.sign(dx),sy=Math.sign(dy);
@@ -421,7 +621,8 @@ function endTurn(){
   enemiesAct();
   if(player.hp<=0)return;
   time++;
-  if(time%6===0&&player.hp<player.mhp)player.hp++;
+  // ฟื้นเลือดอัตโนมัติช้าๆ (1 HP ทุก 8 เทิร์น)
+  if(time%8===0&&player.hp<player.mhp)player.hp++;
   computeFov();updateHud();saveGame();
 }
 
@@ -443,16 +644,33 @@ function statTxt(it){
 function useItem(i){
   const it=player.inv[i];if(!it)return;
   if(it.t==='pot'){player.hp=Math.min(player.mhp,player.hp+it.heal);
-    msg('ดื่มอมฤต ฟื้นเลือด +'+it.heal,'good');sfx.pick();}
+    msg('ดื่มอมฤต ฟื้นเลือด +'+it.heal,'good');sfx.pick();
+    player.inv.splice(i,1);}
   else if(it.t==='mana'){player.mp=Math.min(player.mmp,player.mp+it.mana);
-    msg('ดื่มน้ำโสม ฟื้นมนตร์ +'+it.mana,'good');sfx.pick();}
-  else if(it.t==='wpn'){player.wpn=it;msg('ถือ «'+it.name+'» โจมตี+'+it.v);sfx.pick();}
-  else if(it.t==='arm'){player.arm=it;msg('สวม «'+it.name+'» ป้องกัน+'+it.v);sfx.pick();}
+    msg('ดื่มน้ำโสม ฟื้นมนตร์ +'+it.mana,'good');sfx.pick();
+    player.inv.splice(i,1);}
+  else if(it.t==='wpn'){
+    // สลับอาวุธเดิมกลับเข้ากระเป๋า ไม่สูญหาย
+    const oldWpn=player.wpn;
+    player.wpn=it;
+    player.inv.splice(i,1);
+    if(oldWpn&&oldWpn.tier>0)player.inv.push(oldWpn);
+    msg('ถือ «'+it.name+'» โจมตี+'+it.v);sfx.pick();
+  }
+  else if(it.t==='arm'){
+    // สลับเกราะเดิมกลับเข้ากระเป๋า ไม่สูญหาย
+    const oldArm=player.arm;
+    player.arm=it;
+    player.inv.splice(i,1);
+    if(oldArm&&oldArm.tier>0)player.inv.push(oldArm);
+    msg('สวม «'+it.name+'» ป้องกัน+'+it.v);sfx.pick();
+  }
   else if(it.t==='scr'){
     if(player.mantras.includes(it.key)){player.punya+=5;msg('แจ้งแจ้งอยู่แล้ว — กรานเป็นปุญ +๕','good');}
     else{player.mantras.push(it.key);msg('ศึกษา «'+MANTRAS[it.key].n+'» สำเร็จ!','good');sfx.cast();}
+    player.inv.splice(i,1);
   }
-  player.inv.splice(i,1);updateHud();
+  updateHud();
 }
 function castMantra(key){
   if(state!=='play')return;
@@ -465,18 +683,24 @@ function castMantra(key){
     if(!visF.length){msg('ไม่มีศัตรูในระยะมองเห็น','warn');return;}
     const t=visF[0];
     const d=key==='agni'?6+player.lvl*2:12+player.lvl*3;
-    t.hp-=d;floats.push({x:t.x,y:t.y,t:'-'+d,c:key==='agni'?'#ff8b1f':'#f5c542',life:1});
+    t.hp-=d;t.flash=6;
+    triggerSlash(t.x,t.y,key==='agni'?'#ff8b1f':'#f5c542');
+    floats.push({x:t.x,y:t.y,t:'-'+d,c:key==='agni'?'#ff8b1f':'#f5c542',life:1});
     msg((key==='agni'?'✹ เปลวเพลิง':'⌁ สายฟ้าพระอินทร์')+'สังหาร'+t.name+' -'+d);
     if(t.hp<=0)killFoe(t);
   }else if(key==='heal'){
     const h=10+player.lvl*2;player.hp=Math.min(player.mhp,player.hp+h);
     msg('✚ อมฤตชำระกาย ฟื้นเลือด +'+h,'good');
     floats.push({x:player.x,y:player.y,t:'+'+h,c:'#2ec4a6',life:1});
+    for(let i=0;i<8;i++){
+      sparks.push({x:player.x*T+8,y:player.y*T+8,vx:(Math.random()-.5)*3,vy:-Math.random()*3,c:'#2ec4a6',life:1});
+    }
   }else if(key==='vaju'){
     let hitAny=false;
     for(const e of enemies.slice()){
       if(Math.max(Math.abs(e.x-player.x),Math.abs(e.y-player.y))<=2){
-        const d=5+player.lvl;e.hp-=d;hitAny=true;
+        const d=5+player.lvl;e.hp-=d;e.flash=5;hitAny=true;
+        triggerSlash(e.x,e.y,'#2ec4a6');
         floats.push({x:e.x,y:e.y,t:'-'+d,c:'#2ec4a6',life:1});
         if(e.hp<=0)killFoe(e);
       }
@@ -578,13 +802,14 @@ function victory(){
   hallInto($('winHall'));show($('winOv'));
 }
 
-/* ── เซฟ / โหลด ── */
+/* ── เซฟ / โหลด (จำหมอกแผนที่ seen ด้วย) ── */
 function saveGame(){
   if(state!=='play')return;
   try{
     localStorage.setItem(SAVE_KEY,JSON.stringify({
       seed,floor,stairs,
       map:Array.from(map).join(''),
+      seen:Array.from(seen).join(''), // บันทึกช่องที่เคยเดิน
       player:{...player},
       enemies:enemies.map(e=>({id:e.id,x:e.x,y:e.y,hp:e.hp,awake:e.awake})),
       npcs,items,kills,
@@ -596,14 +821,14 @@ function loadGame(){
     const s=JSON.parse(localStorage.getItem(SAVE_KEY));
     if(!s||!s.player)return false;
     seed=s.seed;floor=s.floor;stairs=s.stairs;kills=s.kills||{};
-    map=new Uint8Array(W*H);
+    map=new Uint8Array(W*H);seen=new Uint8Array(W*H);vis=new Uint8Array(W*H);
     for(let i=0;i<W*H;i++)map[i]=+s.map[i];
-    seen=new Uint8Array(W*H);vis=new Uint8Array(W*H);
+    if(s.seen){for(let i=0;i<W*H;i++)seen[i]=+s.seen[i];}
     player=s.player;items=s.items||[];npcs=s.npcs||[];
     enemies=s.enemies.map(sav=>{
       const base=sav.id.startsWith('boss_')?BOSSES[+sav.id.split('_')[1]]
         :FOES.find(f=>f.id===sav.id);
-      return{...base,id:sav.id,x:sav.x,y:sav.y,hp:sav.hp,maxhp:base.hp+floor,awake:sav.awake};
+      return{...base,id:sav.id,x:sav.x,y:sav.y,hp:sav.hp,maxhp:base.hp+floor,awake:sav.awake,flash:0,bumpX:0,bumpY:0};
     }).filter(e=>e.id);
     state='play';computeFov();updateHud();setControlsHint();
     msg('จิตของเจ้ากลับสู่ร่างเดิม… เดินทางต่อ!');
@@ -621,7 +846,7 @@ function startRun(cls){
     wpn:{name:'อาวุธฝึก',v:1,tier:0},arm:{name:'ผ้าฝ้าย',v:0,tier:0},
     inv:[{t:'pot',name:'อมฤต',heal:14}],mantras:[],floor:1};
   for(const s of C.mantras){if(!s.includes('@'))player.mantras.push(s);}
-  rng=Math.random;time=0;floats=[];logs=[];
+  rng=Math.random;time=0;floats=[];logs=[];slashes=[];sparks=[];
   genFloor(1);state='play';
   hideAll();updateHud();setControlsHint();saveGame();
 }
@@ -633,8 +858,10 @@ function msg(t,cls){
 }
 function updateHud(){
   if(!player)return;
-  $('hpFill').style.width=(100*player.hp/player.mhp)+'\%';$('hpTxt').textContent=player.hp+'/'+player.mhp;
-  $('mpFill').style.width=(100*player.mp/player.mmp)+'\%';$('mpTxt').textContent=player.mp+'/'+player.mmp;
+  $('hpFill').style.width=(100*player.hp/player.mhp)+'%';
+  $('hpTxt').textContent=player.hp+'/'+player.mhp;
+  $('mpFill').style.width=(100*player.mp/player.mmp)+'%';
+  $('mpTxt').textContent=player.mp+'/'+player.mmp;
   $('lvChip').textContent='LV.'+player.lvl;
   $('floorChip').textContent='ชั้น '+thaiNum(floor);
   $('goldChip').textContent='◉ '+player.gold;
@@ -655,7 +882,7 @@ function drawTile(mx, my, sx, sy){
   else if(t === 2){
     ctx.drawImage(TILEC[1][0], px, py);
     ctx.drawImage(TILEC[2][0], px, py);
-    if(!stairs.locked){ // แสงบันไดเต้นรำ
+    if(!stairs.locked){
       ctx.fillStyle = 'rgba(46,196,166,' + (0.15 + 0.15 * Math.sin(time * 0.15 + mx)).toFixed(2) + ')';
       ctx.fillRect(px, py, T, T);
     } else {
@@ -665,7 +892,7 @@ function drawTile(mx, my, sx, sy){
   }
   else if(t === 3){
     ctx.drawImage(TILEC[3][0], px, py);
-    const fl = Math.sin(time * 0.3 + mx * 3) > 0; // เปลวเทียน
+    const fl = Math.sin(time * 0.3 + mx * 3) > 0;
     ctx.fillStyle = '#ff8b1f'; ctx.fillRect(px + 7, py + (fl ? 0 : 1), 2, 2);
     ctx.fillStyle = '#ffe9a3'; ctx.fillRect(px + 7, py + 1, 1, 1);
   }
@@ -673,20 +900,23 @@ function drawTile(mx, my, sx, sy){
     ctx.drawImage(TILEC[4][0], px, py);
   }
 }
+
 function render(){
   if(state==='title'||state==='classSel'){drawMandala();return;}
   if(!player)return;
   ctx.setTransform(1,0,0,1,0,0);
   ctx.fillStyle='#0a030c';ctx.fillRect(0,0,cv.width,cv.height);
   let ox=0,oy=0;
-  if(shake>0){shake*=.86;if(shake<.5)shake=0;ox=(Math.random()-.5)*shake;oy=(Math.random()-.5)*shake;}
+  if(shake>0){shake*=.85;if(shake<.4)shake=0;ox=(Math.random()-.5)*shake;oy=(Math.random()-.5)*shake;}
   ctx.translate(ox|0,oy|0);
-const camX = clamp(player.x - (VW >> 1), 0, W - VW), camY = clamp(player.y - (VH >> 1), 0, H - VH);
+
+  const camX = clamp(player.x - (VW >> 1), 0, W - VW), camY = clamp(player.y - (VH >> 1), 0, H - VH);
   for(let vy = 0; vy < VH; vy++) for(let vx = 0; vx < VW; vx++){
     const x = camX + vx, y = camY + vy;
     if(!seen[y * W + x]) continue;
-    drawTile(x, y, vx, vy); // <-- ส่ง x, y (พิกัดแมพ) และ vx, vy (พิกัดจอ)
+    drawTile(x, y, vx, vy);
   }
+
   for(const it of items){ // ของบนพื้น
     if(!seen[it.y*W+it.x])continue;
     const sx=(it.x-camX)*T,sy=(it.y-camY)*T;
@@ -694,31 +924,75 @@ const camX = clamp(player.x - (VW >> 1), 0, W - VW), camY = clamp(player.y - (VH
     const ic={pot:'pot',mana:'mana',gold:'gold',wpn:'wpn',arm:'arm',scr:'scr'}[it.t];
     drawSpr(ic,sx,sy+1);
   }
+
   for(const n of npcs){
     if(!vis[n.y*W+n.x])continue;
     drawSpr(n.sprite,(n.x-camX)*T,(n.y-camY)*T);
   }
+
   for(const e of enemies){
     if(!vis[e.y*W+e.x])continue;
-    const ex=(e.x-camX)*T,ey=(e.y-camY)*T;
+    let ex=(e.x-camX)*T,ey=(e.y-camY)*T;
+    if(e.bumpX){ex+=e.bumpX;e.bumpX*=0.5;if(Math.abs(e.bumpX)<0.5)e.bumpX=0;}
+    if(e.bumpY){ey+=e.bumpY;e.bumpY*=0.5;if(Math.abs(e.bumpY)<0.5)e.bumpY=0;}
+
     if(e.boss){ // รัศมีบอส
       ctx.fillStyle='rgba(212,61,42,'+(0.18+0.12*Math.sin(time*0.2)).toFixed(2)+')';
       ctx.fillRect(ex-2,ey-2,T+4,T+4);
     }
-    drawSpr(e.sprite,ex,ey+(Math.sin(time*0.1+e.x)>0.6?-1:0));
+
+    if(e.flash>0){ // กระพริบขาวเมื่อโดนตี
+      e.flash--;
+      ctx.fillStyle='#ffffff';
+      ctx.fillRect(ex+1,ey+1,T-2,T-2);
+    } else {
+      drawSpr(e.sprite,ex,ey+(Math.sin(time*0.1+e.x)>0.6?-1:0));
+    }
+
     if(e.hp<e.maxhp){ // หลอดเลือดศัตรู
       ctx.fillStyle='#000';ctx.fillRect(ex,ey-3,T,2);
       ctx.fillStyle='#e5482e';ctx.fillRect(ex,ey-3,T*Math.max(0,e.hp/e.maxhp),2);
     }
   }
-  if(player.hp>0)
-    drawSpr(player.sprite,(player.x-camX)*T,(player.y-camY)*T+(Math.sin(time*0.12)>0?-1:0));
+
+  if(player.hp>0){
+    let px=(player.x-camX)*T,py=(player.y-camY)*T+(Math.sin(time*0.12)>0?-1:0);
+    if(playerBump.time>0){
+      playerBump.time--;
+      px+=playerBump.x; py+=playerBump.y;
+      playerBump.x*=0.6; playerBump.y*=0.6;
+    }
+    drawSpr(player.sprite,px,py);
+  }
+
   for(let vy=0;vy<VH;vy++)for(let vx=0;vx<VW;vx++){ // หมอกสงคราม
     const x=camX+vx,y=camY+vy;
     if(!seen[y*W+x]){continue;}
     if(!vis[y*W+x]){ctx.fillStyle='rgba(5,1,8,.62)';ctx.fillRect(vx*T,vy*T,T,T);}
   }
-  for(const f of floats){ // ตัวเลขลอย
+
+  // วาดเอฟเฟกต์ฟันดาบ (Slash Arc)
+  for(const s of slashes){
+    s.life-=.15;
+    ctx.strokeStyle=s.color;
+    ctx.lineWidth=2.5;
+    ctx.beginPath();
+    const sx=(s.x-camX)*T+8,sy=(s.y-camY)*T+8;
+    ctx.arc(sx,sy,9+((1-s.life)*6),Math.PI*0.8,Math.PI*2.1);
+    ctx.stroke();
+  }
+  slashes=slashes.filter(s=>s.life>0);
+
+  // วาดสะเก็ดไฟ (Sparks)
+  for(const sp of sparks){
+    sp.x+=sp.vx; sp.y+=sp.vy; sp.life-=.08;
+    ctx.fillStyle=sp.c;
+    ctx.fillRect(sp.x-camX*T,sp.y-camY*T,2,2);
+  }
+  sparks=sparks.filter(s=>s.life>0);
+
+  // ตัวเลขลอย
+  for(const f of floats){
     f.life-=.025;
     ctx.font='bold 7px monospace';ctx.textAlign='center';
     ctx.fillStyle=f.c;ctx.globalAlpha=Math.max(0,Math.min(1,f.life));
@@ -726,11 +1000,13 @@ const camX = clamp(player.x - (VW >> 1), 0, W - VW), camY = clamp(player.y - (VH
     ctx.globalAlpha=1;
   }
   floats=floats.filter(f=>f.life>0);
+
   if(flash>0){ctx.fillStyle='rgba(212,42,32,'+(flash*.5).toFixed(2)+')';
     ctx.fillRect(0,0,cv.width,cv.height);flash-=.05;}
   ctx.setTransform(1,0,0,1,0,0);
   drawMinimap(camX,camY);
 }
+
 function drawMinimap(){
   if(state!=='play'){mcv.style.display='none';return;}
   mcv.style.display='block';
@@ -745,6 +1021,7 @@ function drawMinimap(){
   mctx.fillStyle=(time&8)?'#ffffff':'#2ec4a6';
   mctx.fillRect(player.x*2-1,player.y*2-1,3,3);
 }
+
 function drawMandala(){ // ฉากหน้าเมนู
   ctx.fillStyle='#0d0412';ctx.fillRect(0,0,cv.width,cv.height);
   const cx=cv.width/2,cy=cv.height/2+8;
@@ -816,7 +1093,9 @@ function buildClassCards(){
       '<small>เลือด '+C.hp+' · มนตร์ '+C.mp+' · โจมตี '+C.atk+' · ป้อง '+C.def+'</small>'+
       '<p>'+C.desc+'</p>';
     const g=card.querySelector('canvas').getContext('2d');
-    g.imageSmoothingEnabled=false;g.drawImage(SPR[C.sprite],0,0,8,8,0,0,32,32);
+    g.imageSmoothingEnabled=false;
+    const img=SPR[C.sprite];
+    if(img)g.drawImage(img,0,0,img.width,img.height,0,0,32,32);
     card.onclick=()=>{initAudio();startRun(key);};
     box.appendChild(card);
   }
