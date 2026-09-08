@@ -633,14 +633,14 @@ function msg(t,cls){
 }
 function updateHud(){
   if(!player)return;
-  $('hpFill').style.width=(100*player.hp/player.mhp)+'%';
-  $('hpTxt').textContent=player.hp+'/'+player.mhp;
-  $('mpFill').style.width=(100*player.mp/player.mmp)+'%';
-  $('mpTxt').textContent=player.mp+'/'+player.mmp;
+  $('hpFill').style.width=(100*player.hp/player.mhp)+'\%';$('hpTxt').textContent=player.hp+'/'+player.mhp;
+  $('mpFill').style.width=(100*player.mp/player.mmp)+'\%';$('mpTxt').textContent=player.mp+'/'+player.mmp;
   $('lvChip').textContent='LV.'+player.lvl;
   $('floorChip').textContent='ชั้น '+thaiNum(floor);
   $('goldChip').textContent='◉ '+player.gold;
   $('punyaChip').textContent='✦ '+player.punya;
+}
+
 function drawTile(mx, my, sx, sy){
   const t = map[my * W + mx];
   const px = sx * T, py = sy * T;
@@ -655,7 +655,7 @@ function drawTile(mx, my, sx, sy){
   else if(t === 2){
     ctx.drawImage(TILEC[0], px, py);
     ctx.drawImage(TILEC[0], px, py);
-    if(!stairs.locked){ // แสงบันไดเต้นรำ (แก้ stairsLocked เป็น stairs.locked)
+    if(!stairs.locked){ // แสงบันไดเต้นรำ
       ctx.fillStyle = 'rgba(46,196,166,' + (0.15 + 0.15 * Math.sin(time * 0.15 + mx)).toFixed(2) + ')';
       ctx.fillRect(px, py, T, T);
     } else {
