@@ -367,10 +367,10 @@ const FOES=[
   {id:'yaksha',name:'ยักษ์ทวารบาล',sprite:'yaksha',hp:32,atk:10,def:3,xp:27,g:13,min:9,max:18},
 ];
 const BOSSES={
-  5:{name:'พญาขร',sprite:'rakshasa',hp:65,atk:9,def:2,xp:70},
-  10:{name:'มารีศ',sprite:'asura',hp:110,atk:12,def:3,xp:120},
-  15:{name:'กุมภกรรณ',sprite:'yaksha',hp:170,atk:15,def:5,xp:180},
-  20:{name:'ทศกัณฐ์',sprite:'boss',hp:260,atk:19,def:6,xp:0},
+  5:{name:'พญาขร',sprite:'rakshasa',hp:65,atk:9,def:2,xp:70,g:30},
+  10:{name:'มารีศ',sprite:'asura',hp:110,atk:12,def:3,xp:120,g:50},
+  15:{name:'กุมภกรรณ',sprite:'yaksha',hp:170,atk:15,def:5,xp:180,g:80},
+  20:{name:'ทศกัณฐ์',sprite:'boss',hp:260,atk:19,def:6,xp:0,g:120},
 };
 const WEAPONS=[null,{n:'ขรรค์เหล็ก',a:2},{n:'ขรรค์อัคนี',a:4},{n:'ตรีศูล',a:7},
   {n:'วัชระ',a:10},{n:'จักรสุทรรศน์',a:14}];
@@ -399,7 +399,8 @@ function getBoss(fl){
       hp: baseHps[btype] + fl * 4,
       atk: baseAtks[btype] + Math.floor(fl * 0.4),
       def: 3 + Math.floor(fl * 0.2),
-      xp: 160 + fl * 10
+      xp: 160 + fl * 10,
+      g: 50 + fl * 3
     };
   }
   return null;
@@ -439,12 +440,12 @@ function genFloor(fl){
   map[stairs.y*W+stairs.x]=2;
   traps=[];
   for(const r of rooms.slice(1,-1)){
-    // เทวาลัย
-    if(floorR()<.2){map[(r.y+1)*W+r.x+1]=3;}
-    // สระน้ำอมฤตศักดิ์สิทธิ์ (ฟื้นเลือดเต็ม + ล้างสถานะ)
-    if(floorR()<.16){map[(r.y+2)*W+r.x+2]=5;}
+    // เทวาลัย (ลดอัตราเกิดให้หายากและมีค่า)
+    if(floorR()<.12){map[(r.y+1)*W+r.x+1]=3;}
+    // สระน้ำอมฤตศักดิ์สิทธิ์ (สุ่มเกิดเฉลี่ย 1 สระต่อ 2-3 ชั้น)
+    if(floorR()<.08){map[(r.y+2)*W+r.x+2]=5;}
     // กับดักซ่อนเร้น
-    if(floorR()<.45){
+    if(floorR()<.35){
       const tx = r.x + 1 + Math.floor(floorR()*(r.w-2));
       const ty = r.y + 1 + Math.floor(floorR()*(r.h-2));
       if(map[ty*W+tx]===1 && !(tx===player.x && ty===player.y)){
@@ -507,8 +508,9 @@ function genFloor(fl){
 function spawnFoe(base,x,y){
   const hpBonus = Math.floor(floor * 1.3);
   const atkBonus = Math.floor(floor * 0.4);
+  const gBase = (base.g && !isNaN(base.g)) ? base.g : 8;
   return {...base,x,y,awake:false,maxhp:base.hp+hpBonus,hp:base.hp+hpBonus,
-    atk:base.atk+atkBonus,g:base.g+(floor>>1),flash:0,bumpX:0,bumpY:0};
+    atk:base.atk+atkBonus,g:gBase+(floor>>1),flash:0,bumpX:0,bumpY:0};
 }
 function genW(t){
   const plus = floor > 20 ? Math.floor((floor - 20) / 4) + 1 : 0;
@@ -549,15 +551,15 @@ function genScr(){
 }
 function genGroundItem(){
   const r=floorR();
-  if(r<.22)return{t:'pot',name:'อมฤต',heal:12+floor*2};
-  if(r<.38)return{t:'mana',name:'น้ำโสม',mana:10+floor*2};
-  if(r<.52)return{t:'gold',amt:6+Math.floor(floorR()*(6+floor*3))};
-  if(r<.66){
+  if(r<.14)return{t:'pot',name:'อมฤต',heal:12+floor*2}; // ลดโพชั่นเหลือ 14%
+  if(r<.26)return{t:'mana',name:'น้ำโสม',mana:10+floor*2};
+  if(r<.52)return{t:'gold',amt:8+Math.floor(floorR()*(10+floor*3))};
+  if(r<.68){
     const th = pick(THROWABLES);
     return {t:'throw', name: th.name, dmg: th.dmg + Math.floor(floor * 0.8), range: th.range, c: th.c, burn: th.burn||0, price: 20 + floor*2};
   }
-  if(r<.80){const t=Math.min(5,1+((floor-1)>>2)+(floorR()<.3?1:0));return genW(t);}
-  if(r<.92){const t=Math.min(5,1+((floor-1)>>2));return genA(t);}
+  if(r<.82){const t=Math.min(5,1+((floor-1)>>2)+(floorR()<.3?1:0));return genW(t);}
+  if(r<.93){const t=Math.min(5,1+((floor-1)>>2));return genA(t);}
   return genScr();
 }
 
@@ -719,10 +721,11 @@ function attackFoe(e){
 function killFoe(e){
   floats.push({x:e.x,y:e.y,t:'✝',c:'#ff8b1f',life:1});
   player.xp+=e.xp;player.killsTotal++;kills[e.id]=(kills[e.id]||0)+1;
-  const g=e.g+R(e.g);player.gold+=g;
+  const g = (e.g && !isNaN(e.g)) ? e.g + R(Math.max(1, e.g)) : 8;
+  player.gold = (!isNaN(player.gold) ? player.gold : 0) + g;
   msg(e.name+'แตกดับ! +'+e.xp+' ประสบการณ์ +'+g+' เหรียญ');
   const r=rng();
-  if(r<.12)items.push({x:e.x,y:e.y,t:'pot',name:'อมฤต',heal:12+floor*2});
+  if(r<.06)items.push({x:e.x,y:e.y,t:'pot',name:'อมฤต',heal:12+floor*2});
   else if(r<.2)items.push({x:e.x,y:e.y,t:'gold',amt:5+R(10)});
   else if(r<.27)items.push({x:e.x,y:e.y,...genGroundItem()});
   enemies=enemies.filter(o=>o!==e);
@@ -852,12 +855,10 @@ function endTurn(){
     if(player.hp <= 0){ die(); return; }
   }
 
-  // ประมวลผลเกราะอมฤต (ฟื้นเลือดอัตโนมัติ)
+  // ฟื้นเลือดอัตโนมัติเฉพาะผู้ที่สวมเกราะอมฤตเท่านั้น (ตัดการรีเจนฟรี เพื่อความท้าทาย)
   if(player.arm && player.arm.affix === 'regen' && time % 3 === 0 && player.hp < player.mhp){
     player.hp++;
     floats.push({x:player.x, y:player.y, t:'+๑ อมฤต', c:'#2ec4a6', life:0.8});
-  } else if(time % 8 === 0 && player.hp < player.mhp){
-    player.hp++;
   }
 
   // ประมวลผลสถานะติดไฟ / พิษ ของศัตรู
@@ -992,8 +993,20 @@ function interact(n){
     else msg('พระดาบสเข้าฌาน ไม่ตอบสนอง…');
   }
 }
+function sellItem(i, n){
+  const it = player.inv.splice(i, 1)[0];
+  if(!it) return;
+  const sellPrice = Math.max(5, Math.floor((it.price || 20) * 0.45));
+  player.gold = (!isNaN(player.gold) ? player.gold : 0) + sellPrice;
+  msg('ขาย «' + it.name + '» ได้เหรียญ +◉' + sellPrice, 'good');
+  sfx.gold();
+  updateHud();
+  renderShop(n);
+}
+
 function renderShop(n){
-  $('shopTalk').textContent='“ยินดีต้อนรับผู้กล้า จากชั้นบนข้าเจอของดีมาขาย…”';
+  if(isNaN(player.gold)) player.gold = 0;
+  $('shopTalk').textContent='“ยินดีต้อนรับผู้กล้า มีทั้งของดีและรับซื้อของในถุงผ้า…”';
   $('shopGold').textContent='◉ '+player.gold;
   const q=$('shopQuest');
   if(n.q&&!n.q.claimed){
@@ -1004,14 +1017,16 @@ function renderShop(n){
     const b=$('qClaim');
     if(b)b.onclick=()=>{
       player.gold+=n.q.reward;player.punya+=5;msg('เควสต์สำเร็จ! รับ ◉'+n.q.reward+' และปุญ +๕','good');
-      const qf=FOES.filter(f=>floor>=f.min&&floor<=f.max);
+      const qf=getFoePool(floor);
       const qt=qf[Math.floor(rng()*qf.length)];
       n.q={id:qt.id,name:qt.name,need:3+R(3),got:0,reward:0,claimed:false};
       n.q.reward=n.q.need*(10+floor*2);
       sfx.buy();updateHud();renderShop(n);
     };
   }else q.innerHTML='<div class="row dim">— ไม่มีเควสต์ —</div>';
-  const s=$('shopStock');s.innerHTML='';
+
+  // รายการสินค้าของวาณิช
+  const s=$('shopStock');s.innerHTML='<h4 style="margin:8px 0 4px;color:var(--gold);font-size:13px">🛒 สินค้าของวาณิช</h4>';
   n.stock.forEach((it,si)=>{
     const r=document.createElement('div');r.className='row';
     r.innerHTML='<span>'+it.name+statTxt(it)+'</span>';
@@ -1026,13 +1041,35 @@ function renderShop(n){
     };
     r.appendChild(b);s.appendChild(r);
   });
+
+  // ส่วนรับซื้อของจากผู้เล่น
+  const sellBox = document.createElement('div');
+  sellBox.style.marginTop = '12px';
+  sellBox.innerHTML = '<h4 style="margin:8px 0 4px;color:var(--teal);font-size:13px">💰 รับซื้อของในถุงผ้า</h4>';
+  if(!player.inv.length){
+    sellBox.innerHTML += '<div class="row dim">ไม่มีของในถุงผ้าที่จะขาย</div>';
+  } else {
+    player.inv.forEach((it, i) => {
+      const sellPrice = Math.max(5, Math.floor((it.price || 20) * 0.45));
+      const r = document.createElement('div'); r.className = 'row';
+      r.innerHTML = '<span>' + it.name + '</span>';
+      const b = document.createElement('button'); b.className = 'mini-btn';
+      b.textContent = 'ขาย +◉' + sellPrice;
+      b.style.background = '#8f2438'; b.style.color = '#fff'; b.style.borderColor = '#d43d2a';
+      b.onclick = () => sellItem(i, n);
+      r.appendChild(b);
+      sellBox.appendChild(r);
+    });
+  }
+  s.appendChild(sellBox);
 }
 function pray(free){
   hide($('altarOv'));
-  if(!free&&player.gold<20){msg('เหรียญไม่พอถวาย…','warn');return;}
-  const idx=player.y*W+player.x;
-  if(free)map[idx]=4;
-  if(!free){player.gold-=20;player.punya+=10;msg('เจ้าถวายเครื่องสักการะ ปุญ +๑๐','good');}
+  if(isNaN(player.gold)) player.gold = 0;
+  if(!free && player.gold < 20){ msg('เหรียญไม่พอถวาย…','warn'); return; }
+  const idx = player.y * W + player.x;
+  map[idx] = 4; // เทวาลัยมอดดับลงทันที ใช้ได้ครั้งเดียวเท่านั้น!
+  if(!free){ player.gold -= 20; player.punya += 10; msg('เจ้าถวายเครื่องสักการะ ปุญ +๑๐','good'); }
   const luck=rng()+Math.min(.25,player.punya/200);
   if(luck>.8){const s=['atk','def','mhp'][R(3)];
     if(s==='atk')player.atk++;else if(s==='def')player.def++;else{player.mhp+=5;player.hp+=5;}
@@ -1167,7 +1204,7 @@ function updateHud(){
   $('mpTxt').textContent=player.mp+'/'+player.mmp;
   $('lvChip').textContent='LV.'+player.lvl;
   $('floorChip').textContent='ชั้น '+thaiNum(floor);
-  $('goldChip').textContent='◉ '+player.gold;
+  if(isNaN(player.gold)) player.gold = 0; $('goldChip').textContent='◉ '+player.gold;
   $('punyaChip').textContent='✦ '+player.punya;
   let statusStr = '';
   if(player.poison > 0) statusStr += ' <span style="color:#43b05c">☠พิษ(' + player.poison + ')</span>';
@@ -1394,8 +1431,21 @@ function dropItem(i){
 }
 
 function renderInv(){
-  $('equip').innerHTML='⚔ <b>'+player.wpn.name+'</b> +'+player.wpn.v+
-    ' &nbsp;·&nbsp; 🛡 <b>'+player.arm.name+'</b> +'+player.arm.v;
+  const totalAtk = player.atk + (player.wpn ? player.wpn.v : 0);
+  const totalDef = player.def + (player.arm ? player.arm.v : 0);
+  let totalDodge = player.dodge;
+  if(player.arm && player.arm.affix === 'dodge') totalDodge += 15;
+
+  let equipHtml = '<div style="background:#1b0b18;padding:8px;border:2px solid var(--line);margin-bottom:8px;font-size:13px">';
+  equipHtml += '<div style="color:var(--gold);font-weight:700;margin-bottom:4px">📊 สเตตัสรวม (นับบัฟแล้ว)</div>';
+  equipHtml += '<div>⚔ <b>โจมตีรวม: ' + totalAtk + '</b> <small class="dim">(ตัวเปล่า ' + player.atk + ' + ' + player.wpn.name + ' +' + player.wpn.v + ')</small></div>';
+  equipHtml += '<div>🛡 <b>ป้องกันรวม: ' + totalDef + '</b> <small class="dim">(ตัวเปล่า ' + player.def + ' + ' + player.arm.name + ' +' + player.arm.v + ')</small></div>';
+  equipHtml += '<div>💨 <b>หลบหลีก: ' + totalDodge + '%</b> &nbsp;·&nbsp; ✦ <b>ปุญ: ' + player.punya + '</b> &nbsp;·&nbsp; ☠ <b>สังหาร: ' + player.killsTotal + ' ตน</b></div>';
+  if(player.wpn && player.wpn.afDesc) equipHtml += '<div style="color:' + (player.wpn.afColor||'#ff8b1f') + '">✦ อาวุธ: ' + player.wpn.afDesc + '</div>';
+  if(player.arm && player.arm.afDesc) equipHtml += '<div style="color:' + (player.arm.afColor||'#2ec4a6') + '">✦ เกราะ: ' + player.arm.afDesc + '</div>';
+  equipHtml += '</div>';
+
+  $('equip').innerHTML = equipHtml;
   const list=$('invList');list.innerHTML='';
   if(!player.inv.length){list.innerHTML='<div class="row dim">ถุงผ้าว่างเปล่า…</div>';return;}
   player.inv.forEach((it,i)=>{
@@ -1450,32 +1500,32 @@ function buildClassCards(){
 }
 
 /* ── อินพุต ── */
-function bindHold(btn, fn){
-  if(!btn) return;
-  let timer = null, holdTimer = null;
-  const step = () => {
+function bindHold(btn,fn){
+  if(!btn)return;
+  let timer=null, holdTimer=null;
+  const step=()=>{
     initAudio();
     fn();
   };
-  const start = e => {
-    if(e) e.preventDefault();
-    step(); // ก้าวแรกทันที 1 ช่อง
+  const start=e=>{
+    if(e)e.preventDefault();
+    step(); // ก้าวแรกทันที
     clearTimeout(holdTimer);
     clearInterval(timer);
-    // ต้องกดแช่ค้างเกิน 400ms จึงจะเริ่มเดินต่อเนื่อง (แก้ปัญหาเดินเบิ้ล 2 ก้าว)
-    holdTimer = setTimeout(() => {
-      timer = setInterval(step, 180);
-    }, 400);
+    // ต้องกดค้างเกิน 400ms จึงจะเริ่มเดินต่อเนื่อง (ป้องกันเดินเบิ้ล 2 ก้าว)
+    holdTimer=setTimeout(()=>{
+      timer=setInterval(step,180);
+    },400);
   };
-  const end = e => {
-    if(e) e.preventDefault();
+  const end=e=>{
+    if(e)e.preventDefault();
     clearTimeout(holdTimer);
     clearInterval(timer);
-    timer = null;
-    holdTimer = null;
+    timer=null;
+    holdTimer=null;
   };
-  btn.addEventListener('pointerdown', start);
-  ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => btn.addEventListener(ev, end));
+  btn.addEventListener('pointerdown',start);
+  ['pointerup','pointercancel','pointerleave'].forEach(ev=>btn.addEventListener(ev,end));
 }
 function setupInput(){
   bindHold($('btnU'),()=>tryMove(0,-1));
@@ -1483,9 +1533,12 @@ function setupInput(){
   bindHold($('btnL'),()=>tryMove(-1,0));
   bindHold($('btnR'),()=>tryMove(1,0));
   $('btnWait').addEventListener('pointerdown',e=>{e.preventDefault();initAudio();waitTurn();});
-  $('btnWait').addEventListener('click',e=>{e.preventDefault();initAudio();waitTurn();});
   $('btnMantra').onclick=()=>{if(state==='play'){renderMantras();show($('mantraOv'));}};
   $('btnInv').onclick=()=>{if(state==='play'){renderInv();show($('invOv'));}};
+  $('hudL').onclick=()=>{if(state==='play'){renderInv();show($('invOv'));}};
+  $('hudR').onclick=()=>{if(state==='play'){renderInv();show($('invOv'));}};
+  $('hudL').style.cursor='pointer';
+  $('hudR').style.cursor='pointer';
   $('btnHelp').onclick=()=>show($('helpOv'));
   $('btnHelpT').onclick=()=>show($('helpOv'));
   $('btnHelpClose').onclick=()=>hide($('helpOv'));
@@ -1539,3 +1592,4 @@ if('serviceWorker' in navigator){
 }
 buildClassCards();setupInput();refreshTitle();fitCanvas();
 requestAnimationFrame(loop);
+
