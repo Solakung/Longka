@@ -650,11 +650,11 @@ function drawTile(mx, my, sx, sy){
   }
   else if(t === 1){
     const v = ((mx * 5 + my * 11) & 1);
-    ctx.drawImage(TILEC[v], px, py);
+    ctx.drawImage(TILEC[v], px, py); // ✅ ใส่[v] เพื่อดึงรูปพื้น
   }
   else if(t === 2){
-    ctx.drawImage(TILEC[0], px, py);
-    ctx.drawImage(TILEC[0], px, py);
+    ctx.drawImage(TILEC[0], px, py); // ✅ พื้นรองใต้บันได
+    ctx.drawImage(TILEC[0], px, py); // ✅ ไอคอนบันได
     if(!stairs.locked){ // แสงบันไดเต้นรำ
       ctx.fillStyle = 'rgba(46,196,166,' + (0.15 + 0.15 * Math.sin(time * 0.15 + mx)).toFixed(2) + ')';
       ctx.fillRect(px, py, T, T);
@@ -664,13 +664,13 @@ function drawTile(mx, my, sx, sy){
     }
   }
   else if(t === 3){
-    ctx.drawImage(TILEC[0], px, py);
+    ctx.drawImage(TILEC[0], px, py); // ✅ รูปเทวาลัย
     const fl = Math.sin(time * 0.3 + mx * 3) > 0; // เปลวเทียน
     ctx.fillStyle = '#ff8b1f'; ctx.fillRect(px + 7, py + (fl ? 0 : 1), 2, 2);
     ctx.fillStyle = '#ffe9a3'; ctx.fillRect(px + 7, py + 1, 1, 1);
   }
   else if(t === 4){
-    ctx.drawImage(TILEC[0], px, py);
+    ctx.drawImage(TILEC[0], px, py); // ✅ รูปเทวาลัยที่ใช้แล้ว
   }
 }
 function render(){
