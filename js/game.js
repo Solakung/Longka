@@ -1450,24 +1450,32 @@ function buildClassCards(){
 }
 
 /* ── อินพุต ── */
-function bindHold(btn,fn){
-  if(!btn)return;
-  let timer=null;
-  const start=e=>{
-    if(e)e.preventDefault();
+function bindHold(btn, fn){
+  if(!btn) return;
+  let timer = null, holdTimer = null;
+  const step = () => {
     initAudio();
     fn();
-    clearInterval(timer);
-    timer=setInterval(fn,195);
   };
-  const end=e=>{
-    if(e)e.preventDefault();
+  const start = e => {
+    if(e) e.preventDefault();
+    step(); // ก้าวแรกทันที 1 ช่อง
+    clearTimeout(holdTimer);
     clearInterval(timer);
-    timer=null;
+    // ต้องกดแช่ค้างเกิน 400ms จึงจะเริ่มเดินต่อเนื่อง (แก้ปัญหาเดินเบิ้ล 2 ก้าว)
+    holdTimer = setTimeout(() => {
+      timer = setInterval(step, 180);
+    }, 400);
   };
-  btn.addEventListener('pointerdown',start);
-  ['pointerup','pointercancel','pointerleave'].forEach(ev=>btn.addEventListener(ev,end));
-  btn.addEventListener('click',e=>{e.preventDefault();initAudio();fn();});
+  const end = e => {
+    if(e) e.preventDefault();
+    clearTimeout(holdTimer);
+    clearInterval(timer);
+    timer = null;
+    holdTimer = null;
+  };
+  btn.addEventListener('pointerdown', start);
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => btn.addEventListener(ev, end));
 }
 function setupInput(){
   bindHold($('btnU'),()=>tryMove(0,-1));
