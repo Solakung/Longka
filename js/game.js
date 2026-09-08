@@ -304,9 +304,45 @@ const TILEC=[];
    g.fillStyle='#241322';g.fillRect(0,0,T,T);
    g.fillStyle='#4a1620';g.fillRect(2,9,12,6);g.fillStyle='#7a5a10';g.fillRect(6,4,4,5);
    TILEC[4]=[c];}
+  // สระน้ำอมฤต (5)
+  {const c=document.createElement('canvas');c.width=T;c.height=T;const g=c.getContext('2d');
+   g.fillStyle='#122830';g.fillRect(0,0,T,T);
+   g.strokeStyle='#2ec4a6';g.strokeRect(1,1,14,14);
+   g.fillStyle='#185a5e';g.fillRect(3,3,10,10);
+   g.fillStyle='#6fe0cd';g.fillRect(6,6,4,4);
+   TILEC[5]=[c];}
+  // กับดักบนพื้น (6)
+  {const c=document.createElement('canvas');c.width=T;c.height=T;const g=c.getContext('2d');
+   g.fillStyle='#241322';g.fillRect(0,0,T,T);
+   g.strokeStyle='#d43d2a';g.strokeRect(3,3,10,10);
+   g.fillStyle='#ff5a4d';g.fillRect(6,6,4,4);
+   TILEC[6]=[c];}
 })();
 
 /* ── ตารางข้อมูล ── */
+
+const WPN_AFFIXES = [
+  { id: 'flame', name: 'เพลิงกัลป์', d: 'เผาศัตรู ๓ เทิร์น', c: '#ff8b1f' },
+  { id: 'vamp', name: 'สูบโลหิต', d: 'ดูดเลือด ๒๕% จากดาเมจ', c: '#d43d2a' },
+  { id: 'thunder', name: 'อัสนีบาต', d: 'มีโอกาสสตั๊น ๑ เทิร์น', c: '#f5c542' },
+  { id: 'venom', name: 'พิษนาค', d: 'เคลือบพิษ ๔ เทิร์น', c: '#43b05c' },
+  { id: 'sharp', name: 'คมกริบ', d: 'คริติคอลบ่อยขึ้น +๑๕%', c: '#2ec4a6' },
+];
+
+const ARM_AFFIXES = [
+  { id: 'thorns', name: 'หนามอสูร', d: 'สะท้อนดาเมจ ๓ หน่วย', c: '#e5482e' },
+  { id: 'regen', name: 'อมฤตชำระ', d: 'ฟื้นเลือด ๑ ทุก ๓ เทิร์น', c: '#2ec4a6' },
+  { id: 'dodge', name: 'วายุพริ้ว', d: 'หลบหลีก +๑๕%', c: '#f5c542' },
+  { id: 'resist', name: 'มนตราคุ้มกาย', d: 'ลดดาเมจไฟและพิษ ๕๐%', c: '#8d55c9' },
+];
+
+const THROWABLES = [
+  { name: 'ศรพระราม', dmg: 22, range: 6, c: '#f5c542' },
+  { name: 'หอกซัดเหล็ก', dmg: 14, range: 4, c: '#e8b06a' },
+  { name: 'จักรกฤษณ์', dmg: 18, range: 5, c: '#2ec4a6' },
+  { name: 'หม้อเพลิงอัคนี', dmg: 12, range: 4, c: '#ff8b1f', burn: 3 },
+];
+
 const CLASSES={
   ksatriya:{name:'กษัตริย์',sprite:'warrior',hp:30,mp:8,atk:6,def:3,dodge:5,
     mantras:['vajra@3'],desc:'ทายาทกรุงอโยธยา — เลือดและโจมตีสูงสุด'},
@@ -371,7 +407,7 @@ function getBoss(fl){
 
 
 /* ── สถานะเกม & เอฟเฟกต์ ── */
-let state='title',map,seen,vis,player=null,enemies=[],npcs=[],items=[];
+let state='title',map,seen,vis,player=null,enemies=[],npcs=[],items=[],traps=[];
 let floor=1,seed=0,stairs={x:0,y:0,locked:false},kills={},time=0,endless=false;
 let shake=0,flash=0,floats=[],logs=[];
 let slashes=[],sparks=[]; // เอฟเฟกต์คมดาบและประกายไฟ
@@ -401,8 +437,21 @@ function genFloor(fl){
   player.x=fr.cx;player.y=fr.cy;
   stairs={x:lr.cx,y:lr.cy,locked:!!getBoss(fl)};
   map[stairs.y*W+stairs.x]=2;
-  for(const r of rooms.slice(1,-1)){ // เทวาลัย
+  traps=[];
+  for(const r of rooms.slice(1,-1)){
+    // เทวาลัย
     if(floorR()<.2){map[(r.y+1)*W+r.x+1]=3;}
+    // สระน้ำอมฤตศักดิ์สิทธิ์ (ฟื้นเลือดเต็ม + ล้างสถานะ)
+    if(floorR()<.16){map[(r.y+2)*W+r.x+2]=5;}
+    // กับดักซ่อนเร้น
+    if(floorR()<.45){
+      const tx = r.x + 1 + Math.floor(floorR()*(r.w-2));
+      const ty = r.y + 1 + Math.floor(floorR()*(r.h-2));
+      if(map[ty*W+tx]===1 && !(tx===player.x && ty===player.y)){
+        const tType = pick(['spike','fire','poison','warp']);
+        traps.push({x:tx, y:ty, type:tType, revealed:false});
+      }
+    }
   }
   const nItems=5+Math.floor(floorR()*4);
   for(let i=0;i<nItems;i++){
@@ -464,12 +513,34 @@ function spawnFoe(base,x,y){
 function genW(t){
   const plus = floor > 20 ? Math.floor((floor - 20) / 4) + 1 : 0;
   const pName = plus ? ' +' + thaiNum(plus) : '';
-  return{t:'wpn',name:WEAPONS[t].n+pName,v:WEAPONS[t].a+plus*2,tier:t,price:t*45+plus*30};
+  const it = {t:'wpn', name: WEAPONS[t].n + pName, v: WEAPONS[t].a + plus * 2, tier: t, price: t * 45 + plus * 30};
+  // สุ่มเอฟเฟกต์พิเศษ ยิ่งชั้นลึกโอกาสยิ่งสูง
+  const affixChance = Math.min(0.9, 0.12 + floor * 0.035);
+  if (floorR() < affixChance) {
+    const af = pick(WPN_AFFIXES);
+    it.affix = af.id;
+    it.afName = af.name;
+    it.afDesc = af.d;
+    it.name += ' [' + af.name + ']';
+    it.price += 25 + floor * 3;
+  }
+  return it;
 }
 function genA(t){
   const plus = floor > 20 ? Math.floor((floor - 20) / 4) + 1 : 0;
   const pName = plus ? ' +' + thaiNum(plus) : '';
-  return{t:'arm',name:ARMORS[t].n+pName,v:ARMORS[t].d+plus*2,tier:t,price:t*40+plus*25};
+  const it = {t:'arm', name: ARMORS[t].n + pName, v: ARMORS[t].d + plus * 2, tier: t, price: t * 40 + plus * 25};
+  // สุ่มเอฟเฟกต์พิเศษ
+  const affixChance = Math.min(0.9, 0.12 + floor * 0.035);
+  if (floorR() < affixChance) {
+    const af = pick(ARM_AFFIXES);
+    it.affix = af.id;
+    it.afName = af.name;
+    it.afDesc = af.d;
+    it.name += ' [' + af.name + ']';
+    it.price += 25 + floor * 3;
+  }
+  return it;
 }
 function genScr(){
   const keys=['agni','heal','vaju','vajra'];
@@ -478,11 +549,15 @@ function genScr(){
 }
 function genGroundItem(){
   const r=floorR();
-  if(r<.28)return{t:'pot',name:'อมฤต',heal:12+floor*2};
-  if(r<.45)return{t:'mana',name:'น้ำโสม',mana:10+floor*2};
-  if(r<.62)return{t:'gold',amt:6+Math.floor(floorR()*(6+floor*3))};
-  if(r<.75){const t=Math.min(5,1+((floor-1)>>2)+(floorR()<.3?1:0));return genW(t);}
-  if(r<.88){const t=Math.min(5,1+((floor-1)>>2));return genA(t);}
+  if(r<.22)return{t:'pot',name:'อมฤต',heal:12+floor*2};
+  if(r<.38)return{t:'mana',name:'น้ำโสม',mana:10+floor*2};
+  if(r<.52)return{t:'gold',amt:6+Math.floor(floorR()*(6+floor*3))};
+  if(r<.66){
+    const th = pick(THROWABLES);
+    return {t:'throw', name: th.name, dmg: th.dmg + Math.floor(floor * 0.8), range: th.range, c: th.c, burn: th.burn||0, price: 20 + floor*2};
+  }
+  if(r<.80){const t=Math.min(5,1+((floor-1)>>2)+(floorR()<.3?1:0));return genW(t);}
+  if(r<.92){const t=Math.min(5,1+((floor-1)>>2));return genA(t);}
   return genScr();
 }
 
@@ -522,6 +597,35 @@ function triggerSlash(x,y,color='#ffffff'){
   }
 }
 
+
+function triggerTrap(tr){
+  sfx.hurt(); flash=.35; shake=5;
+  if(tr.type === 'spike'){
+    const d = 4 + Math.floor(floor * 0.6);
+    player.hp -= d;
+    msg('⚠ กับดักขวากหนามผุดแทง! -' + d + ' เลือด', 'warn');
+    floats.push({x:player.x, y:player.y, t:'-' + d, c:'#ff5a4d', life:1});
+  } else if(tr.type === 'fire'){
+    player.burn = (player.burn||0) + 3;
+    msg('⚠ เปลวเพลิงพวยพุ่งขึ้นจากพื้น! ติดไฟ ๓ เทิร์น', 'warn');
+    floats.push({x:player.x, y:player.y, t:'ติดไฟ!', c:'#ff8b1f', life:1});
+  } else if(tr.type === 'poison'){
+    player.poison = (player.poison||0) + 4;
+    msg('⚠ ควันพิษนาคราชระเบิด! ติดพิษ ๔ เทิร์น', 'warn');
+    floats.push({x:player.x, y:player.y, t:'ติดพิษ!', c:'#43b05c', life:1});
+  } else if(tr.type === 'warp'){
+    msg('🌀 ค่ายกลย้ายมิติทำงาน! เจ้าถูกวาร์ปไปยังอีกห้องหนึ่ง', 'good');
+    player.x = 2 + Math.floor(rng()*(W-4));
+    player.y = 2 + Math.floor(rng()*(H-4));
+    while(map[player.y*W+player.x]!==1){
+      player.x = 2 + Math.floor(rng()*(W-4));
+      player.y = 2 + Math.floor(rng()*(H-4));
+    }
+    floats.push({x:player.x, y:player.y, t:'วาร์ป!', c:'#8d55c9', life:1.5});
+  }
+  if(player.hp <= 0) die();
+}
+
 /* ── การกระทำของผู้เล่น ── */
 function canWalk(x,y){return x>=0&&y>=0&&x<W&&y<H&&map[y*W+x]!==0}
 function enemyAt(x,y){return enemies.find(e=>e.x===x&&e.y===y&&e.hp>0)}
@@ -549,6 +653,22 @@ function tryMove(dx,dy){
       show($('stairsOv'));
     }
   }else if(map[ny*W+nx]===3){show($('altarOv'));}
+  else if(map[ny*W+nx]===5){
+    // ดื่มน้ำในสระอมฤต
+    map[ny*W+nx]=1; // ใช้แล้วกลายเป็นพื้น
+    player.hp=player.mhp; player.mp=player.mmp;
+    player.poison=0; player.burn=0;
+    msg('🪷 เจ้าดื่มน้ำจากสระอมฤต — ร่างกายฟื้นเต็ม ล้างพิษและเปลวเพลิงสิ้น!','good');
+    floats.push({x:player.x, y:player.y, t:'บริสุทธิ์!', c:'#2ec4a6', life:1.5});
+    sfx.level();
+  }
+  // เช็คกับดักที่ช่องเดิน
+  const trapIdx = traps.findIndex(tr => tr.x===nx && tr.y===ny);
+  if(trapIdx >= 0){
+    const tr = traps[trapIdx];
+    map[ny*W+nx] = 6; // เผยกับดักบนแมพ
+    triggerTrap(tr);
+  }
   endTurn();
 }
 function waitTurn(){
@@ -558,14 +678,43 @@ function waitTurn(){
   endTurn();
 }
 function attackFoe(e){
-  const crit=rng()<.15;
-  let d=Math.max(1,player.atk+player.wpn.v+R(3)-(e.def>>1));
-  if(crit)d<<=1;
-  e.hp-=d;e.awake=true;e.flash=5; // ศัตรูกระพริบขาวเมื่อโดนฟัน
-  triggerSlash(e.x,e.y,crit?'#f5c542':'#f4ecdc');
-  floats.push({x:e.x,y:e.y,t:'-'+d,c:crit?'#f5c542':'#ffffff',life:1});
-  shake=crit?8:4;sfx.hit();
-  if(e.hp<=0)killFoe(e);else msg((crit?'✦ คมขรรค์ฟันจุดตาย! ':'')+'เจ้าฟัน'+e.name+' -'+d);
+  const wpn = player.wpn || {};
+  let critRate = 0.15;
+  if(wpn.affix === 'sharp') critRate += 0.15;
+  const crit = rng() < critRate;
+
+  let d = Math.max(1, player.atk + wpn.v + R(3) - (e.def >> 1));
+  if(crit) d <<= 1;
+  e.hp -= d; e.awake = true; e.flash = 5;
+
+  let slashColor = crit ? '#f5c542' : '#f4ecdc';
+
+  // เอฟเฟกต์พิเศษของอาวุธ
+  if(wpn.affix === 'flame'){
+    e.burn = (e.burn || 0) + 3;
+    slashColor = '#ff8b1f';
+    floats.push({x:e.x, y:e.y-0.4, t:'เผาไหม้!', c:'#ff8b1f', life:1});
+  } else if(wpn.affix === 'venom'){
+    e.poison = (e.poison || 0) + 4;
+    slashColor = '#43b05c';
+    floats.push({x:e.x, y:e.y-0.4, t:'พิษ!', c:'#43b05c', life:1});
+  } else if(wpn.affix === 'vamp'){
+    const drain = Math.max(1, Math.floor(d * 0.25));
+    player.hp = Math.min(player.mhp, player.hp + drain);
+    slashColor = '#d43d2a';
+    floats.push({x:player.x, y:player.y, t:'+' + drain + ' HP', c:'#d43d2a', life:1});
+  } else if(wpn.affix === 'thunder'){
+    if(rng() < 0.25){
+      e.stun = 1;
+      slashColor = '#f5c542';
+      floats.push({x:e.x, y:e.y-0.4, t:'มึนงง!', c:'#f5c542', life:1.2});
+    }
+  }
+
+  triggerSlash(e.x, e.y, slashColor);
+  floats.push({x:e.x, y:e.y, t:'-'+d, c:crit?'#f5c542':'#ffffff', life:1});
+  shake = crit ? 8 : 4; sfx.hit();
+  if(e.hp <= 0) killFoe(e); else msg((crit?'✦ คมขรรค์ฟันจุดตาย! ':'')+'เจ้าฟัน'+e.name+' -'+d);
 }
 function killFoe(e){
   floats.push({x:e.x,y:e.y,t:'✝',c:'#ff8b1f',life:1});
@@ -608,20 +757,46 @@ function checkLevel(){
   }
 }
 const xpNeed=l=>l*25+(l-1)*(l-1)*5;
-function hurtPlayer(d,src){
-  if(rng()*100<player.dodge){msg('เจ้าพลิกตัวหลบ'+src+'ได้!');
-    floats.push({x:player.x,y:player.y,t:'พลาด!',c:'#2ec4a6',life:1});return;}
-  player.hp-=d;flash=.4;shake=6;sfx.hurt();
-  triggerSlash(player.x,player.y,'#e5482e');
-  floats.push({x:player.x,y:player.y,t:'-'+d,c:'#ff5a4d',life:1});
-  msg(src+'ทำร้ายเจ้า -'+d,'warn');
-  if(player.hp<=0)die();
+function hurtPlayer(d,src,attacker=null){
+  let dodgeRate = player.dodge;
+  if(player.arm && player.arm.affix === 'dodge') dodgeRate += 15;
+  if(rng()*100 < dodgeRate){
+    msg('เจ้าพลิกตัวหลบ'+src+'ได้!');
+    floats.push({x:player.x,y:player.y,t:'พลาด!',c:'#2ec4a6',life:1});
+    return;
+  }
+
+  // เกราะป้องกันธาตุ
+  if(player.arm && player.arm.affix === 'resist' && (src.includes('พิษ') || src.includes('ไฟ'))){
+    d = Math.max(1, Math.floor(d * 0.5));
+  }
+
+  player.hp -= d; flash = .4; shake = 6; sfx.hurt();
+  triggerSlash(player.x, player.y, '#e5482e');
+  floats.push({x:player.x, y:player.y, t:'-'+d, c:'#ff5a4d', life:1});
+  msg(src+'ทำร้ายเจ้า -'+d, 'warn');
+
+  // เกราะหนามสะท้อนกลับ
+  if(attacker && player.arm && player.arm.affix === 'thorns'){
+    const ref = 3 + Math.floor(floor * 0.2);
+    attacker.hp -= ref; attacker.flash = 4;
+    floats.push({x:attacker.x, y:attacker.y, t:'หนาม -'+ref, c:'#e5482e', life:1});
+    msg('เกราะหนามแทงสะท้อนกลับ'+attacker.name+' -'+ref, 'good');
+    if(attacker.hp <= 0) killFoe(attacker);
+  }
+
+  if(player.hp <= 0) die();
 }
 
 /* ── เทิร์นศัตรู ── */
 function enemiesAct(){
   for(const e of enemies){
     if(e.hp<=0)continue;
+    if(e.stun > 0){
+      e.stun--;
+      floats.push({x:e.x, y:e.y, t:'มึนงง!', c:'#f5c542', life:1});
+      continue; // ข้ามเทิร์น
+    }
     const dx=player.x-e.x,dy=player.y-e.y,dist=Math.max(Math.abs(dx),Math.abs(dy));
     if(vis[e.y*W+e.x]&&dist<=9)e.awake=true;
     if(!e.awake){
@@ -636,13 +811,13 @@ function enemiesAct(){
       e.bumpX = Math.sign(dx)*6; e.bumpY = Math.sign(dy)*6;
       let d=Math.max(1,e.atk+R(3)-((player.def+playerArmDef)>>1));
       if(rng()<.08){d<<=1;msg(e.name+'จู่โจมเข้าจุดตาย!','warn');}
-      hurtPlayer(d,e.name);
+      hurtPlayer(d,e.name,e);
       continue;
     }
     if(e.ranged&&dist<=5&&dist>1&&los(e.x,e.y,player.x,player.y)){
       // พ่นพิษคิดเกราะป้องกันด้วย
       const d=Math.max(1,e.atk+R(2)-((player.def+playerArmDef)>>1));
-      hurtPlayer(d,e.name+' (พ่นพิษ)');
+      hurtPlayer(d,e.name+' (พ่นพิษ)',e);
       triggerSlash(player.x,player.y,'#43b05c');
       continue;
     }
@@ -662,8 +837,41 @@ function endTurn(){
   enemiesAct();
   if(player.hp<=0)return;
   time++;
-  // ฟื้นเลือดอัตโนมัติช้าๆ (1 HP ทุก 8 เทิร์น)
-  if(time%8===0&&player.hp<player.mhp)player.hp++;
+
+  // ประมวลผลสถานะติดไฟ / ติดพิษ ของผู้เล่น
+  if(player.poison > 0){
+    player.poison--;
+    player.hp -= 1;
+    floats.push({x:player.x, y:player.y, t:'-๑ พิษ', c:'#43b05c', life:0.9});
+    if(player.hp <= 0){ die(); return; }
+  }
+  if(player.burn > 0){
+    player.burn--;
+    player.hp -= 2;
+    floats.push({x:player.x, y:player.y, t:'-๒ ไฟ', c:'#ff8b1f', life:0.9});
+    if(player.hp <= 0){ die(); return; }
+  }
+
+  // ประมวลผลเกราะอมฤต (ฟื้นเลือดอัตโนมัติ)
+  if(player.arm && player.arm.affix === 'regen' && time % 3 === 0 && player.hp < player.mhp){
+    player.hp++;
+    floats.push({x:player.x, y:player.y, t:'+๑ อมฤต', c:'#2ec4a6', life:0.8});
+  } else if(time % 8 === 0 && player.hp < player.mhp){
+    player.hp++;
+  }
+
+  // ประมวลผลสถานะติดไฟ / พิษ ของศัตรู
+  for(const e of enemies.slice()){
+    if(e.hp <= 0) continue;
+    let dot = 0;
+    if(e.poison > 0){ e.poison--; dot += 2; floats.push({x:e.x, y:e.y, t:'-๒ พิษ', c:'#43b05c', life:0.8}); }
+    if(e.burn > 0){ e.burn--; dot += 3; floats.push({x:e.x, y:e.y, t:'-๓ ไฟ', c:'#ff8b1f', life:0.8}); }
+    if(dot > 0){
+      e.hp -= dot; e.flash = 3;
+      if(e.hp <= 0) killFoe(e);
+    }
+  }
+
   computeFov();updateHud();saveGame();
 }
 
@@ -676,14 +884,40 @@ function pickup(gi){
   msg('เก็บ «'+it.name+'»'+statTxt(it));
 }
 function statTxt(it){
-  if(it.t==='wpn')return ' โจมตี+'+it.v;
-  if(it.t==='arm')return ' ป้องกัน+'+it.v;
-  if(it.t==='pot')return ' ฟื้นเลือด+'+it.heal;
-  if(it.t==='mana')return ' ฟื้นมนตร์+'+it.mana;
-  return ' (อาคม)';
+  let s = '';
+  if(it.t==='wpn') s = ' โจมตี+'+it.v;
+  else if(it.t==='arm') s = ' ป้องกัน+'+it.v;
+  else if(it.t==='pot') s = ' ฟื้นเลือด+'+it.heal;
+  else if(it.t==='mana') s = ' ฟื้นมนตร์+'+it.mana;
+  else if(it.t==='throw') s = ' ปาไกล ' + thaiNum(it.range) + ' ช่อง ดาเมจ ' + thaiNum(it.dmg);
+  else s = ' (อาคม)';
+  if(it.afDesc) s += ' ✦' + it.afDesc;
+  return s;
 }
 function useItem(i){
   const it=player.inv[i];if(!it)return;
+  if(it.t==='throw'){
+    // หาเป้าหมายที่มองเห็นได้ในระยะ
+    const inRange = enemies.filter(e => vis[e.y*W+e.x] && Math.max(Math.abs(e.x-player.x), Math.abs(e.y-player.y)) <= (it.range||5))
+      .sort((a,b) => (Math.abs(a.x-player.x)+Math.abs(a.y-player.y)) - (Math.abs(b.x-player.x)+Math.abs(b.y-player.y)));
+    if(!inRange.length){
+      msg('ไม่มีศัตรูในระยะขว้าง ' + thaiNum(it.range||5) + ' ช่อง', 'warn');
+      return;
+    }
+    const t = inRange[0];
+    const d = Math.max(2, it.dmg + R(4) - (t.def >> 1));
+    t.hp -= d; t.awake = true; t.flash = 6;
+    if(it.burn) t.burn = (t.burn||0) + it.burn;
+    triggerSlash(t.x, t.y, it.c || '#f5c542');
+    floats.push({x:t.x, y:t.y, t:'-' + d, c:it.c || '#f5c542', life:1});
+    msg('เจ้าขว้าง «' + it.name + '» ใส่' + t.name + ' -' + d);
+    sfx.slash();
+    player.inv.splice(i, 1);
+    if(t.hp <= 0) killFoe(t);
+    hide($('invOv'));
+    endTurn();
+    return;
+  }
   if(it.t==='pot'){player.hp=Math.min(player.mhp,player.hp+it.heal);
     msg('ดื่มอมฤต ฟื้นเลือด +'+it.heal,'good');sfx.pick();
     player.inv.splice(i,1);}
@@ -913,7 +1147,7 @@ function startRun(cls){
   player={x:0,y:0,cls,sprite:C.sprite,hp:C.hp,mhp:C.hp,mp:C.mp,mmp:C.mp,
     atk:C.atk,def:C.def,dodge:C.dodge,lvl:1,xp:0,gold:30,punya:0,killsTotal:0,
     wpn:{name:'อาวุธฝึก',v:1,tier:0},arm:{name:'ผ้าฝ้าย',v:0,tier:0},
-    inv:[{t:'pot',name:'อมฤต',heal:14}],mantras:[],floor:1};
+    inv:[{t:'pot',name:'อมฤต',heal:14}],mantras:[],floor:1,poison:0,burn:0};
   for(const s of C.mantras){if(!s.includes('@'))player.mantras.push(s);}
   rng=Math.random;time=0;endless=false;floats=[];logs=[];slashes=[];sparks=[];
   genFloor(1);state='play';
@@ -935,6 +1169,23 @@ function updateHud(){
   $('floorChip').textContent='ชั้น '+thaiNum(floor);
   $('goldChip').textContent='◉ '+player.gold;
   $('punyaChip').textContent='✦ '+player.punya;
+  let statusStr = '';
+  if(player.poison > 0) statusStr += ' <span style="color:#43b05c">☠พิษ(' + player.poison + ')</span>';
+  if(player.burn > 0) statusStr += ' <span style="color:#ff8b1f">✹ไฟ(' + player.burn + ')</span>';
+  let stEl = $('statusChip');
+  if(!stEl){
+    stEl = document.createElement('div');
+    stEl.id = 'statusChip';
+    stEl.className = 'chip';
+    stEl.style.display = 'none';
+    $('hudR').appendChild(stEl);
+  }
+  if(statusStr){
+    stEl.style.display = 'block';
+    stEl.innerHTML = statusStr;
+  } else {
+    stEl.style.display = 'none';
+  }
 }
 
 function drawTile(mx, my, sx, sy){
@@ -967,6 +1218,15 @@ function drawTile(mx, my, sx, sy){
   }
   else if(t === 4){
     ctx.drawImage(TILEC[4][0], px, py);
+  }
+  else if(t === 5){ // สระน้ำอมฤต
+    ctx.drawImage(TILEC[5][0], px, py);
+    const rip = 0.25 + 0.15 * Math.sin(time * 0.2 + mx);
+    ctx.fillStyle = 'rgba(111,224,205,' + rip.toFixed(2) + ')';
+    ctx.fillRect(px+4, py+4, 8, 8);
+  }
+  else if(t === 6){ // กับดักที่เผยแล้ว
+    ctx.drawImage(TILEC[6][0], px, py);
   }
 }
 
