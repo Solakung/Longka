@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#12050d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>ลงกา · วิถีแห่งกรรม — 8-bit Roguelike</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Chakra+Petch:wght@500;700&family=Sarabun:wght@400;600&family=Noto+Sans+Devanagari:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <header id="hud">
+    <div id="hudL">
+      <div class="bar hp"><div id="hpFill"></div><span id="hpTxt"></span></div>
+      <div class="bar mp"><div id="mpFill"></div><span id="mpTxt"></span></div>
+    </div>
+    <div id="hudR">
+      <div class="chip" id="lvChip">LV.1</div>
+      <div class="chip" id="floorChip">ชั้น ๑</div>
+      <div class="chip gold" id="goldChip">◉ 0</div>
+      <div class="chip punya" id="punyaChip">✦ 0</div>
+    </div>
+  </header>
+
+  <main id="stage">
+    <canvas id="game" width="320" height="240"></canvas>
+    <canvas id="minimap" width="84" height="64"></canvas>
+    <div id="log"></div>
+  </main>
+
+  <footer id="controls">
+    <div id="dpad">
+      <button class="dk" id="btnU" data-dx="0" data-dy="-1">▲</button>
+      <button class="dk" id="btnL" data-dx="-1" data-dy="0">◀</button>
+      <button class="dk mid" id="btnWait">●</button>
+      <button class="dk" id="btnR" data-dx="1" data-dy="0">▶</button>
+      <button class="dk" id="btnD" data-dx="0" data-dy="1">▼</button>
+    </div>
+    <div id="acts">
+      <button class="ab" id="btnMantra">อาคม</button>
+      <button class="ab" id="btnInv">ถุงผ้า</button>
+      <button class="ab sm" id="btnHelp">?</button>
+      <button class="ab sm" id="btnSnd">♪</button>
+    </div>
+  </footer>
+
+  <div id="controlsHint">ปุ่มกดอยู่บนจอ · เดินชนศัตรูเพื่อโจมตี</div>
+</div>
+
+<!-- ══ OVERLAYS ══ -->
+<div class="ov" id="title">
+  <div class="deva">लंका</div>
+  <h1 class="logo">ลงกา</h1>
+  <p class="tagline">วิถีแห่งกรรม · โร้กไลก์ ๘ บิต · บุกวิหารอสูร ๒๐ ชั้น ปราบทศกัณฐ์เพื่อโมกษะ</p>
+  <div class="menu" id="titleMenu">
+    <button class="btn" id="btnNew">▶ เริ่มเดินทาง</button>
+    <button class="btn ghost hidden" id="btnContinue">⟳ เดินทางต่อ</button>
+    <button class="btn ghost" id="btnRecords">✦ ทำเนียบวีรชน</button>
+    <button class="btn ghost" id="btnHelpT">? วิธีเล่น</button>
+  </div>
+  <div id="recordsBox" class="panel hidden"><h3>ทำเนียบวีรชน</h3><ol id="recordsList"></ol>
+    <button class="btn ghost" id="btnRecordsBack">← กลับ</button></div>
+  <p class="foot">ออฟไลน์ 100% · บันทึกอัตโนมัติในเครื่อง</p>
+</div>
+
+<div class="ov hidden" id="classSel">
+  <h2 class="ovTitle">เลือกชาติกำเนิด</h2>
+  <div id="classList"></div>
+  <button class="btn ghost" id="btnBackTitle">← กลับ</button>
+</div>
+
+<div class="ov hidden" id="invOv">
+  <div class="panel"><h3>ถุงผ้า</h3>
+    <div id="equip" class="dim"></div><hr>
+    <div id="invList"></div>
+    <button class="btn ghost" id="btnInvClose">ปิด</button>
+  </div>
+</div>
+
+<div class="ov hidden" id="mantraOv">
+  <div class="panel"><h3>อาคม <span id="mpHint" class="teal"></span></h3>
+    <div id="mantraList"></div>
+    <button class="btn ghost" id="btnMantraClose">ปิด</button>
+  </div>
+</div>
+
+<div class="ov hidden" id="shopOv">
+  <div class="panel"><h3>🪔 วาณิชเร่ <span id="shopGold" class="gold"></span></h3>
+    <p id="shopTalk" class="dim"></p>
+    <div id="shopQuest"></div><hr>
+    <div id="shopStock"></div>
+    <button class="btn ghost" id="btnShopClose">ลาก่อน</button>
+  </div>
+</div>
+
+<div class="ov hidden" id="altarOv">
+  <div class="panel"><h3>🛕 เทวาลัยโบราณ</h3>
+    <p class="dim">เปลวไฟศักดิ์สิทธิ์ยังลุกโชน…</p>
+    <button class="btn" id="altarPray">🙏 สวดบูชา (ฟรี)</button>
+    <button class="btn" id="altarOffer">◉ ถวายเครื่องสักการะ ๒๐ เหรียญ</button>
+    <button class="btn ghost" id="altarGo">เดินผ่าน</button>
+  </div>
+</div>
+
+<div class="ov hidden" id="stairsOv">
+  <div class="panel"><h3>บันไดเวียนลงสู่ความมืด</h3>
+    <p class="dim" id="stairsInfo"></p>
+    <button class="btn" id="btnDescend">▼ ลงสู่ชั้นถัดไป</button>
+    <button class="btn ghost" id="btnStay">อยู่ต่อ</button>
+  </div>
+</div>
+
+<div class="ov hidden" id="deadOv">
+  <h2 class="ovTitle red">☠ ดับสูญ</h2>
+  <div class="panel"><p id="deadStats"></p><h4>ทำเนียบวีรชน</h4><ol id="deadHall"></ol>
+    <button class="btn" id="btnRebirth">↻ กลับสู่สังสารวัฏ</button></div>
+</div>
+
+<div class="ov hidden" id="winOv">
+  <div class="deva">मोक्ष</div>
+  <h2 class="ovTitle gold">โมกษะ — หลุดพ้น</h2>
+  <div class="panel"><p id="winStats"></p><h4>ทำเนียบวีรชน</h4><ol id="winHall"></ol>
+    <button class="btn" id="btnRebirth2">↻ วัฏฏะใหม่</button></div>
+</div>
+
+<div class="ov hidden" id="helpOv">
+  <div class="panel"><h3>วิธีเล่น</h3>
+    <p>◈ เดินชนศัตรูเพื่อโจมตี (เทิร์นต่อเทิร์น)<br>
+       ◈ เก็บของด้วยการเดินทับ · ▼ คือบันไดลงชั้นถัดไป<br>
+       ◈ 🛕 เทวาลัย — สวดขอพร / ถวายเหรียญเพื่อปุญ<br>
+       ◈ วาณิช (ชั้น ๓, ๖, ๙…) รับเควสต์ล่าอสูรแลกเหรียญทอง — ทำซ้ำได้ไม่จำกัด!<br>
+       ◈ บอสทุกชั้นที่ ๕ · ชั้น ๒๐ คือ <b>ทศกัณฐ์</b><br>
+       ◈ ตาย = เริ่มใหม่ (โร้กไลก์) แต่ทำเนียบวีรชนจารึกไว้</p>
+    <p class="dim">คีย์บอร์ด: ลูกศร/ADW เดิน · Space รอ · M อาคม · I ถุงผ้า · H ช่วยเหลือ</p>
+    <button class="btn ghost" id="btnHelpClose">เข้าใจแล้ว</button></div>
+</div>
+
+<script src="js/game.js"></script>
+</body>
+</html>
