@@ -640,7 +640,6 @@ function updateHud(){
   $('goldChip').textContent='◉ '+player.gold;
   $('punyaChip').textContent='✦ '+player.punya;
 }
-
 function drawTile(mx, my, sx, sy){
   const t = map[my * W + mx];
   const px = sx * T, py = sy * T;
