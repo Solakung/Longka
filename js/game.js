@@ -910,6 +910,25 @@ function genGem(){
   };
 }
 
+
+function unsocketWeaponGems(){
+  if(!player.wpn || !player.wpn.gems || !player.wpn.gems.length){
+    msg('อาวุธที่ถืออยู่ไม่มีอัญมณีฝังไว้…', 'warn');
+    return;
+  }
+  const count = player.wpn.gems.length;
+  player.wpn.gems.forEach(g => {
+    player.inv.push(g);
+  });
+  player.wpn.gems = [];
+  player.wpn.name = player.wpn.name.replace(/\s*\[.*?\]/g, '');
+  sfx.pick(); flash = 0.4;
+  msg('💎 ถอดอัญมณี ' + thaiNum(count) + ' เม็ดออกจากอาวุธ คืนสู่ถุงผ้าเรียบร้อย!', 'good');
+  floats.push({x: player.x, y: player.y, t: 'ถอดอัญมณีแล้ว!', c: '#f5c542', life: 1.5});
+  renderInv();
+  updateHud();
+}
+
 function socketGemToEquip(gemItem, invIdx){
   if(!player.wpn){ msg('ไม่มีอาวุธที่จะฝังอัญมณี…', 'warn'); return; }
   player.wpn.gems = player.wpn.gems || [];
@@ -2262,13 +2281,13 @@ function genScrollUpg(){
 
 function genGroundItem(){
   const r=floorR();
-  if(r<.07) return {t:'pot', name:'อมฤต', heal:12+floor*2, r:'common', lore:'น้ำอมฤตบริสุทธิ์ ฟื้นฟูพลังชีวิต'};
-  if(r<.14) return genRation(); // เสบียงอาหาร
-  if(r<.20) return genGem(); // อัญมณีนพเก้า
-  if(r<.24) return genPlayerTool(); // กับดักผู้เล่น
-  if(r<.29) return genOre(); // แร่ขุดศักดิ์สิทธิ์
-  if(r<.34) return {t:'mana', name:'น้ำโสม', mana:10+floor*2, r:'common', lore:'น้ำสกัดจากโสมพันปี ฟื้นฟูพลังมนตร์'};
-  if(r<.42) return {t:'gold', amt:8+Math.floor(floorR()*(10+floor*3))};
+  if(r<.08) return {t:'pot', name:'อมฤต', heal:12+floor*2, r:'common', lore:'น้ำอมฤตบริสุทธิ์ ฟื้นฟูพลังชีวิต'};
+  if(r<.16) return genRation(); // เสบียงอาหาร (8%)
+  if(r<.19) return genGem(); // อัญมณีนพเก้า (3% เลอค่า ไม่เกลื่อน)
+  if(r<.23) return genPlayerTool(); // กับดักผู้เล่น
+  if(r<.27) return genOre(); // แร่ขุดศักดิ์สิทธิ์
+  if(r<.35) return {t:'mana', name:'น้ำโสม', mana:10+floor*2, r:'common', lore:'น้ำสกัดจากโสมพันปี ฟื้นฟูพลังมนตร์'};
+  if(r<.44) return {t:'gold', amt:8+Math.floor(floorR()*(10+floor*3))};
   if(r<.48) return genTacticalScroll(); // คัมภีร์ยุทธวิธี
   if(r<.56) return genElixir(); // ยาวิเศษ
   if(r<.66){
@@ -2396,7 +2415,7 @@ function openCursedAltarModal(ax, ay){
     map[ay*W+ax] = 4; // มอดดับ
     player.hp -= costHp; flash = 0.6; shake = 6; sfx.hurt();
     player.usedCursedAltar = true;
-    const godWpn = genW(4);
+    const godWpn = genW(5); // อาวุธเทวะระดับ ๕ ต้องสาปทรงพลัง
     if(player.inv.length < (player.bagMax||10)) player.inv.push(godWpn);
     else items.push({x:player.x, y:player.y, ...godWpn});
     msg('🩸 เลือดถูกสูบสังเวย! ได้รับ «' + godWpn.name + '» จากแท่นบูชาบาป!', 'good');
@@ -3332,6 +3351,14 @@ function statTxt(it){
   else if(it.t==='pot') s = ' ฟื้นเลือด+'+it.heal;
   else if(it.t==='mana') s = ' ฟื้นมนตร์+'+it.mana;
   else if(it.t==='throw') s = ' ปาไกล ' + thaiNum(it.range) + ' ช่อง ดาเมจ ' + thaiNum(it.dmg);
+  else if(it.t==='gem') s = ' [' + it.desc + ']';
+  else if(it.t==='ration') s = ' [พลังกาย +' + it.hunger + '%]';
+  else if(it.t==='head') s = ' ' + it.desc;
+  else if(it.t==='ore') s = ' ' + it.desc;
+  else if(it.t==='scroll_tac') s = ' [' + it.desc + ']';
+  else if(it.t==='elixir') s = ' [' + it.desc + ']';
+  else if(it.t==='player_tool') s = ' [' + it.desc + ']';
+  else if(it.t==='egg') s = ' [ไข่สัตว์เลี้ยง]';
   else s = ' (อาคม)';
   if(it.afDesc) s += ' ✦' + it.afDesc;
   return s;
@@ -3676,17 +3703,17 @@ function sellItem(i, n){
 
 function renderShop(n){
   if(isNaN(player.gold)) player.gold = 0;
-  $('shopTalk').textContent='“ยินดีต้อนรับผู้กล้า มีทั้งของดีและรับซื้อของในถุงผ้า…”';
+  $('shopTalk').textContent='“ยินดีต้อนรับผู้กล้า! วาณิชมีทั้งของวิเศษ บริการตีดาบ สกัดอัญมณี และรับซื้อของ…”';
   $('shopGold').textContent='◉ '+player.gold;
   const q=$('shopQuest');
   if(n.q&&!n.q.claimed){
     const done=kills[n.q.id]||0;
     q.innerHTML='<div class="row"><span>📜 เควสต์: ล่า '+n.q.name+' '+done+'/'+n.q.need+
-      ' — รางวัล ◉'+n.q.reward+'</span><button class="mini-btn" id="qClaim"'+
+      ' — รางวัล ◉'+n.q.reward+' และปุญ +๑๕</span><button class="mini-btn" id="qClaim"'+
       (done>=n.q.need?'':' disabled')+'>รับรางวัล</button></div>';
     const b=$('qClaim');
     if(b)b.onclick=()=>{
-      player.gold+=n.q.reward;player.punya+=5;msg('เควสต์สำเร็จ! รับ ◉'+n.q.reward+' และปุญ +๕','good');
+      player.gold+=n.q.reward;player.punya+=15;msg('เควสต์สำเร็จ! รับ ◉'+n.q.reward+' และปุญบารมี +๑๕','good');
       const qf=getFoePool(floor);
       const qt=qf[Math.floor(rng()*qf.length)];
       n.q={id:qt.id,name:qt.name,need:3+R(3),got:0,reward:0,claimed:false};
@@ -3695,24 +3722,73 @@ function renderShop(n){
     };
   }else q.innerHTML='<div class="row dim">— ไม่มีเควสต์ —</div>';
 
-  // รายการสินค้าของวาณิช
-  const s=$('shopStock');s.innerHTML='<h4 style="margin:8px 0 4px;color:var(--gold);font-size:13px">🛒 สินค้าของวาณิช</h4>';
+  // ๑. บริการช่างตีเหล็ก & สกัดอัญมณีของวาณิช (Divine Blacksmith Services)
+  const s=$('shopStock'); s.innerHTML='';
+  const svcBox = document.createElement('div');
+  svcBox.style.background = '#1b0c16';
+  svcBox.style.border = '1px solid var(--gold)';
+  svcBox.style.padding = '8px';
+  svcBox.style.borderRadius = '4px';
+  svcBox.style.marginBottom = '10px';
+  svcBox.innerHTML = '<h4 style="margin:0 0 6px;color:var(--gold);font-size:13px">🔨 บริการช่างตีดาบ & ช่างทอง</h4>';
+
+  // บริการตีบวก +1
+  const upgradeCost = 45 + floor * 3;
+  const rUpg = document.createElement('div'); rUpg.className = 'row';
+  rUpg.innerHTML = '<span>🔨 <b>ตีบวกอาวุธ (+๑)</b> <small class="dim">(อาวุธที่ถือ: ' + (player.wpn?player.wpn.name:'ไม่มี') + ')</small></span>';
+  const bUpg = document.createElement('button'); bUpg.className = 'mini-btn';
+  bUpg.textContent = '◉ ' + upgradeCost;
+  bUpg.disabled = player.gold < upgradeCost || !player.wpn;
+  bUpg.onclick = () => {
+    player.gold -= upgradeCost;
+    player.wpn.plus = (player.wpn.plus || 0) + 1;
+    player.wpn.v += 2;
+    player.wpn.name = player.wpn.baseName + ' +' + thaiNum(player.wpn.plus) + (player.wpn.afName ? ' [' + player.wpn.afName + ']' : '');
+    sfx.level(); flash = 0.5;
+    msg('🔨 วาณิชตีบวก «' + player.wpn.name + '» พลังโจมตีเพิ่มเป็น ' + player.wpn.v + '!', 'good');
+    updateHud(); renderShop(n);
+  };
+  rUpg.appendChild(bUpg); svcBox.appendChild(rUpg);
+
+  // บริการสกัดถอดอัญมณี
+  const hasGems = player.wpn && player.wpn.gems && player.wpn.gems.length > 0;
+  const rUnsocket = document.createElement('div'); rUnsocket.className = 'row';
+  rUnsocket.innerHTML = '<span>💎 <b>สกัดถอดอัญมณีออกจากอาวุธ</b> <small class="teal">(ฝังอยู่ ' + (hasGems?player.wpn.gems.length:0) + ' เม็ด)</small></span>';
+  const bUnsocket = document.createElement('button'); bUnsocket.className = 'mini-btn';
+  bUnsocket.textContent = '◉ ๒๐';
+  bUnsocket.disabled = player.gold < 20 || !hasGems;
+  bUnsocket.onclick = () => {
+    player.gold -= 20;
+    unsocketWeaponGems();
+    updateHud(); renderShop(n);
+  };
+  rUnsocket.appendChild(bUnsocket); svcBox.appendChild(rUnsocket);
+  s.appendChild(svcBox);
+
+  // ๒. รายการสินค้าของวาณิช
+  const stockHead = document.createElement('h4');
+  stockHead.style.margin = '8px 0 4px'; stockHead.style.color = 'var(--gold)'; stockHead.style.fontSize = '13px';
+  stockHead.textContent = '🛒 สินค้าของวาณิช';
+  s.appendChild(stockHead);
+
   n.stock.forEach((it,si)=>{
     const r=document.createElement('div');r.className='row';
-    r.innerHTML='<span>'+it.name+statTxt(it)+'</span>';
+    const isDiscount = si === 0; // ชิ้นแรกลด 50%
+    const curPrice = isDiscount ? Math.floor(it.price * 0.5) : it.price;
+    r.innerHTML='<span>' + (isDiscount ? '<span class="teal" style="font-weight:700">[ลด ๕๐%] </span>' : '') + it.name + statTxt(it) + '</span>';
     const b=document.createElement('button');b.className='mini-btn';
-    b.textContent='◉ '+it.price;b.disabled=player.gold<it.price;
+    b.textContent='◉ '+curPrice;b.disabled=player.gold<curPrice;
     b.onclick=()=>{
-      player.gold-=it.price;sfx.buy();
+      player.gold-=curPrice;sfx.buy();
       if(it.t==='gold'){player.gold+=it.amt;}
-      else if(player.inv.length >= (player.bagMax || 10)){msg('ถุงผ้าเต็ม!','warn');player.gold+=it.price;return;}
+      else if(player.inv.length >= (player.bagMax || 10)){msg('ถุงผ้าเต็ม!','warn');player.gold+=curPrice;return;}
       else player.inv.push({...it});
       msg('ซื้อ «'+it.name+'»');updateHud();renderShop(n);
     };
     r.appendChild(b);s.appendChild(r);
   });
 
-  // ส่วนรับซื้อของจากผู้เล่น
+  // ๓. ส่วนรับซื้อของจากผู้เล่น
   const sellBox = document.createElement('div');
   sellBox.style.marginTop = '12px';
   sellBox.innerHTML = '<h4 style="margin:8px 0 4px;color:var(--teal);font-size:13px">💰 รับซื้อของในถุงผ้า</h4>';
@@ -4872,6 +4948,12 @@ function inspectItem(it){
     typeTag = wt.icon + ' ' + (wt.name || 'อาวุธ') + ' · โจมตี +' + it.v;
   } else if(it.t === 'arm'){
     typeTag = '🛡 ชุดเกราะ · ป้องกัน +' + it.v;
+  } else if(it.t === 'head'){
+    typeTag = '👑 ชฎา/มงกุฎ · ' + (it.desc || '');
+  } else if(it.t === 'gem'){
+    typeTag = (it.icon || '💎') + ' อัญมณีนพเก้าหิมพานต์';
+  } else if(it.t === 'ration'){
+    typeTag = (it.icon || '🍌') + ' เสบียงอาหารทิพย์ (พลังกาย +' + it.hunger + '%)';
   } else if(it.t === 'relic'){
     typeTag = (it.icon || '📿') + ' เครื่องรางเทวะ';
   } else if(it.t === 'throw'){
@@ -4882,6 +4964,12 @@ function inspectItem(it){
     typeTag = '🧪 ยาฟื้นฟูมนตร์';
   } else if(it.t === 'upg'){
     typeTag = '📜 คัมภีร์มนตราตีบวก';
+  } else if(it.t === 'scroll_tac'){
+    typeTag = '📜 คัมภีร์ยุทธวิธี';
+  } else if(it.t === 'elixir'){
+    typeTag = '🧪 ยาวิเศษสกัดชั้นสูง';
+  } else if(it.t === 'ore'){
+    typeTag = (it.icon || '🪨') + ' แร่ศักดิ์สิทธิ์สำหรับหลอม';
   } else {
     typeTag = '📜 มนตรา/คัมภีร์';
   }
@@ -4910,6 +4998,13 @@ function inspectItem(it){
     html += '<p style="color:' + (it.afColor || '#ff8b1f') + ';font-size:13px;background:#24151b;padding:6px 8px;border-left:3px solid ' + (it.afColor||'#ff8b1f') + ';margin:6px 0"><b>พลังแฝงพิเศษ:</b> ' + it.afDesc + '</p>';
   }
 
+    if(it.t === 'gem'){
+    html += '<div style="background:#152623;padding:8px 10px;border-left:3px solid ' + (it.color || 'var(--teal)') + ';margin:6px 0;text-align:left">';
+    html += '<b style="color:' + (it.color || 'var(--teal)') + '">คุณสมบัติเมื่อฝังลงในอาวุธ:</b>';
+    html += '<div style="color:#fff;font-size:13px;margin-top:2px">' + it.desc + '</div>';
+    html += '<small class="dim" style="font-size:11.5px;display:block;margin-top:4px">💡 วิธีใช้: นำไปกด "ใช้" ในถุงผ้า เพื่อฝังลงในอาวุธที่กำลังถืออยู่ (อาวุธ ๑ ชิ้นฝังได้สูงสุด ๒ เม็ด และสามารถถอดคืนได้ตลอดเวลา)</small>';
+    html += '</div>';
+  }
   if(it.desc){
     html += '<p style="color:var(--teal);font-size:13px;margin:6px 0">' + it.desc + '</p>';
   }
@@ -4956,9 +5051,14 @@ function renderInv(){
     if(player.wpn.gems && player.wpn.gems.length){
       gemIcons = ' ' + player.wpn.gems.map(g => g.icon).join('');
     }
-    equipHtml += '<div style="background:#1c0d1b;padding:6px;border:1px solid ' + (RARITY_COLORS[player.wpn.r]||'var(--line)') + ';border-radius:3px;cursor:pointer" onclick="inspectItem(player.wpn)">';
-    equipHtml += '<div style="display:flex;align-items:center;gap:4px"><span>⚔</span><b style="color:' + (RARITY_COLORS[player.wpn.r]||'#fff') + ';font-size:12px">' + player.wpn.name + gemIcons + '</b></div>';
-    equipHtml += '<small class="teal">โจมตี +' + player.wpn.v + (player.wpn.afDesc ? ' · ' + player.wpn.afDesc : '') + '</small></div>';
+    equipHtml += '<div style="background:#1c0d1b;padding:6px;border:1px solid ' + (RARITY_COLORS[player.wpn.r]||'var(--line)') + ';border-radius:3px">';
+    equipHtml += '<div style="display:flex;justify-content:space-between;align-items:center">';
+    equipHtml += '<div style="display:flex;align-items:center;gap:4px;cursor:pointer" onclick="inspectItem(player.wpn)"><span>⚔</span><b style="color:' + (RARITY_COLORS[player.wpn.r]||'#fff') + ';font-size:12px">' + player.wpn.name + gemIcons + '</b></div>';
+    if(player.wpn.gems && player.wpn.gems.length){
+      equipHtml += '<button class="mini-btn" style="padding:2px 6px;font-size:10px" onclick="unsocketWeaponGems()">ถอดมณี</button>';
+    }
+    equipHtml += '</div>';
+    equipHtml += '<small class="teal" style="cursor:pointer" onclick="inspectItem(player.wpn)">โจมตี +' + player.wpn.v + (player.wpn.afDesc ? ' · ' + player.wpn.afDesc : '') + '</small></div>';
   } else {
     equipHtml += '<div class="dim" style="background:#120713;padding:6px;border:1px dashed #3d1b28;border-radius:3px">⚔ อาวุธ: หมัดเปล่า</div>';
   }
@@ -5138,10 +5238,15 @@ function setupInput(){
     btnAwk.style.background = '#8f2438';
     btnAwk.style.borderColor = 'var(--gold)';
     btnAwk.style.fontSize = '12px';
-    btnAwk.style.padding = '6px 10px';
+    btnAwk.style.padding = '6px 8px';
+    btnAwk.style.width = '100%';
+    btnAwk.style.gridColumn = '1 / -1';
+    btnAwk.style.marginBottom = '4px';
+    btnAwk.style.boxSizing = 'border-box';
     btnAwk.innerHTML = '✦ อวตาร';
-    const ctlBox = $('controls') || document.body;
-    ctlBox.appendChild(btnAwk);
+    const actBox = $('btnMantra') ? $('btnMantra').parentNode : ($('controls') || document.body);
+    if($('btnMantra')) actBox.insertBefore(btnAwk, $('btnMantra'));
+    else actBox.appendChild(btnAwk);
   }
   btnAwk.onclick = triggerAwaken;
   $('btnInv').onclick=()=>{if(state==='play'){renderInv();show($('invOv'));}};
