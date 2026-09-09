@@ -1,5 +1,5 @@
 
-const CACHE = 'lanka-v1.2'; // ⬆️ 
+const CACHE = 'lanka-v${{ github.sha }}';
 const ASSETS = ['./', 'index.html', 'css/style.css', 'js/game.js', 'manifest.json', 'icon.svg'];
 
 self.addEventListener('install', e => {
