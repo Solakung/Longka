@@ -1867,7 +1867,7 @@ function genFloor(fl){
     carve(x,y);
   }
   const fr=rooms[0],lr=rooms[rooms.length-1];
-  player.x=fr.cx;player.y=fr.cy;
+  player.x=fr.cx;player.y=fr.cy;player.prevX=fr.cx;player.prevY=fr.cy;
   stairs={x:lr.cx,y:lr.cy,locked:!!getBoss(fl)};
   map[stairs.y*W+stairs.x]=2;
   traps=[];
@@ -1913,6 +1913,14 @@ function genFloor(fl){
       items.push({ x: wx, y: wy, ...secretItem, inWall: true });
     }
   }
+  // รับประกันเสบียงอาหาร ๑-๒ ชิ้นทุกชั้นเพื่อป้องกันการหิวโซ
+  const foodRoom = pick(rooms.slice(1));
+  items.push({ x: foodRoom.cx, y: foodRoom.cy, ...genRation() });
+  if(rooms.length > 2 && floorR() < 0.60){
+    const foodRoom2 = pick(rooms.slice(1));
+    items.push({ x: foodRoom2.x + 1, y: foodRoom2.y + 1, ...genRation() });
+  }
+
   if(fl%3===0){ // วาณิช + เควสต์
     const r=rooms[rooms.length-2]||rooms[0];
     const qfoes=getFoePool(fl);
@@ -1921,7 +1929,8 @@ function genFloor(fl){
     const stock=[
       {t:'pot',name:'อมฤต',heal:14+fl*2,r:'common',lore:'น้ำอมฤตฟื้นฟูเลือด',price:Math.floor((18+fl)*priceMult)},
       {t:'mana',name:'น้ำโสม',mana:12+fl*2,r:'common',lore:'น้ำสกัดจากโสมพันปี',price:16+fl},
-      genPetEgg(), // ไข่สัตว์เลี้ยงมีขายในร้านแน่นอน
+      genRation(), // เสบียงอาหารมีขายแน่นอน
+      genPetEgg(),
       genW(clamp(Math.floor(fl/4)+1, 1, 4)),
       genA(clamp(Math.floor(fl/4)+1, 1, 6)),
       genScrollUpg(),
@@ -2257,8 +2266,8 @@ function genGroundItem(){
   if(r<.20) return genGem(); // อัญมณีนพเก้า
   if(r<.24) return genPlayerTool(); // กับดักผู้เล่น
   if(r<.29) return genOre(); // แร่ขุดศักดิ์สิทธิ์
-  if(r<.34) return {t:'mana', name:'น้ำโสม', mana:10+floor*2, r:'common', lore:'น้ำสกัดจากโสมพันปี ฟื้นฟูพลังมนตร์'};
-  if(r<.42) return {t:'gold', amt:8+Math.floor(floorR()*(10+floor*3))};
+  if(r<.18) return {t:'mana', name:'น้ำโสม', mana:10+floor*2, r:'common', lore:'น้ำสกัดจากโสมพันปี ฟื้นฟูพลังมนตร์'};
+  if(r<.38) return {t:'gold', amt:8+Math.floor(floorR()*(10+floor*3))};
   if(r<.48) return genTacticalScroll(); // คัมภีร์ยุทธวิธี
   if(r<.56) return genElixir(); // ยาวิเศษ
   if(r<.66){
@@ -2602,7 +2611,7 @@ function tryMove(dx,dy){
   }
   const n=npcAt(nx,ny);
   if(n){interact(n);return;}
-  player.x=nx;player.y=ny;
+  player.prevX=player.x;player.prevY=player.y;player.x=nx;player.y=ny;
   const gi=items.findIndex(i=>i.x===nx&&i.y===ny);
   
   if(gi>=0)pickup(gi);
@@ -3473,6 +3482,8 @@ function useItem(i){
   }
   else if(it.t==='egg'){
     player.pet = { ...PET_TYPES[it.petType], type: it.petType };
+    player.prevX = player.x - (player.facing || 1);
+    player.prevY = player.y;
     player.inv.splice(i, 1);
     sfx.level(); flash = 0.5;
     floats.push({x:player.x, y:player.y, t:'สัตว์เลี้ยงฟัก!', c:'#f5c542', life:2});
@@ -3693,7 +3704,7 @@ function renderShop(n){
     b.onclick=()=>{
       player.gold-=it.price;sfx.buy();
       if(it.t==='gold'){player.gold+=it.amt;}
-      else if(player.inv.length >= (player.bagMax||10)){msg('ถุงผ้าเต็ม!','warn');player.gold+=it.price;return;}
+      else if(player.inv.length>=10){msg('ถุงผ้าเต็ม!','warn');player.gold+=it.price;return;}
       else player.inv.push({...it});
       msg('ซื้อ «'+it.name+'»');updateHud();renderShop(n);
     };
@@ -4209,7 +4220,7 @@ function render(){
       ctx.fillRect(sx, sy, T, T);
     }
 
-    const ic={pot:'pot',mana:'mana',gold:'gold',wpn:'wpn',arm:'arm',scr:'scr',throw:'wpn',relic:'arm',upg:'scr',hook:'wpn',skel:'skeleton',head:'arm',scroll_tac:'scr',elixir:'pot',egg:'pot'}[it.t] || 'wpn';
+    const ic={pot:'pot',mana:'mana',gold:'gold',wpn:'wpn',arm:'arm',scr:'scr',throw:'wpn',relic:'relic',upg:'scr',hook:'wpn',skel:'skeleton',head:'head',scroll_tac:'scroll_tac',elixir:'elixir',egg:'egg',ration:'ration',gem:'gem',ore:'ore',player_tool:'player_tool'}[it.t] || 'wpn';
     drawSpr(ic,sx,sy+1);
   }
 
@@ -4275,11 +4286,12 @@ function render(){
     const flipP = player.facing === -1;
     drawSpr(player.sprite, px, py + pBob, 16, 16, flipP, 0);
 
-    // วาดสัตว์เลี้ยงเดินตามหลัง
+    // วาดสัตว์เลี้ยงเดินตามหลังกระโดดดุ๊กดิ๊ก
     if(player.pet){
       const petSpr = player.pet.s || 'vanara';
-      const petX = (player.prevX - camX) * T, petY = (player.prevY - camY) * T;
-      drawSpr(petSpr, petX + 2, petY + 2, 12, 12, flipP, 0);
+      const petBob = ((time & 4) ? -1 : 0);
+      const petX = (player.prevX - camX) * T, petY = (player.prevY - camY) * T + petBob;
+      drawSpr(petSpr, petX, petY, 16, 16, player.facing === -1, 0);
     }
   }
 
@@ -4298,7 +4310,7 @@ function render(){
     const pScreenY = (player.y - camY) * T + 8;
     const flicker = Math.sin(time * 0.16) * 3 + Math.cos(time * 0.35) * 2;
     const radDist = heatSettings.darkTorches ? 42 : 88;
-    const torchGrad = ctx.createRadialGradient(pScreenX, pScreenY, 8, pScreenX, pScreenY, radDist + flicker);
+    torchGrad = ctx.createRadialGradient(pScreenX, pScreenY, 8, pScreenX, pScreenY, radDist + flicker);
     torchGrad.addColorStop(0, 'rgba(245, 197, 66, 0.12)'); // สีทองอบอุ่นรอบตัว
     torchGrad.addColorStop(0.35, 'rgba(255, 139, 31, 0.05)'); // สีส้มเรือง
     torchGrad.addColorStop(0.85, 'rgba(18, 5, 13, 0.08)');
@@ -4912,49 +4924,132 @@ function inspectItem(it){
   $('btnCloseInspect').onclick = () => hide(box);
 }
 
-function renderInv(){
-  let totalAtk = player.atk + (player.wpn ? player.wpn.v : 0);
-  if(player.head && player.head.atk) totalAtk += player.head.atk;
-  let totalDef = player.def + (player.arm ? player.arm.v : 0);
-  if(player.head && player.head.def) totalDef += player.head.def;
-  if(player.buffIronskin > 0) totalDef += 10; // บัฟยาผิวเหล็กไหล
-  let totalDodge = player.dodge;
-  if(player.arm && player.arm.affix === 'dodge') totalDodge += 15;
 
-  let equipHtml = '<div style="background:#1b0b18;padding:8px;border:2px solid var(--line);margin-bottom:8px;font-size:13px">';
-  equipHtml += '<div style="color:var(--gold);font-weight:700;margin-bottom:4px">📊 สเตตัสรวม (นับบัฟแล้ว)</div>';
-  equipHtml += '<div>⚔ <b>โจมตีรวม: ' + totalAtk + '</b> <small class="dim">(ตัวเปล่า ' + player.atk + ' + ' + player.wpn.name + ' +' + player.wpn.v + ')</small></div>';
-  equipHtml += '<div>🛡 <b>ป้องกันรวม: ' + totalDef + '</b> <small class="dim">(ตัวเปล่า ' + player.def + ' + ' + player.arm.name + ' +' + player.arm.v + ')</small></div>';
-  equipHtml += '<div>💨 <b>หลบหลีก: ' + totalDodge + '%</b> &nbsp;·&nbsp; ✦ <b>ปุญ: ' + player.punya + '</b> &nbsp;·&nbsp; ☠ <b>สังหาร: ' + player.killsTotal + ' ตน</b></div>';
-  if(player.wpn && player.wpn.afDesc) equipHtml += '<div style="color:' + (player.wpn.afColor||'#ff8b1f') + '">✦ อาวุธ: ' + player.wpn.afDesc + '</div>';
-  if(player.arm && player.arm.afDesc) equipHtml += '<div style="color:' + (player.arm.afColor||'#2ec4a6') + '">✦ เกราะ: ' + player.arm.afDesc + '</div>';
-  if(player.head) equipHtml += '<div style="color:#ffe9a3">👑 <b>ชฎา/มงกุฎ: ' + player.head.name + '</b> — ' + player.head.desc + '</div>';
-  if(player.relic) equipHtml += '<div style="color:#f5c542">' + (player.relic.icon||'📿') + ' <b>เครื่องราง: ' + player.relic.name + '</b> — ' + player.relic.desc + '</div>';
-  if(player.vow) equipHtml += '<div style="color:#ffe9a3;background:#24190c;padding:4px 6px;margin-top:4px;border:1px dashed var(--gold)">📿 <b>ถือสัจจะ: ' + player.vow.name + '</b> (ถึงชั้น ' + thaiNum(player.vow.endFloor) + ')</div>';
-  else equipHtml += '<div class="dim" style="font-size:12px">📿 เครื่องราง: ยังไม่ได้สวมใส่</div>';
+let selectedInvIndex = -1;
+
+function renderInv(){
+  selectedInvIndex = clamp(selectedInvIndex, -1, player.inv.length - 1);
+  if(selectedInvIndex === -1 && player.inv.length > 0) selectedInvIndex = 0;
+
+  // ๑. แผงแสดงอุปกรณ์สวมใส่ ๔ ชิ้นส่วน (Head, Weapon, Armor, Relic)
+  let equipHtml = '<div style="background:#130612;border:2px solid var(--gold);padding:8px;border-radius:4px;margin-bottom:10px;box-shadow:0 0 14px rgba(245,197,66,.25)">';
+  equipHtml += '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed var(--line);padding-bottom:4px;margin-bottom:6px">';
+  equipHtml += '<span style="color:var(--gold);font-weight:700;font-size:13px">🛡️ อุปกรณ์สวมใส่ (๔ ช่อง)</span>';
+  equipHtml += '<span style="font-size:11px;color:var(--teal)">🍖 กาย: ' + player.hunger + '% · ✦ ปุญ: ' + player.punya + '</span>';
   equipHtml += '</div>';
 
+  equipHtml += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11.5px">';
+
+  // ช่อง ๑: ชฎา/มงกุฎ
+  if(player.head){
+    equipHtml += '<div style="background:#1c0d1b;padding:6px;border:1px solid ' + (RARITY_COLORS[player.head.r]||'var(--line)') + ';border-radius:3px;cursor:pointer" onclick="inspectItem(player.head)">';
+    equipHtml += '<div style="display:flex;align-items:center;gap:4px"><span>👑</span><b style="color:' + (RARITY_COLORS[player.head.r]||'#fff') + ';font-size:12px">' + player.head.name + '</b></div>';
+    equipHtml += '<small class="dim">' + player.head.desc + '</small></div>';
+  } else {
+    equipHtml += '<div class="dim" style="background:#120713;padding:6px;border:1px dashed #3d1b28;border-radius:3px">👑 ชฎา: ว่าง</div>';
+  }
+
+  // ช่อง ๒: อาวุธ (แสดงอัญมณีที่ฝังอยู่ด้วย!)
+  if(player.wpn){
+    let gemIcons = '';
+    if(player.wpn.gems && player.wpn.gems.length){
+      gemIcons = ' ' + player.wpn.gems.map(g => g.icon).join('');
+    }
+    equipHtml += '<div style="background:#1c0d1b;padding:6px;border:1px solid ' + (RARITY_COLORS[player.wpn.r]||'var(--line)') + ';border-radius:3px;cursor:pointer" onclick="inspectItem(player.wpn)">';
+    equipHtml += '<div style="display:flex;align-items:center;gap:4px"><span>⚔</span><b style="color:' + (RARITY_COLORS[player.wpn.r]||'#fff') + ';font-size:12px">' + player.wpn.name + gemIcons + '</b></div>';
+    equipHtml += '<small class="teal">โจมตี +' + player.wpn.v + (player.wpn.afDesc ? ' · ' + player.wpn.afDesc : '') + '</small></div>';
+  } else {
+    equipHtml += '<div class="dim" style="background:#120713;padding:6px;border:1px dashed #3d1b28;border-radius:3px">⚔ อาวุธ: หมัดเปล่า</div>';
+  }
+
+  // ช่อง ๓: ชุดเกราะ
+  if(player.arm){
+    equipHtml += '<div style="background:#1c0d1b;padding:6px;border:1px solid ' + (RARITY_COLORS[player.arm.r]||'var(--line)') + ';border-radius:3px;cursor:pointer" onclick="inspectItem(player.arm)">';
+    equipHtml += '<div style="display:flex;align-items:center;gap:4px"><span>🛡</span><b style="color:' + (RARITY_COLORS[player.arm.r]||'#fff') + ';font-size:12px">' + player.arm.name + '</b></div>';
+    equipHtml += '<small class="teal">ป้องกัน +' + player.arm.v + (player.arm.afDesc ? ' · ' + player.arm.afDesc : '') + '</small></div>';
+  } else {
+    equipHtml += '<div class="dim" style="background:#120713;padding:6px;border:1px dashed #3d1b28;border-radius:3px">🛡 เกราะ: ว่าง</div>';
+  }
+
+  // ช่อง ๔: เครื่องราง
+  if(player.relic){
+    equipHtml += '<div style="background:#1c0d1b;padding:6px;border:1px solid ' + (RARITY_COLORS[player.relic.r]||'var(--line)') + ';border-radius:3px;cursor:pointer" onclick="inspectItem(player.relic)">';
+    equipHtml += '<div style="display:flex;align-items:center;gap:4px"><span>' + (player.relic.icon||'📿') + '</span><b style="color:' + (RARITY_COLORS[player.relic.r]||'#fff') + ';font-size:12px">' + player.relic.name + '</b></div>';
+    equipHtml += '<small class="dim">' + player.relic.desc + '</small></div>';
+  } else {
+    equipHtml += '<div class="dim" style="background:#120713;padding:6px;border:1px dashed #3d1b28;border-radius:3px">📿 เครื่องราง: ว่าง</div>';
+  }
+
+  equipHtml += '</div></div>';
   $('equip').innerHTML = equipHtml;
-  const list=$('invList');list.innerHTML='';
-  if(!player.inv.length){list.innerHTML='<div class="row dim">ถุงผ้าว่างเปล่า…</div>';return;}
-  player.inv.forEach((it,i)=>{
-    const r=document.createElement('div');r.className='row';
-    r.innerHTML='<span>'+it.name+statTxt(it)+'</span>';
-    const btnBox=document.createElement('div');
-    btnBox.style.display='flex';btnBox.style.gap='6px';
 
-    const bUse=document.createElement('button');bUse.className='mini-btn';bUse.textContent='ใช้';
-    bUse.onclick=()=>{useItem(i);renderInv();};
+  // ๒. คลังถุงผ้าแบบตารางช่อง (Grid Inventory Slots)
+  const maxBag = player.bagMax || 10;
+  const list = $('invList');
+  list.innerHTML = '';
+  list.style.display = 'flex';
+  list.style.flexDirection = 'column';
+  list.style.gap = '8px';
 
-    const bDrop=document.createElement('button');bDrop.className='mini-btn';bDrop.textContent='ทิ้ง';
-    bDrop.style.background='#5c2a3a';bDrop.style.color='#f4ecdc';bDrop.style.borderColor='#8a3d52';
-    bDrop.style.boxShadow='0 3px 0 #2a0d16';
-    bDrop.onclick=()=>{dropItem(i);renderInv();};
+  let gridHtml = '<div style="display:flex;justify-content:space-between;align-items:center">';
+  gridHtml += '<span style="color:var(--teal);font-size:12.5px;font-weight:700">🎒 ถุงผ้า (' + player.inv.length + '/' + maxBag + ' ช่อง)</span>';
+  gridHtml += '<small class="dim" style="font-size:11px">แตะที่ช่องเพื่อเลือกไอเทม</small>';
+  gridHtml += '</div>';
 
-    btnBox.appendChild(bUse);btnBox.appendChild(bDrop);
-    r.appendChild(btnBox);list.appendChild(r);
-  });
+  gridHtml += '<div style="display:grid;grid-template-columns:repeat(5, 1fr);gap:6px;margin:6px 0 10px">';
+  for(let i = 0; i < maxBag; i++){
+    const it = player.inv[i];
+    const isSelected = i === selectedInvIndex;
+    if(it){
+      const rCol = RARITY_COLORS[it.r || 'common'] || '#fff';
+      const typeIcon = { pot:'🧪', mana:'💧', gold:'◉', wpn:'⚔', arm:'🛡', scr:'📜', throw:'🏹', relic:'📿', upg:'📜', hook:'🪝', skel:'💀', head:'👑', scroll_tac:'📜', elixir:'🧪', egg:'🥚', ration:'🍌', gem: it.icon||'💎', ore:'🪨', player_tool:'⚙️' }[it.t] || '📦';
+
+      gridHtml += '<div onclick="selectInvSlot(' + i + ')" style="aspect-ratio:1;background:#1b0c19;border:2px solid ' + (isSelected ? 'var(--gold)' : rCol) + ';border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;cursor:pointer;box-shadow:' + (isSelected ? '0 0 10px rgba(245,197,66,.6)' : 'none') + '">';
+      gridHtml += '<span style="font-size:18px">' + (it.icon || typeIcon) + '</span>';
+      gridHtml += '<div style="font-size:9.5px;color:' + rCol + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90%;margin-top:2px">' + it.name.slice(0, 5) + '</div>';
+      if(it.plus) gridHtml += '<span style="position:absolute;top:2px;right:2px;font-size:9px;color:var(--gold);font-weight:700">+' + thaiNum(it.plus) + '</span>';
+      gridHtml += '</div>';
+    } else {
+      gridHtml += '<div style="aspect-ratio:1;background:#110612;border:1px dashed #3a1926;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#3a1926;font-size:10px">' + thaiNum(i + 1) + '</div>';
+    }
+  }
+  gridHtml += '</div>';
+
+  // ๓. แผงแสดงรายละเอียดและปุ่มกระทำของไอเทมที่เลือก (Item Detail Card & Actions)
+  let detailHtml = '';
+  const selItem = player.inv[selectedInvIndex];
+  if(selItem){
+    const rCol = RARITY_COLORS[selItem.r || 'common'] || '#fff';
+    const actionTxt = (selItem.t==='wpn'||selItem.t==='arm'||selItem.t==='relic'||selItem.t==='head') ? 'สวมใส่' : (selItem.t==='throw' ? 'ขว้างปา' : 'ใช้งาน');
+
+    detailHtml += '<div style="background:#180a18;border:2px solid ' + rCol + ';padding:8px 10px;border-radius:4px;box-shadow:0 0 14px ' + rCol + '33">';
+    detailHtml += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
+    detailHtml += '<b style="color:' + rCol + ';font-size:14px;font-family:Chakra Petch">' + selItem.name + '</b>';
+    detailHtml += '<span style="font-size:10.5px;padding:2px 6px;border-radius:3px;background:' + rCol + '22;color:' + rCol + '">✦ ' + (RARITY_NAMES[selItem.r||'common']||'ทั่วไป') + '</span>';
+    detailHtml += '</div>';
+
+    detailHtml += '<div style="font-size:12px;color:var(--gold);margin-bottom:6px">' + statTxt(selItem) + '</div>';
+    if(selItem.curseDesc) detailHtml += '<div style="color:var(--red);font-size:11px;margin-bottom:4px">☠ <b>ข้อแลกเปลี่ยน:</b> ' + selItem.curseDesc + '</div>';
+    if(selItem.lore) detailHtml += '<div class="dim" style="font-size:11px;font-style:italic;margin-bottom:8px">“' + selItem.lore + '”</div>';
+
+    detailHtml += '<div style="display:flex;gap:6px;justify-content:flex-end">';
+    detailHtml += '<button class="mini-btn" style="background:#8f2438;color:#fff;border-color:#d43d2a" onclick="dropItem(' + selectedInvIndex + ');renderInv();">ทิ้งลงพื้น</button>';
+    detailHtml += '<button class="mini-btn" onclick="inspectItem(player.inv[' + selectedInvIndex + '])">ส่องละเอียด</button>';
+    detailHtml += '<button class="mini-btn" style="background:#158574;color:#fff;border-color:#2ec4a6;padding:4px 14px" onclick="useItem(' + selectedInvIndex + ');renderInv();">' + actionTxt + '</button>';
+    detailHtml += '</div>';
+    detailHtml += '</div>';
+  } else {
+    detailHtml += '<div class="row dim" style="justify-content:center;padding:10px">เลือกไอเทมในช่องเพื่อดูข้อมูล</div>';
+  }
+
+  list.innerHTML = gridHtml + detailHtml;
 }
+
+function selectInvSlot(i){
+  selectedInvIndex = i;
+  renderInv();
+}
+
 function renderMantras(){
   $('mpHint').textContent='พลังมนตร์ '+player.mp+'/'+player.mmp;
   const list=$('mantraList');list.innerHTML='';
