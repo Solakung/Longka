@@ -1,5 +1,5 @@
 /* sw.js — แคชทุกอย่างไว้ เล่นออฟไลน์เต็มรูปแบบ */
-const CACHE='lanka-v1';
+const CACHE='lanka-v1.1';
 const ASSETS=['./','index.html','css/style.css','js/game.js','manifest.json','icon.svg'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));
