@@ -544,6 +544,16 @@ const ARM_AFFIXES = [
   { id: 'resist', name: 'มนตราคุ้มกาย', d: 'ลดดาเมจไฟและพิษ ๕๐%', c: '#8d55c9' },
 ];
 
+
+const TOOL_HOOK = {
+  t: 'hook',
+  name: 'ตะขอเกี่ยวศิลา',
+  r: 'rare',
+  icon: '🪝',
+  lore: 'ตะขอเหล็กกล้าผูกเชือกสายสิญจน์ ใช้สอยเกี่ยวสมบัติที่ซ่อนอยู่ในซอกกำแพงหินลึก',
+  price: 25
+};
+
 const THROWABLES = [
   { name: 'ศรพระราม', dmg: 22, range: 6, c: '#f5c542' },
   { name: 'หอกซัดเหล็ก', dmg: 14, range: 4, c: '#e8b06a' },
@@ -669,6 +679,17 @@ function genFloor(fl){
     if(map[y*W+x]!==1||(x===player.x&&y===player.y))continue;
     if(items.some(it=>it.x===x&&it.y===y))continue;
     items.push({x,y,...genGroundItem()});
+  }
+
+  // 🪨 สุ่มสร้าง "สมบัติซ่อนในซอกกำแพง" (Secret Wall Treasures) ๑-๒ จุดต่อชั้น
+  for(let s=0; s<2; s++){
+    const r = pick(rooms.slice(1));
+    const wx = floorR() < 0.5 ? r.x : r.x + r.w - 1;
+    const wy = r.y + 1 + Math.floor(floorR()*(r.h - 2));
+    if(!items.some(it=>it.x===wx && it.y===wy)){
+      const secretItem = genGroundItem();
+      items.push({ x: wx, y: wy, ...secretItem, inWall: true });
+    }
   }
   if(fl%3===0){ // วาณิช + เควสต์
     const r=rooms[rooms.length-2]||rooms[0];
@@ -827,7 +848,8 @@ function genGroundItem(){
     return {t:'throw', name: th.name, dmg: th.dmg + Math.floor(floor * 0.8), range: th.range, c: th.c, burn: th.burn||0, r:'common', lore:'อาวุธขว้างโจมตีระยะไกล ' + thaiNum(th.range) + ' ช่อง', price: 20 + floor*2};
   }
   if(r<.70) return genScrollUpg(); // คัมภีร์ตีบวก
-  if(r<.78) return genRelic(); // เครื่องราง
+  if(r<.75) return genRelic();
+  if(r<.80) return {...TOOL_HOOK}; // ตะขอเกี่ยวศิลา
   if(r<.89){ const t = clamp(1 + Math.floor((floor-1)/5), 1, 4); return genW(t); }
   if(r<.96){ const t = clamp(1 + Math.floor((floor-1)/4), 1, 6); return genA(t); }
   return genScr();
@@ -919,7 +941,42 @@ function npcAt(x,y){return npcs.find(n=>n.x===x&&n.y===y)}
 function tryMove(dx,dy){
   if(state!=='play')return;
   const nx=player.x+dx,ny=player.y+dy;
-  if(!canWalk(nx,ny))return;
+  if(!canWalk(nx,ny)){
+    // ตรวจสอบว่ามีสมบัติซ่อน/ฝังอยู่ในซอกกำแพงตรงหน้าหรือไม่!
+    const wallItemIdx = items.findIndex(it => it.x === nx && it.y === ny);
+    if(wallItemIdx >= 0){
+      const it = items[wallItemIdx];
+      const hasSpear = player.wpn && player.wpn.type === 'spear';
+      const hasMace = player.wpn && player.wpn.type === 'mace';
+      const hasHook = player.inv.some(invIt => invIt.t === 'hook');
+
+      if(hasSpear || hasMace || hasHook){
+        // ดึงของออกจากกำแพงมาที่เท้าของผู้เล่น!
+        items.splice(wallItemIdx, 1);
+        items.push({ x: player.x, y: player.y, ...it });
+        triggerSlash(nx, ny, '#f5c542');
+        sfx.pick();
+        shake = 4;
+        if(hasSpear){
+          msg('🔱 เจ้าใช้ปลาย «' + player.wpn.name + '» สอยเกี่ยว «' + it.name + '» ออกมาจากซอกกำแพง!', 'good');
+        } else if(hasMace){
+          msg('🔨 เจ้าใช้ «' + player.wpn.name + '» ทุบซอกหินแตก «' + it.name + '» หลุดกระเด็นออกมา!', 'good');
+        } else {
+          msg('🪝 เจ้าเหวี่ยง «ตะขอเกี่ยวศิลา» ดึง «' + it.name + '» ออกมาจากซอกกำแพงสำเร็จ!', 'good');
+        }
+        // เก็บเข้ากระเป๋าทันที
+        const gi = items.findIndex(i => i.x === player.x && i.y === player.y);
+        if(gi >= 0) pickup(gi);
+        endTurn();
+        return;
+      } else {
+        msg('🔍 มี «' + it.name + '» ซ่อนอยู่ในซอกกำแพง! (ต้องใช้หอกยาว, กระบอง หรือตะขอเกี่ยวออกมา)', 'warn');
+        floats.push({ x: nx, y: ny, t: 'ซ่อนอยู่!', c: '#f5c542', life: 1.2 });
+        return;
+      }
+    }
+    return;
+  }
   const e=enemyAt(nx,ny);
   if(e){
     playerBump={x:dx*8,y:dy*8,time:4};
@@ -1314,6 +1371,32 @@ function useItem(i){
     msg('สวมใส่เครื่องราง «' + it.name + '» ' + it.desc, 'good');
     sfx.level();
   }
+  else if(it.t==='hook'){
+    // ตรวจสอบกำแพงทั้ง 4 ทิศรอบตัวผู้เล่น
+    const dirs = [[0,-1],[0,1],[-1,0],[1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
+    let found = false;
+    for(const [dx, dy] of dirs){
+      const hx = player.x + dx, hy = player.y + dy;
+      const wIdx = items.findIndex(wIt => wIt.x === hx && wIt.y === hy);
+      if(wIdx >= 0){
+        const wItem = items.splice(wIdx, 1)[0];
+        items.push({ x: player.x, y: player.y, ...wItem });
+        triggerSlash(hx, hy, '#f5c542');
+        sfx.pick();
+        msg('🪝 เจ้าเหวี่ยงตะขอเกี่ยว «' + wItem.name + '» ออกมาจากซอกกำแพงสำเร็จ!', 'good');
+        const gi = items.findIndex(i => i.x === player.x && i.y === player.y);
+        if(gi >= 0) pickup(gi);
+        found = true;
+        hide($('invOv'));
+        endTurn();
+        break;
+      }
+    }
+    if(!found){
+      msg('ไม่มีสมบัติในซอกกำแพงรอบตัวในระยะตะขอ…', 'warn');
+    }
+    return;
+  }
   else if(it.t==='upg'){
     // คัมภีร์ตีบวกอาวุธ
     if(!player.wpn){ msg('ไม่มีอาวุธที่จะตีบวก…', 'warn'); return; }
@@ -1671,11 +1754,19 @@ function render(){
     drawTile(x, y, vx, vy);
   }
 
-  for(const it of items){ // ของบนพื้น
+  for(const it of items){ // ของบนพื้นและในกำแพง
     if(!seen[it.y*W+it.x])continue;
     const sx=(it.x-camX)*T,sy=(it.y-camY)*T;
     if(sx<-T||sy<-T||sx>cv.width||sy>cv.height)continue;
-    const ic={pot:'pot',mana:'mana',gold:'gold',wpn:'wpn',arm:'arm',scr:'scr'}[it.t];
+
+    // ถ้าเป็นสมบัติในซอกกำแพง: แสดงประกายแสงทองวิบวับเรียกความสนใจ
+    if(map[it.y*W+it.x] === 0){
+      const glim = 0.35 + 0.35 * Math.sin(time * 0.25 + it.x * 2);
+      ctx.fillStyle = 'rgba(245, 197, 66, ' + glim.toFixed(2) + ')';
+      ctx.fillRect(sx, sy, T, T);
+    }
+
+    const ic={pot:'pot',mana:'mana',gold:'gold',wpn:'wpn',arm:'arm',scr:'scr',throw:'wpn',relic:'arm',upg:'scr',hook:'wpn'}[it.t] || 'wpn';
     drawSpr(ic,sx,sy+1);
   }
 
@@ -2036,7 +2127,16 @@ function setupInput(){
   });
   /* ปุ่มเมนู / โอเวอร์เลย์ */
   $('btnNew').onclick=()=>{initAudio();hide($('title'));show($('classSel'));};
-  $('btnContinue').onclick=()=>{initAudio();if(!loadGame()){msg('เซฟเสียหาย เริ่มใหม่แทน');hideAll();show($('classSel'));}};
+  $('btnContinue').onclick=()=>{
+    initAudio();
+    if(loadGame()){
+      hideAll(); // ปิดหน้าต่างไตเติลทันทีเมื่อโหลดเซฟสำเร็จ
+    } else {
+      msg('เซฟเสียหาย เริ่มใหม่แทน');
+      hideAll();
+      show($('classSel'));
+    }
+  };
   $('btnRecords').onclick=()=>{renderRecords();hide($('titleMenu'));show($('recordsBox'));};
   $('btnRecordsBack').onclick=()=>{hide($('recordsBox'));show($('titleMenu'));};
   $('btnBackTitle').onclick=()=>{hide($('classSel'));show($('title'));};
@@ -2060,6 +2160,32 @@ function fitCanvas(){
   cv.style.width=320*s+'px';cv.style.height=240*s+'px';
 }
 window.addEventListener('resize',fitCanvas);
+
+  // ระบบแตะกระเบื้องบนจอเพื่อเดินอัตโนมัติ (Tap-to-Move)
+  cv.addEventListener('pointerdown', e => {
+    if(state !== 'play' || !player) return;
+    const rect = cv.getBoundingClientRect();
+    const scaleX = cv.width / rect.width;
+    const scaleY = cv.height / rect.height;
+    const clickX = (e.clientX - rect.left) * scaleX;
+    const clickY = (e.clientY - rect.top) * scaleY;
+    const camX = clamp(player.x - (VW >> 1), 0, W - VW);
+    const camY = clamp(player.y - (VH >> 1), 0, H - VH);
+    const targetTileX = camX + Math.floor(clickX / T);
+    const targetTileY = camY + Math.floor(clickY / T);
+
+    const diffX = targetTileX - player.x;
+    const diffY = targetTileY - player.y;
+    if(diffX === 0 && diffY === 0){
+      waitTurn(); // จิ้มที่ตัวเรา = รอเทิร์น
+      return;
+    }
+    // เดิน 1 ก้าวไปยังทิศทางที่จิ้ม
+    const stepX = Math.abs(diffX) >= Math.abs(diffY) ? Math.sign(diffX) : 0;
+    const stepY = stepX === 0 ? Math.sign(diffY) : 0;
+    tryMove(stepX, stepY);
+  });
+
 
 /* ── เริ่มระบบ ── */
 if('serviceWorker' in navigator){
