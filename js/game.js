@@ -4884,7 +4884,8 @@ function inspectItem(it){
 
   if(it.cursed){
     html += '<div style="background:#26050b;border:2px solid var(--red);padding:6px 8px;border-radius:4px;margin:6px 0;text-align:left">';
-    html += '<div style="color:var(--red);font-weight:700;font-size:13px">☠ อุปกรณ์ต้องสาป (Cursed Drawback)</div>';
+    html += '<div style="color:var(--red);font-weight:700;font-size:
+13px">☠ อุปกรณ์ต้องสาป (Cursed Drawback)</div>';
     html += '<div style="color:#ff8b8b;font-size:12px;margin-top:2px"><b>ข้อแลกเปลี่ยน:</b> ' + it.curseDesc + '</div>';
     html += '</div>';
   }
@@ -5078,17 +5079,8 @@ function setupInput(){
   /* ปุ่มเมนู / โอเวอร์เลย์ */
   $('btnNew').onclick=()=>{
     initAudio();
-    const hasPlayed = localStorage.getItem('lanka_seen_intro');
-    if(!hasPlayed){
-      localStorage.setItem('lanka_seen_intro', '1');
-      playCinematicPrologue(() => {
-        hide($('title'));
-        show($('classSel'));
-      });
-    } else {
-      hide($('title'));
-      show($('classSel'));
-    }
+    hide($('title'));
+    show($('classSel'));
   };
   $('btnContinue').onclick=()=>{
     initAudio();
@@ -5101,103 +5093,74 @@ function setupInput(){
     }
   };
   
-  // เพิ่มปุ่มหอพระบารมีที่หน้าแรก
-  let btnKarma = $('btnKarma');
-  if(!btnKarma){
-    btnKarma = document.createElement('button');
-    btnKarma.id = 'btnKarma';
-    btnKarma.className = 'btn ghost';
-    btnKarma.style.color = 'var(--teal)';
-    btnKarma.style.borderColor = 'var(--teal)';
-    btnKarma.innerHTML = '🪷 หอพระบารมี (อัปเกรดถาวร)';
-    $('titleMenu').insertBefore(btnKarma, $('btnRecords'));
-  }
-  btnKarma.onclick = openKarmaModal;
+  // จัดระเบียบเมนูหน้าแรกให้เป็น Grid กะทัดรัด ไม่ล้นจอ และเห็นปุ่มครบ 100%
+  const tm = $('titleMenu');
+  if(tm){
+    tm.style.display = 'flex';
+    tm.style.flexDirection = 'column';
+    tm.style.gap = '6px';
+    tm.style.maxHeight = '85vh';
+    tm.style.overflowY = 'auto';
+    tm.style.padding = '4px';
 
-  
-  // เพิ่มปุ่ม เกียรติยศ, สารานุกรม และตั้งค่า ที่หน้าแรก
-  let btnAch = $('btnAch');
-  if(!btnAch){
-    btnAch = document.createElement('button');
-    btnAch.id = 'btnAch';
-    btnAch.className = 'btn ghost';
-    btnAch.style.color = 'var(--gold)';
-    btnAch.innerHTML = '🏆 ทำเนียบเกียรติยศ (Achievements)';
-    
-  let btnDaily = $('btnDaily');
-  if(!btnDaily){
-    btnDaily = document.createElement('button');
-    btnDaily.id = 'btnDaily';
-    btnDaily.className = 'btn ghost';
-    btnDaily.style.color = '#ff8b1f';
-    btnDaily.style.borderColor = '#ff8b1f';
-    btnDaily.innerHTML = '📅 วิถีแห่งกรรมประจำวัน (Daily Run)';
-    $('titleMenu').insertBefore(btnDaily, $('btnKarma'));
-  }
-    let btnHeat = $('btnHeat');
-  if(!btnHeat){
-    btnHeat = document.createElement('button');
-    btnHeat.id = 'btnHeat';
-    btnHeat.className = 'btn ghost';
-    btnHeat.style.color = '#ff8b1f';
-    btnHeat.innerHTML = '🔥 เพลิงกรรมท้าทาย (Heat)';
-    $('titleMenu').insertBefore(btnHeat, $('btnKarma'));
-  }
-  btnHeat.onclick = openHeatModal;
-  btnDaily.onclick = () => {
-    isDailyRun = true;
-    currentSeed = getDailySeed();
-    initAudio();
-    hide($('title'));
-    show($('classSel'));
-  };
+    // สร้าง Grid สำหรับรวมปุ่มฟังก์ชันเป็น 2 คอลัมน์
+    let grid = $('titleGrid');
+    if(!grid){
+      grid = document.createElement('div');
+      grid.id = 'titleGrid';
+      grid.style.display = 'grid';
+      grid.style.gridTemplateColumns = '1fr 1fr';
+      grid.style.gap = '6px';
+      grid.style.margin = '4px 0';
+      tm.insertBefore(grid, $('btnRecords'));
+    }
 
-  let btnCustomSeed = $('btnCustomSeed');
-  if(!btnCustomSeed){
-    btnCustomSeed = document.createElement('button');
-    btnCustomSeed.id = 'btnCustomSeed';
-    btnCustomSeed.className = 'btn ghost';
-    btnCustomSeed.style.fontSize = '13px';
-    btnCustomSeed.innerHTML = '🌱 กำหนดรหัส Seed ของเพื่อน';
-    $('titleMenu').insertBefore(btnCustomSeed, $('btnKarma'));
-  }
-  btnCustomSeed.onclick = openCustomSeedPrompt;
+    const makeGridBtn = (id, text, col, border, onClick) => {
+      let b = $(id);
+      if(!b){
+        b = document.createElement('button');
+        b.id = id;
+        b.className = 'btn ghost';
+        b.style.fontSize = '12px';
+        b.style.padding = '6px 4px';
+        b.style.margin = '0';
+        b.style.whiteSpace = 'nowrap';
+        b.style.overflow = 'hidden';
+        b.style.textOverflow = 'ellipsis';
+        if(col) b.style.color = col;
+        if(border) b.style.borderColor = border;
+        b.innerHTML = text;
+        grid.appendChild(b);
+      }
+      b.onclick = onClick;
+      return b;
+    };
 
-  let btnIntro = $('btnIntro');
-  if(!btnIntro){
-    btnIntro = document.createElement('button');
-    btnIntro.id = 'btnIntro';
-    btnIntro.className = 'btn ghost';
-    btnIntro.style.fontSize = '13px';
-    btnIntro.innerHTML = '🎬 ชมบทนำเปิดเรื่อง (Prologue)';
-    $('titleMenu').insertBefore(btnIntro, $('btnRecords'));
-  }
-  btnIntro.onclick = () => playCinematicPrologue();
+    makeGridBtn('btnDaily', '📅 ประจำวัน', '#ff8b1f', '#ff8b1f', () => {
+      isDailyRun = true; currentSeed = getDailySeed(); initAudio(); hide($('title')); show($('classSel'));
+    });
+    makeGridBtn('btnHeat', '🔥 เพลิงกรรม', '#ff8b1f', null, openHeatModal);
+    makeGridBtn('btnCustomSeed', '🌱 รหัส Seed', 'var(--teal)', null, openCustomSeedPrompt);
+    makeGridBtn('btnIntro', '🎬 ชมบทนำ', 'var(--gold)', null, () => playCinematicPrologue());
+    makeGridBtn('btnKarma', '🪷 หอบารมี', 'var(--teal)', 'var(--teal)', openKarmaModal);
+    makeGridBtn('btnAch', '🏆 เกียรติยศ', 'var(--gold)', 'var(--gold)', openAchModal);
+    makeGridBtn('btnCodex', '📖 สารานุกรม', 'var(--teal)', null, openCodexModal);
+    makeGridBtn('btnSet', '⚙️ ตั้งค่า', null, null, openSettingsModal);
 
-  $('titleMenu').insertBefore(btnAch, $('btnRecords'));
+    // ย้ายปุ่มทำเนียบและวิธีเล่นมาเป็นคู่ล่าง
+    let botGrid = $('titleBotGrid');
+    if(!botGrid){
+      botGrid = document.createElement('div');
+      botGrid.id = 'titleBotGrid';
+      botGrid.style.display = 'grid';
+      botGrid.style.gridTemplateColumns = '1fr 1fr';
+      botGrid.style.gap = '6px';
+      tm.appendChild(botGrid);
+      const bRec = $('btnRecords'), bHelp = $('btnHelpT');
+      if(bRec) botGrid.appendChild(bRec);
+      if(bHelp) botGrid.appendChild(bHelp);
+    }
   }
-  btnAch.onclick = openAchModal;
-
-  let btnCodex = $('btnCodex');
-  if(!btnCodex){
-    btnCodex = document.createElement('button');
-    btnCodex.id = 'btnCodex';
-    btnCodex.className = 'btn ghost';
-    btnCodex.style.color = 'var(--teal)';
-    btnCodex.innerHTML = '📖 สารานุกรมลงกา (Codex)';
-    $('titleMenu').insertBefore(btnCodex, $('btnRecords'));
-  }
-  btnCodex.onclick = openCodexModal;
-
-  let btnSet = $('btnSet');
-  if(!btnSet){
-    btnSet = document.createElement('button');
-    btnSet.id = 'btnSet';
-    btnSet.className = 'btn ghost';
-    btnSet.innerHTML = '⚙️ ตั้งค่าเกม (Settings)';
-    $('titleMenu').appendChild(btnSet);
-  }
-  btnSet.onclick = openSettingsModal;
 
   $('btnRecords').onclick=()=>{renderRecords();hide($('titleMenu'));show($('recordsBox'));};
   $('btnRecordsBack').onclick=()=>{hide($('recordsBox'));show($('titleMenu'));};
@@ -5249,5 +5212,6 @@ window.addEventListener('resize',fitCanvas);
   });
 
 
+/* ── เริ่มระบบ ── */
 buildClassCards();setupInput();refreshTitle();fitCanvas();
 requestAnimationFrame(loop);
