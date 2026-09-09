@@ -4310,7 +4310,7 @@ function render(){
     const pScreenY = (player.y - camY) * T + 8;
     const flicker = Math.sin(time * 0.16) * 3 + Math.cos(time * 0.35) * 2;
     const radDist = heatSettings.darkTorches ? 42 : 88;
-    torchGrad = ctx.createRadialGradient(pScreenX, pScreenY, 8, pScreenX, pScreenY, radDist + flicker);
+    const torchGrad = ctx.createRadialGradient(pScreenX, pScreenY, 8, pScreenX, pScreenY, radDist + flicker);
     torchGrad.addColorStop(0, 'rgba(245, 197, 66, 0.12)'); // สีทองอบอุ่นรอบตัว
     torchGrad.addColorStop(0.35, 'rgba(255, 139, 31, 0.05)'); // สีส้มเรือง
     torchGrad.addColorStop(0.85, 'rgba(18, 5, 13, 0.08)');
