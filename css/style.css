@@ -104,3 +104,60 @@ button{font-family:inherit;cursor:pointer}
 .card p{font-size:12px;color:var(--dim);margin:0;line-height:1.45}
 ol{padding-left:22px;margin:4px 0} ol li{font-size:13px;margin:3px 0;color:var(--dim)}
 @media (max-width:380px){ .bar{width:120px} #acts{grid-template-columns:repeat(2,74px)} }
+
+/* ════════════════════════════════════════════════
+   หน้า Title — จัด layout ใหม่ ไม่ให้ปุ่มดันโลโก้
+   ════════════════════════════════════════════════ */
+.ov#title{
+  justify-content:flex-start;
+  padding:4vh 16px 2vh;
+  overflow:hidden;
+  gap:6px;
+}
+.ov#title .titleHeader{
+  flex-shrink:0;
+  text-align:center;
+  width:100%;
+  margin-bottom:2px;
+}
+.ov#title .menuScroll{
+  flex:1;
+  width:100%;
+  overflow-y:auto;
+  overflow-x:hidden;
+  max-height:62vh;
+  display:flex;
+  justify-content:center;
+  padding:6px 4px;
+  -webkit-overflow-scrolling:touch;
+}
+/* เปลี่ยน #titleMenu ให้เป็น grid 2 คอลัมน์ */
+#titleMenu{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  width:min(92vw,420px);
+}
+#titleMenu .btn{
+  width:100%;
+  margin:0;
+  box-sizing:border-box;
+  padding:12px 8px;
+  font-size:14px;
+}
+/* ปุ่มหลัก: เริ่มเดินทาง / เดินทางต่อ ให้เต็มแถว */
+#titleMenu #btnNew,
+#titleMenu #btnContinue{
+  grid-column:1 / -1;
+  font-size:16px;
+  padding:14px;
+}
+.ov#title .foot{
+  flex-shrink:0;
+  margin-top:6px;
+  opacity:.7;
+}
+/* scrollbar สไตล์เกม */
+.ov#title .menuScroll::-webkit-scrollbar{width:6px}
+.ov#title .menuScroll::-webkit-scrollbar-track{background:transparent}
+.ov#title .menuScroll::-webkit-scrollbar-thumb{background:#5a2a44; border-radius:3px}
