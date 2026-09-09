@@ -560,9 +560,168 @@ const TILEC=[];
    g.fillStyle='#5c1422';g.fillRect(4,4,8,8);
    g.fillStyle='#ff2200';g.fillRect(6,6,4,4); // ตราสัญลักษณ์มาร
    TILEC[13]=[c];}
+  // บ่อนสกาพญาพาลี (14)
+  {const c=document.createElement('canvas');c.width=T;c.height=T;const g=c.getContext('2d');
+   g.fillStyle='#1c1006';g.fillRect(0,0,T,T);
+   g.strokeStyle='#f5c542';g.strokeRect(2,2,12,12);
+   g.fillStyle='#7a4a22';g.fillRect(3,3,10,10);
+   g.fillStyle='#ffffff';g.fillRect(5,5,3,3);g.fillRect(8,8,3,3); // ลูกเต๋าขาวคู่
+   g.fillStyle='#000000';g.fillRect(6,6,1,1);g.fillRect(9,9,1,1);
+   TILEC[14]=[c];}
 })();
 
 /* ── ตารางข้อมูล ── */
+
+/* ── ๕. ระบบฉายาแห่งกรรม (Dynamic Hero Titles & Epithets) ── */
+function checkHeroTitle(){
+  if(player.killsTotal >= 35 && player.title !== '«เพชฌฆาตไร้ปรานี»'){
+    player.title = '«เพชฌฆาตไร้ปรานี»';
+    msg('👑 ได้รับสมญาใหม่: ' + player.title + ' (โจมตีแรงขึ้นเมื่อเลือดต่ำ)', 'good');
+    sfx.level();
+  } else if(player.punya >= 100 && player.title !== '«มหาบุญญาธิการ»'){
+    player.title = '«มหาบุญญาธิการ»';
+    msg('👑 ได้รับสมญาใหม่: ' + player.title + ' (เทวาลัยและยาฟื้นเลือด x๑.๕ เท่า)', 'good');
+    sfx.level();
+  }
+}
+
+
+/* ── ๔. ระบบขุดสายแร่ & ตีหลอมอาวุธเฉพาะตัว (Mining & Blacksmith) ── */
+const ORES = [
+  { id: 'ore_iron', name: 'แร่เหล็กไหลหิมพานต์', icon: '🪨', boostAtk: 4, desc: 'หลอมเพิ่มพลังโจมตี +๔ ถาวร', r: 'rare', lore: 'ก้อนแร่เหล็กเนื้อตันลึกลับที่ดูดซับไอธรณี' },
+  { id: 'ore_gold', name: 'แร่ทองคำบริสุทธิ์', icon: '🪙', boostGold: 35, desc: 'หลอมเพิ่มอัตราดรอปเงิน +๓๕%', r: 'rare', lore: 'ทองคำสุกปลั่งบริสุทธิ์จากสะดือวิหาร' },
+  { id: 'ore_meteor', name: 'แร่อุกกาบาตดาวตก', icon: '☄️', boostCrit: 15, desc: 'หลอมเพิ่มคริติคอล +๑๕% และอัสนีบาต', r: 'legendary', lore: 'สะเก็ดดาวตกจากสรวงสวรรค์ อาบรังสีอัสนีบาต' }
+];
+
+function genOre(){
+  const o = pick(ORES);
+  return {
+    t: 'ore',
+    oreId: o.id,
+    name: o.name,
+    icon: o.icon,
+    desc: o.desc,
+    boostAtk: o.boostAtk || 0,
+    boostGold: o.boostGold || 0,
+    boostCrit: o.boostCrit || 0,
+    r: o.r,
+    lore: o.lore,
+    price: 40 + floor * 2
+  };
+}
+
+function smithInfuseWeapon(oreItem, invIdx){
+  if(!player.wpn){ msg('ไม่มีอาวุธที่จะหลอมแร่…', 'warn'); return; }
+  player.wpn.infusedOres = player.wpn.infusedOres || [];
+  player.wpn.infusedOres.push(oreItem);
+  if(oreItem.boostAtk) player.wpn.v += oreItem.boostAtk;
+  player.wpn.name += ' (หลอม' + oreItem.name.replace('แร่', '') + ')';
+  player.inv.splice(invIdx, 1);
+  sfx.level(); flash = 0.6; shake = 6;
+  msg('🔨 ช่างตีดาบหลอมรวม «' + oreItem.name + '» เข้ากับ «' + player.wpn.name + '» สำเร็จ! ' + oreItem.desc, 'good');
+  floats.push({x: player.x, y: player.y, t: 'หลอมศัสตราสำเร็จ!', c: '#f5c542', life: 2});
+  updateHud();
+}
+
+
+/* ── ๓. ระบบบ่อนสกา & เสี่ยงโชคอสูร (Gambling Den) ── */
+function openGamblingModal(gx, gy){
+  let ov = $('gambleOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'gambleOv';
+    ov.className = 'ov';
+    ov.style.zIndex = '370';
+    document.body.appendChild(ov);
+  }
+
+  let html = '<div class="panel" style="max-width:420px;border-color:var(--gold);box-shadow:0 0 28px rgba(245,197,66,.45);text-align:center">';
+  html += '<div class="deva">द्यूतक्रीडा</div>';
+  html += '<h2 style="font-family:Chakra Petch;color:var(--gold);margin:2px 0 6px;font-size:22px">🎲 บ่อนสกาพญาพาลี & เบี้ยอสูร</h2>';
+  html += '<p style="font-size:13px;color:var(--ink);margin:0 0 12px">“ลงเดิมพันด้วยเหรียญทองกษาปณ์ ทอยลูกเต๋าคู่แข่งกับเจ้าสำนักสกา!”</p>';
+  html += '<div class="chip gold" style="font-size:13px;margin-bottom:12px">เหรียญทองของคุณ: <b>◉ ' + player.gold + '</b></div>';
+
+  html += '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">';
+  html += '<button class="btn" id="btnBet10" ' + (player.gold >= 10 ? '' : 'disabled') + '>ทอยเดิมพัน ๑๐ ◉ (ลุ้นรับ ๒๐ ◉)</button>';
+  html += '<button class="btn" id="btnBet25" ' + (player.gold >= 25 ? '' : 'disabled') + '>ทอยเดิมพัน ๒๕ ◉ (ลุ้นรับ ๕๐ ◉ + อัญมณีลับ)</button>';
+  html += '<button class="btn" id="btnBet50" ' + (player.gold >= 50 ? '' : 'disabled') + '>ทอยเดิมพัน ๕๐ ◉ (ลุ้นรับ ๑๐๐ ◉ + คัมภีร์เทวะ)</button>';
+  html += '<button class="btn ghost" id="btnCloseGamble">เดินออกจากวงสกา</button>';
+  html += '</div></div>';
+
+  ov.innerHTML = html;
+  show(ov);
+
+  const rollDice = (bet) => {
+    player.gold -= bet;
+    const playerRoll = 1 + R(6) + 1 + R(6);
+    const houseRoll = 1 + R(6) + 1 + R(6);
+    sfx.pick();
+
+    if(playerRoll > houseRoll){
+      const winGold = bet * 2;
+      player.gold += winGold;
+      let extra = '';
+      if(bet >= 25 && rng() < 0.5){
+        const gm = genGem(); player.inv.push(gm);
+        extra = ' และได้รับ «' + gm.name + '»!';
+      }
+      msg('🎲 เจ้าทอยได้ ' + playerRoll + ' ชนะเจ้าสำนัก (' + houseRoll + ')! ได้รับ ◉' + winGold + extra, 'good');
+      floats.push({x: player.x, y: player.y, t: 'ชนะสกา +◉' + winGold, c: '#f5c542', life: 2});
+      sfx.gold();
+    } else if(playerRoll < houseRoll){
+      msg('🎲 เจ้าทอยได้ ' + playerRoll + ' พ่ายแพ้แก่เจ้าสำนัก (' + houseRoll + ')! เสียเหรียญ ◉' + bet, 'warn');
+      sfx.hurt();
+    } else {
+      player.gold += bet;
+      msg('🎲 เสมอกัน (' + playerRoll + ')! ได้รับเหรียญเดิมพันคืน', 'good');
+    }
+    updateHud();
+    hide(ov);
+  };
+
+  $('btnBet10').onclick = () => rollDice(10);
+  $('btnBet25').onclick = () => rollDice(25);
+  $('btnBet50').onclick = () => rollDice(50);
+  $('btnCloseGamble').onclick = () => hide(ov);
+}
+
+
+/* ── ๒. ระบบร่างอวตาร / ทรงเจ้าเทวฤทธิ์ (Ultimate Awakening) ── */
+const AVATAR_POWERS = {
+  ksatriya: { name: 'พระนารายณ์ ๔ กร', icon: '👑', desc: 'กวาดดาบ ๔ ทิศรอบตัวทุกก้าว และเป็นอมตะชั่วคราว!' },
+  vanara: { name: 'หนุมาน ๔ หน้า ๘ กร', icon: '🐒', desc: 'หาวเป็นดาวเป็นเดือน เดินไวเบิ้ล ๒ ก้าว และหลบหลีก ๘๐%!' },
+  brahmin: { name: 'พระพิฆเนศวรปัญญา', icon: '📿', desc: 'ร่ายคาถาทุกบท ๐ MP และดาเมจเวทมนตร์ x๒ เท่า!' },
+  rishi: { name: 'พระศิวะเบิกเนตรที่สาม', icon: '🧘', desc: 'ระเบิดเพลิงเผาผลาญกิเลสศัตรูทั้งห้อง ๑๔ ดาเมจทุกเทิร์น!' },
+  bibhek: { name: 'พญายักษ์เทวราช', icon: '👁️', desc: 'สะท้อนการโจมตีและเวทมนตร์กลับใส่ศัตรู ๑๐๐%!' },
+  garuda: { name: 'พญาปักษาเพลิงกาฬ', icon: '🦅', desc: 'สยายปีกไฟพุ่งบินชนทะลุศัตรูและกำแพง ๒๒ ดาเมจ!' }
+};
+
+function triggerAwaken(){
+  if(state !== 'play' || !player) return;
+  if(player.awakenGauge < player.maxAwaken){
+    msg('เกจเทวฤทธิ์ยังไม่เต็ม! (' + player.awakenGauge + '/' + player.maxAwaken + '%)', 'warn');
+    return;
+  }
+  const av = AVATAR_POWERS[player.cls] || AVATAR_POWERS.ksatriya;
+  player.isAwakened = 12; // อยู่ได้ 12 เทิร์น
+  player.awakenGauge = 0;
+  flash = 0.8; shake = 10; sfx.boss();
+  floats.push({x: player.x, y: player.y, t: '✦ ทรงเครื่อง ' + av.name + '!', c: '#f5c542', life: 2.5});
+  msg('✦ ทรงเจ้าเทวฤทธิ์! เจ้าอวตารเป็น «' + av.name + '»! ' + av.desc, 'good');
+  updateHud();
+}
+
+
+/* ── ๑. ระบบสภาพอากาศ & ปรากฏการณ์อาถรรพ์ (Floor Omens & Weather) ── */
+let currentOmen = null;
+
+const OMENS = [
+  { id: 'eclipse', name: 'สุริยุปราคา', icon: '🌑', desc: 'ความมืดมิดครอบคลุม คบไฟหดสั้น ศัตรูคริติคอล x๒ แต่แต้มปุญ x๒ เท่า!' },
+  { id: 'rain', name: 'พิรุณโบกขรพรรษ', icon: '🌧️', desc: 'ฝนทิพย์ตก แอ่งน้ำผุดทั่วห้อง ฮีลแรง x๒ และสายฟ้าช็อตกระจาย x๒!' },
+  { id: 'tremor', name: 'เพลิงกัลป์ปะทุ', icon: '🌋', desc: 'ธรณีสั่นไหว รอยแยกลาวาและไฟไหม้สุ่มเกิดตามทางเดิน มอนสเตอร์ไฟตีแรงขึ้น' },
+  { id: 'mist', name: 'หมอกอสูรลวงตา', icon: '🌫️', desc: 'หมอกควันหนาทึบ มอนสเตอร์สร้างเงาลวงตา ต้องสังเกตหาตัวจริง' }
+];
+
 
 /* ── ๕. ระบบเพลิงกรรมท้าทาย (Ascension / Heat Modifiers) ── */
 let heatSettings = {
@@ -1811,6 +1970,18 @@ function genFloor(fl){
     }
   }
   fireTiles = [];
+  // สุ่มสภาพอากาศประจำชั้น (Omens)
+  currentOmen = (floorR() < 0.25 && fl > 1) ? pick(OMENS) : null;
+  if(currentOmen){
+    msg(currentOmen.icon + ' ปรากฏการณ์ ' + currentOmen.name + '! ' + currentOmen.desc, 'warn');
+  }
+
+  // บ่อนสกาพญาพาลี (สุ่มพบบนชั้น ๕, ๑๐, ๑๕ หรือชั้นเลขคี่)
+  if(fl % 5 === 0 || floorR() < 0.12){
+    const r = pick(rooms.slice(1));
+    map[(r.y+1)*W + r.x+1] = 14;
+  }
+
 
   
   // ✦ ผลตอบแทนแห่งกรรมดี: อสูรที่เคยช่วยชีวิตโผล่มาช่วยเปิดแผลบอส!
@@ -1834,6 +2005,17 @@ function genFloor(fl){
   if(boss){
     msg('☠ นายทัพ '+boss.name+' ครองชั้นนี้!','warn');sfx.boss();
     bossSplash = { name: boss.name, title: boss.title || 'พญามารแห่งวิหารลงกา', time: 90 };
+  }
+    // สุ่มสภาพอากาศประจำชั้น (Omens)
+  currentOmen = (floorR() < 0.25 && fl > 1) ? pick(OMENS) : null;
+  if(currentOmen){
+    msg(currentOmen.icon + ' ปรากฏการณ์ ' + currentOmen.name + '! ' + currentOmen.desc, 'warn');
+  }
+
+  // บ่อนสกาพญาพาลี (สุ่มพบบนชั้น ๕, ๑๐, ๑๕ หรือชั้นเลขคี่)
+  if(fl % 5 === 0 || floorR() < 0.12){
+    const r = pick(rooms.slice(1));
+    map[(r.y+1)*W + r.x+1] = 14;
   }
   computeFov();
 }
@@ -2020,7 +2202,8 @@ function genGroundItem(){
   if(r<.07) return {t:'pot', name:'อมฤต', heal:12+floor*2, r:'common', lore:'น้ำอมฤตบริสุทธิ์ ฟื้นฟูพลังชีวิต'};
   if(r<.14) return genRation(); // เสบียงอาหาร
   if(r<.20) return genGem(); // อัญมณีนพเก้า
-  if(r<.26) return genPlayerTool(); // กับดักผู้เล่น
+  if(r<.24) return genPlayerTool(); // กับดักผู้เล่น
+  if(r<.29) return genOre(); // แร่ขุดศักดิ์สิทธิ์
   if(r<.18) return {t:'mana', name:'น้ำโสม', mana:10+floor*2, r:'common', lore:'น้ำสกัดจากโสมพันปี ฟื้นฟูพลังมนตร์'};
   if(r<.38) return {t:'gold', amt:8+Math.floor(floorR()*(10+floor*3))};
   if(r<.48) return genTacticalScroll(); // คัมภีร์ยุทธวิธี
@@ -2377,6 +2560,9 @@ function tryMove(dx,dy){
       show($('stairsOv'));
     }
   }else if(map[ny*W+nx]===3){show($('altarOv'));}
+  else if(map[ny*W+nx]===14){
+    openGamblingModal(nx, ny);
+  }
   else if(map[ny*W+nx]===13){
     openBlackMarketModal(nx, ny);
   }
@@ -2515,6 +2701,7 @@ function attackFoe(e, dirX=0, dirY=0){
   triggerSlash(e.x, e.y, slashColor);
   floats.push({x:e.x, y:e.y, t:'-'+d, c:crit?'#f5c542':'#ffffff', life:1});
   shake = crit ? 8 : 4; sfx.hit();
+  if(player.awakenGauge < player.maxAwaken){ player.awakenGauge = Math.min(player.maxAwaken, player.awakenGauge + 4); }
   // คำสาปขรรค์กระหายเลือด: สูบเลือดผู้ใช้ 2 HP ทุกครั้งที่ฟันโดน
   if(wpn.cursed === 'blood_drain'){
     player.hp -= 2;
@@ -2651,6 +2838,8 @@ function killFoe(e){
     });
   }
   player.xp+=e.xp;player.killsTotal++;
+  if(player.awakenGauge < player.maxAwaken){ player.awakenGauge = Math.min(player.maxAwaken, player.awakenGauge + 8); }
+  checkHeroTitle();
     if(player.relic && player.relic.id === 'heart_ravana'){
     player.hp = Math.min(player.mhp, player.hp + 5);
     floats.push({x: player.x, y: player.y, t: '+๕ ดวงใจมาร', c: '#ff7a5c', life: 1});
@@ -3016,6 +3205,36 @@ function endTurn(){
     if(pt.life <= 0) playerDeployedTraps.splice(ti, 1);
   }
 
+  
+  // ประมวลผลสถานะร่างอวตาร (Awakening)
+  if(player.isAwakened > 0){
+    player.isAwakened--;
+    // กษัตริย์ทรงเครื่องพระนารายณ์ ๔ กร: ฟันกวาด ๔ ทิศรอบตัว
+    if(player.cls === 'ksatriya'){
+      for(const oe of enemies.slice()){
+        if(Math.max(Math.abs(oe.x-player.x), Math.abs(oe.y-player.y)) <= 1){
+          oe.hp -= 12; oe.flash = 4;
+          triggerSlash(oe.x, oe.y, '#f5c542');
+          floats.push({x: oe.x, y: oe.y, t: 'นารายณ์ฟัน -๑๒', c: '#f5c542', life: 1});
+          if(oe.hp <= 0) killFoe(oe);
+        }
+      }
+    } else if(player.cls === 'rishi'){
+      // ฤๅษีพระศิวะเบิกเนตร: ระเบิดเพลิงเผาศัตรูทั้งห้อง
+      for(const oe of enemies.slice()){
+        if(vis[oe.y*W+oe.x]){
+          oe.hp -= 8; oe.burn = (oe.burn||0) + 2; oe.flash = 4;
+          triggerSlash(oe.x, oe.y, '#ff8b1f');
+          floats.push({x: oe.x, y: oe.y, t: 'เนตรศิวะ -๘', c: '#ff8b1f', life: 1});
+          if(oe.hp <= 0) killFoe(oe);
+        }
+      }
+    }
+    if(player.isAwakened === 0){
+      msg('ร่างอวตารคลายมนตร์… กลับคืนสู่สภาพเดิม');
+    }
+  }
+
   computeFov();updateHud();saveGame();
 }
 
@@ -3107,7 +3326,12 @@ function useItem(i){
     if(oldArm&&oldArm.tier>0)player.inv.push(oldArm);
     msg('สวม «'+it.name+'» ป้องกัน+'+it.v);sfx.pick();
   }
-      else if(it.t==='gem'){
+        else if(it.t==='ore'){
+    smithInfuseWeapon(it, i);
+    renderInv();
+    return;
+  }
+  else if(it.t==='gem'){
     socketGemToEquip(it, i);
     renderInv();
     return;
@@ -3719,6 +3943,7 @@ function startRun(cls, forcedSeed = 0){
     relic:null,
     head:null,
     hunger:100,maxHunger:100,buffHaste:0,
+    awakenGauge:0,maxAwaken:100,isAwakened:0,title:'«ผู้กล้าแห่งลงกา»',
     buffIronskin:0,buffInvis:0,buffCoating:0,summons:0,
     inv:[{t:'pot',name:'อมฤต',heal:14,r:'common',lore:'น้ำอมฤตฟื้นฟูเลือด'}, genScrollUpg()],
     talents:[],
@@ -3776,6 +4001,17 @@ function updateHud(){
     hgEl.className = 'chip';
     hgEl.style.display = 'none';
     $('hudL').appendChild(hgEl);
+  }
+    const awkB = $('btnAwaken');
+  if(awkB){
+    if(player.isAwakened > 0){
+      awkB.style.background = '#f5c542'; awkB.style.color = '#14080f';
+      awkB.innerHTML = '✦ ร่างอวตาร (' + player.isAwakened + ')';
+    } else {
+      awkB.style.background = player.awakenGauge >= 100 ? '#2ec4a6' : '#8f2438';
+      awkB.style.color = '#fff';
+      awkB.innerHTML = '✦ อวตาร (' + player.awakenGauge + '%)';
+    }
   }
   if(player.hunger <= 25){
     hgEl.style.display = 'block';
@@ -3880,6 +4116,12 @@ function drawTile(mx, my, sx, sy){
     const flk = 0.35 + 0.3 * Math.sin(time * 0.28 + mx);
     ctx.fillStyle = 'rgba(212,61,42,' + flk.toFixed(2) + ')';
     ctx.fillRect(px + 6, py + 6, 4, 4);
+  }
+  else if(t === 14){ // บ่อนสกา
+    ctx.drawImage(TILEC[14][0], px, py);
+    const flk = 0.25 + 0.25 * Math.sin(time * 0.2 + mx);
+    ctx.fillStyle = 'rgba(245,197,66,' + flk.toFixed(2) + ')';
+    ctx.fillRect(px + 4, py + 4, 8, 8);
   }
 }
 
@@ -4183,7 +4425,7 @@ function openStatusModal(){
   html += '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--line);padding-bottom:8px;margin-bottom:10px">';
   html += '<div style="display:flex;align-items:center;gap:10px">';
   html += '<canvas id="statusSprite" width="40" height="40" style="image-rendering:pixelated;background:#150914;border:2px solid var(--gold)"></canvas>';
-  html += '<div><h2 style="font-family:Chakra Petch;color:var(--gold);margin:0;font-size:20px">' + C.name + '</h2>';
+  html += '<div><h2 style="font-family:Chakra Petch;color:var(--gold);margin:0;font-size:20px">' + C.name + ' <span style="font-size:13px;color:var(--teal)">' + (player.title||'') + '</span></h2>';
   html += '<small class="teal" style="font-size:12px">ระดับ ' + thaiNum(player.lvl) + ' · ประสบการณ์ ' + player.xp + '/' + xpNeed(player.lvl) + '</small></div>';
   html += '</div>';
   html += '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">';
@@ -4199,7 +4441,7 @@ function openStatusModal(){
   html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">🛡 ป้องกันรวม: <b class="teal">' + totalDef + '</b> <small class="dim">(' + player.def + '+' + (player.arm?player.arm.v:0) + ')</small></div>';
   html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">💨 หลบหลีก: <b style="color:#ffe9a3">' + totalDodge + '%</b></div>';
   html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">🎯 คริติคอล: <b style="color:#f5c542">' + totalCrit + '%</b></div>';
-  html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">🍖 พลังกาย: <b style="color:#f5c542">' + player.hunger + '%</b> · ✦ ปุญ: <b class="teal">' + player.punya + '</b> · ☠ บาป: <b class="red">' + (player.sin||0) + '</b></div>';
+  html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">🍖 กาย: <b style="color:#f5c542">' + player.hunger + '%</b> · ⚡ เทวฤทธิ์: <b style="color:#2ec4a6">' + player.awakenGauge + '%</b> · ✦ ปุญ: <b class="teal">' + player.punya + '</b> · ☠ บาป: <b class="red">' + (player.sin||0) + '</b></div>';
   html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">☠ สังหาร: <b class="red">' + player.killsTotal + ' ตน</b></div>';
   html += '</div>';
 
@@ -4674,6 +4916,20 @@ function setupInput(){
   bindHold($('btnR'),()=>tryMove(1,0));
   $('btnWait').addEventListener('pointerdown',e=>{e.preventDefault();initAudio();waitTurn();});
   $('btnMantra').onclick=()=>{if(state==='play'){renderMantras();show($('mantraOv'));}};
+  let btnAwk = $('btnAwaken');
+  if(!btnAwk){
+    btnAwk = document.createElement('button');
+    btnAwk.id = 'btnAwaken';
+    btnAwk.className = 'btn';
+    btnAwk.style.background = '#8f2438';
+    btnAwk.style.borderColor = 'var(--gold)';
+    btnAwk.style.fontSize = '12px';
+    btnAwk.style.padding = '6px 10px';
+    btnAwk.innerHTML = '✦ อวตาร';
+    const ctlBox = $('controls') || document.body;
+    ctlBox.appendChild(btnAwk);
+  }
+  btnAwk.onclick = triggerAwaken;
   $('btnInv').onclick=()=>{if(state==='play'){renderInv();show($('invOv'));}};
   $('hudL').onclick=()=>{if(state==='play'){openStatusModal();}};
   $('hudR').onclick=()=>{if(state==='play'){openStatusModal();}};
@@ -4696,6 +4952,7 @@ function setupInput(){
     else if(e.key==='ArrowRight'||k==='d'||e.key==='ก')tryMove(1,0);
     else if(e.key===' '||e.key==='Enter')waitTurn();
     else if(k==='m'||e.key==='ม'){if(state==='play'){renderMantras();show($('mantraOv'));}}
+    else if(k==='u'||e.key==='ป'){if(state==='play')triggerAwaken();}
     else if(k==='i'||e.key==='ร'){if(state==='play'){renderInv();show($('invOv'));}}
     else if(e.key==='h')show($('helpOv'));
     else if(e.key==='Escape')hideAll();
