@@ -414,7 +414,19 @@ const SPRD={
   "................",
   "................",
   "................"
-]
+],
+  "bibhek": [".....ffwwff.....", "....ffffffff....", "....ffggggff....", "....gseeeesg....", "...gse00ee0esg..", "...gseeeeeeesg..", "..gwwwwwwwwwwg..", ".gwwwwwwwwwwwwg.", ".gw.wwwwwwww.wg.", "....wwwwwwww....", "....wwwwwwww....", "...wwdd..ddww...", "...dd......dd...", "..ddd......ddd..", "..ddd......ddd..", "................"],
+  "garuda": ["....ff....ff....", "...ffff..ffff...", "..ffggffffggff..", "..ffg00ff00gff..", "..ffffggggffff..", "...ffooooooff...", ".ffffooooooffff.", "fffoooooooooofff", "ff.oooooooooo.ff", "....oooooooo....", "....oooooooo....", "...ffff..ffff...", "...ff......ff...", "..fff......fff..", "..fff......fff..", "................"],
+  "ration": ["................", ".....eeee.......", "....eeeeee......", "...eegggeee.....", "..eeggggggee....", ".eegffffgggee...", ".eegffffffgge...", "..gggggggggg....", "...dddddddd.....", "..dddddddddd....", "..dddddddddd....", "..dddddddddd....", "...dddddddd.....", "....dddddd......", "................", "................"],
+  "gem": ["................", ".....ffffff.....", "....fttttttf....", "...fttttttttf...", "..fttwwwwwwttf..", "..ftwwwwwwwwtf..", "...twwwwwwwwt...", "....twwwwwwt....", ".....twwwwt.....", "......twwt......", ".......tt.......", "........t.......", "................", "................", "................", "................"],
+  "ore": ["................", ".....ddddd......", "....dddddddd....", "...ddddgggddd...", "..ddddgggggddd..", "..dddggfffggdd..", ".ddddgffffggddd.", ".dddddgggdddddd.", ".dddddddddddddd.", "..dddddddddddd..", "...dddddddddd...", "....dddddddd....", ".....dddddd.....", "................", "................", "................"],
+  "egg": ["................", "......ffff......", ".....ffffff.....", "....ffooffff....", "...ffffffffgf...", "...ffffgffffg...", "..ffffffgffffg..", "..ffffffoffffg..", "..ffffffffffff..", "..ffffgfffffff..", "...ffffffffffff.", "...ffffffffffff.", "....ffffffffff..", ".....ffffffff...", "................", "................"],
+  "head": [".......ff.......", "......ffff......", ".....fggggf.....", ".....fggggf.....", "....ffggggff....", "...fffggggfff...", "...fgggrrgggf...", "..fggggrrggggf..", "..gggggttggggg..", ".ggggggttgggggg.", ".ggggggrrgggggg.", "..gggggffggggg..", "...gggggggggg...", "....ffffffff....", "................", "................"],
+  "scroll_tac": ["....rrrrrrrr....", "...rwwwwwwwwr...", "..rwwwwwwwwwwr..", "..rwwwwwwwwwr...", "..rwwkkkkkkr....", "..rwwrrrrrrwwr..", "..rwwrrrrrrwwr..", "...rwwwwwwwwwr..", "....rwwwwwwwwr..", ".....rrrrrrrr...", "................", "................", "................", "................", "................", "................"],
+  "player_tool": ["................", "....ww....ww....", "...wwww..wwww...", "..wwwwwwwwwwww..", "..wwkkwwwwkkww..", "...wkkkkkkkkw...", "....kkkkkkkk....", "....rrrrrrrr....", "....rrrrrrrr....", "....kkkkkkkk....", "...wkkkkkkkkw...", "..wwkkwwwwkkww..", "..wwwwwwwwwwww..", "...wwww..wwww...", "....ww....ww....", "................"],
+  "relic": ["................", ".....gggggg.....", "....gggggggg....", "...gggg..gggg...", "...ggg....ggg...", "....gg....gg....", ".....gg..gg.....", "......gggg......", ".....fffftt.....", "....fffftttt....", "....fffftttt....", ".....fffftt.....", "......ffff......", "................", "................", "................"],
+  "elixir": ["......wwww......", "......wwww......", ".....tttttt.....", "....tfttttttt...", "...tfffttttttt..", "..tfffftttttttt.", "..tfffftttttttt.", "..tfffftttttttt.", "...tfffttttttt..", "....tttttttt....", ".....tttttt.....", "................", "................", "................", "................", "................"]
+
 };
 const SPR={};
 for(const name in SPRD){
@@ -2068,17 +2080,6 @@ function genFloor(fl){
     msg('☠ นายทัพ '+boss.name+' ครองชั้นนี้!','warn');sfx.boss();
     bossSplash = { name: boss.name, title: boss.title || 'พญามารแห่งวิหารลงกา', time: 90 };
   }
-    // สุ่มสภาพอากาศประจำชั้น (Omens)
-  currentOmen = (floorR() < 0.25 && fl > 1) ? pick(OMENS) : null;
-  if(currentOmen){
-    msg(currentOmen.icon + ' ปรากฏการณ์ ' + currentOmen.name + '! ' + currentOmen.desc, 'warn');
-  }
-
-  // บ่อนสกาพญาพาลี (สุ่มพบบนชั้น ๕, ๑๐, ๑๕ หรือชั้นเลขคี่)
-  if(fl % 5 === 0 || floorR() < 0.12){
-    const r = pick(rooms.slice(1));
-    map[(r.y+1)*W + r.x+1] = 14;
-  }
   computeFov();
 }
 function spawnFoe(base,x,y){
@@ -2266,8 +2267,8 @@ function genGroundItem(){
   if(r<.20) return genGem(); // อัญมณีนพเก้า
   if(r<.24) return genPlayerTool(); // กับดักผู้เล่น
   if(r<.29) return genOre(); // แร่ขุดศักดิ์สิทธิ์
-  if(r<.18) return {t:'mana', name:'น้ำโสม', mana:10+floor*2, r:'common', lore:'น้ำสกัดจากโสมพันปี ฟื้นฟูพลังมนตร์'};
-  if(r<.38) return {t:'gold', amt:8+Math.floor(floorR()*(10+floor*3))};
+  if(r<.34) return {t:'mana', name:'น้ำโสม', mana:10+floor*2, r:'common', lore:'น้ำสกัดจากโสมพันปี ฟื้นฟูพลังมนตร์'};
+  if(r<.42) return {t:'gold', amt:8+Math.floor(floorR()*(10+floor*3))};
   if(r<.48) return genTacticalScroll(); // คัมภีร์ยุทธวิธี
   if(r<.56) return genElixir(); // ยาวิเศษ
   if(r<.66){
@@ -3704,7 +3705,7 @@ function renderShop(n){
     b.onclick=()=>{
       player.gold-=it.price;sfx.buy();
       if(it.t==='gold'){player.gold+=it.amt;}
-      else if(player.inv.length>=10){msg('ถุงผ้าเต็ม!','warn');player.gold+=it.price;return;}
+      else if(player.inv.length >= (player.bagMax || 10)){msg('ถุงผ้าเต็ม!','warn');player.gold+=it.price;return;}
       else player.inv.push({...it});
       msg('ซื้อ «'+it.name+'»');updateHud();renderShop(n);
     };
