@@ -8,7 +8,7 @@
 'use strict';
 /* ── พื้นฐาน ── */
 const $=id=>document.getElementById(id);
-const W=42,H=32,VW=20,VH=15,T=16,FINAL=20,SAVE_KEY='lanka_save_v1',HALL_KEY='lanka_hall_v1';
+const W=42,H=32,VW=20,VH=15,T=16,FINAL=20,SAVE_KEY='lanka_save_v1',HALL_KEY='lanka_hall_v1',KARMA_KEY='lanka_karma_v1',SKEL_KEY='lanka_skeleton_v1';
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
   t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 let rng=Math.random, floorR=Math.random;
@@ -24,8 +24,29 @@ let AC=null,soundOn=true,droneNodes=null;
 function initAudio(){
   if(AC){if(AC.state==='suspended')AC.resume();return;}
   AC=new (window.AudioContext||window.webkitAudioContext)();
-  startDrone();
+  startDrone(); startBgm();
 }
+
+let bgmTimer = null, bgmStep = 0;
+const RAGA_SCALE = [130.81, 146.83, 164.81, 196.00, 220.00, 246.94, 261.63, 293.66]; // สเกลภารตะเรโทร
+function playBgmNote(){
+  if(!AC || !soundOn || state !== 'play') return;
+  const noteIdx = [0, 2, 4, 3, 5, 4, 2, 1, 0, 3, 5, 7, 5, 3, 2, 0][bgmStep % 16];
+  const freq = RAGA_SCALE[noteIdx % RAGA_SCALE.length];
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.type = 'triangle';
+  o.frequency.value = freq;
+  g.gain.value = 0.018;
+  g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.38);
+  o.connect(g); g.connect(AC.destination);
+  o.start(); o.stop(AC.currentTime + 0.4);
+  bgmStep++;
+}
+function startBgm(){
+  if(bgmTimer) clearInterval(bgmTimer);
+  bgmTimer = setInterval(playBgmNote, 320);
+}
+
 function startDrone(){ // เสียงพื้นแทนปูรา
   if(!AC||droneNodes)return;
   const g=AC.createGain();g.gain.value=.028;g.connect(AC.destination);
@@ -489,6 +510,23 @@ const CLASS_TALENTS = {
     { id: 'v_stealth', name: 'วานรแปลงกาย', icon: '🍃', desc: 'หลบหลีกถาวร +๑๕% และศัตรูมองเห็นเรายากขึ้น' },
     { id: 'v_wind', name: 'ลิงลมคะนอง', icon: '💨', desc: 'เมื่อเลือดเต็ม อัตราหลบหลีกเพิ่มเป็น ๕๐%' }
   ],
+
+  bibhek: [
+    { id: 'bi_sight', name: 'ญาณหยั่งรู้', icon: '👁️', desc: 'มองเห็นกับดักและห้องลับทั้งหมดบนแผนที่โดยอัตโนมัติ' },
+    { id: 'bi_heart', name: 'ถอดดวงใจ', icon: '💎', desc: 'เมื่อโดนดาเมจถึงตาย มีโอกาส ๕๐% วาร์ปหนีพร้อมฟื้นเลือดครึ่งหนึ่ง' },
+    { id: 'bi_divine', name: 'โหราศาสตร์เทวะ', icon: '✨', desc: 'ได้รับเหรียญและแต้มปุญจากทุกแหล่งเพิ่มขึ้น ๕๐%' },
+    { id: 'bi_curse', name: 'มนต์สะกดมาร', icon: '📜', desc: 'ศัตรูทุกตัวในห้องมีโอกาส ๓๐% ติดสถานะมึนงงตั้งแต่เริ่มเห็น' },
+    { id: 'bi_shield', name: 'ยันต์เกราะเพชร', icon: '🛡️', desc: 'พลังป้องกันถาวร +๔ และสะท้อนเวทมนตร์' },
+    { id: 'bi_moksha', name: 'เนตรธรรมะ', icon: '🪷', desc: 'คาถาทุกบทใช้พลังมนตร์ลดลง ๓ หน่วย และแรงขึ้น ๒๕%' }
+  ],
+  garuda: [
+    { id: 'ga_fly', name: 'เวหาเหิน', icon: '🪶', desc: 'บินลอยเหนือพื้นดิน ไม่มีวันเหยียบโดนกับดักใดๆ ในดันเจี้ยน' },
+    { id: 'ga_naga', name: 'ศัตรูคู่นาคิน', icon: '🐍', desc: 'โจมตีศัตรูประเภทนาคพิษแรงขึ้นเป็น ๒ เท่า และต้านพิษ ๑๐๐%' },
+    { id: 'ga_wind', name: 'ปีกพายุหมุน', icon: '🌪️', desc: 'เมื่อโจมตี จะสะบัดพายุกวาดศัตรูรอบตัวกระเด็น ๑ ช่อง' },
+    { id: 'ga_dive', name: 'โฉบทะลวง', icon: '⚡', desc: 'ก้าวแรกที่เดินเข้าตีศัตรู การันตีคริติคอล ๑๐๐%' },
+    { id: 'ga_talon', name: 'กรงเล็บเพชร', icon: '🦅', desc: 'พลังโจมตีกายภาพ +๕ และเพิ่มอัตราคริติคอล +๒๐%' },
+    { id: 'ga_roan', name: 'เสียงร้องก้องนภา', icon: '📢', desc: 'ทุกครั้งที่ฆ่าศัตรู ศัตรูตัวอื่นในห้องจะชะงักหยุดเดิน ๑ เทิร์น' }
+  ],
   rishi: [
     { id: 'r_rest', name: 'ตบะฌาน', icon: '🧘', desc: 'ทุกครั้งที่กดยืนพักสำรวมลมปราณ (●) จะฟื้นเลือด ๓ หน่วย' },
     { id: 'r_punya', name: 'ปุญฤทธิ์', icon: '✦', desc: 'พลังโจมตีและป้องกันเพิ่มขึ้นตามแต้มปุญ (ทุก ๕๐ ปุญ = ATK+๑, DEF+๑)' },
@@ -604,6 +642,13 @@ const CLASSES={
     mantras:['agni','heal'],desc:'ผู้ถือมนตรา เริ่มด้วยอัคนีและอมฤต'},
   vanara:{name:'วานร',sprite:'vanara',hp:24,mp:10,atk:5,def:2,dodge:20,
     mantras:['vaju@3'],desc:'ทหารลิงผู้ว่องไว หลบหลีก ๒๐%'},
+
+  bibhek:{name:'พิเภก',sprite:'bibhek',hp:24,mp:24,atk:4,def:3,dodge:10,
+    mantras:['heal','vajra'],desc:'พญายักษ์ผู้เปี่ยมญาณทิพย์ — มองเห็นกับดักและห้องลับทั้งหมดตั้งแต่ก้าวแรก',
+    unlocked:false,req:'ชนะผ่านชั้น ๑๐ (ปราบมารีศ)'},
+  garuda:{name:'พญาครุฑ',sprite:'garuda',hp:28,mp:12,atk:7,def:2,dodge:20,
+    mantras:['vaju'],desc:'พญาราชปักษาแห่งเวหา — บินข้ามกับดักได้ และโจมตีนาคพิษแรงเป็น ๒ เท่า',
+    unlocked:false,req:'สังหารนาคพิษสะสมครบ ๑๕ ตน'},
   rishi:{name:'ฤๅษี',sprite:'rishi',hp:22,mp:16,atk:3,def:2,dodge:8,
     mantras:['heal','agni@4'],desc:'นักพรตแห่งป่าทัณฑก สมดุลทุกด้าน'},
 };
@@ -667,6 +712,88 @@ let floor=1,seed=0,stairs={x:0,y:0,locked:false},kills={},time=0,endless=false;
 let shake=0,flash=0,floats=[],logs=[];
 let slashes=[],sparks=[]; // เอฟเฟกต์คมดาบและประกายไฟ
 let playerBump={x:0,y:0,time:0}; // อนิเมชันพุ่งกระแทก
+
+
+/* ── ระบบสังสารวัฏบารมี & กองอัฐิชาติก่อน ── */
+function getKarma(){
+  try {
+    return JSON.parse(localStorage.getItem(KARMA_KEY)) || {
+      pts: 0, goldLvl: 0, bagLvl: 0, hpLvl: 0, mpLvl: 0, luckLvl: 0, nagaKills: 0,
+      unlockedBibhek: false, unlockedGaruda: false
+    };
+  } catch(e){
+    return { pts: 0, goldLvl: 0, bagLvl: 0, hpLvl: 0, mpLvl: 0, luckLvl: 0, nagaKills: 0, unlockedBibhek: false, unlockedGaruda: false };
+  }
+}
+
+function saveKarma(data){
+  try { localStorage.setItem(KARMA_KEY, JSON.stringify(data)); } catch(e){}
+}
+
+function getSkel(){
+  try { return JSON.parse(localStorage.getItem(SKEL_KEY)) || null; } catch(e){ return null; }
+}
+
+function openKarmaModal(){
+  let ov = $('karmaOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'karmaOv';
+    ov.className = 'ov';
+    ov.style.zIndex = '350';
+    document.body.appendChild(ov);
+  }
+
+  const k = getKarma();
+
+  let html = '<div class="panel" style="max-width:440px;border-color:var(--gold);box-shadow:0 0 24px rgba(245,197,66,.4);text-align:center">';
+  html += '<div class="deva">कर्म</div>';
+  html += '<h2 style="font-family:Chakra Petch;color:var(--gold);margin:2px 0 4px;font-size:24px">🪷 หอพระบารมี (อัปเกรดถาวร)</h2>';
+  html += '<p class="dim" style="font-size:13px;margin:0 0 10px">สะสมแต้มบารมีจากสังสารวัฏ เพื่อส่งต่อพลังสู่ชาติถัดไป</p>';
+  html += '<div class="chip punya" style="font-size:14px;padding:6px 14px;margin-bottom:14px;display:inline-block">✦ แต้มบารมีคงเหลือ: <b>' + k.pts + '</b></div>';
+
+  const upgrades = [
+    { key: 'goldLvl', name: 'ทุนทรัพย์ชาติต้น', desc: 'เกิดมาพร้อมเหรียญทองติดตัว (+๒๐ ต่อขั้น)', max: 5, cost: 25 },
+    { key: 'bagLvl', name: 'ถุงผ้าย่นระยะ', desc: 'ขยายช่องเก็บของในถุงผ้าถาวร (+๑ ช่องต่อขั้น)', max: 4, cost: 40 },
+    { key: 'hpLvl', name: 'กายาคงกระพัน', desc: 'พลังชีวิตสูงสุดเริ่มต้นเพิ่มขึ้น (+๕ เลือดต่อขั้น)', max: 5, cost: 30 },
+    { key: 'mpLvl', name: 'จิตสมาธิ', desc: 'พลังมนตร์สูงสุดเริ่มต้นเพิ่มขึ้น (+๔ มนตร์ต่อขั้น)', max: 5, cost: 30 },
+    { key: 'luckLvl', name: 'โชคลาภแห่งกรรม', desc: 'เพิ่มอัตราดรอปอาวุธระดับหายากและหีบสมบัติ', max: 5, cost: 35 }
+  ];
+
+  html += '<div style="display:flex;flex-direction:column;gap:8px;text-align:left;margin-bottom:14px">';
+  upgrades.forEach(u => {
+    const cur = k[u.key] || 0;
+    const nextCost = u.cost * (cur + 1);
+    const isMax = cur >= u.max;
+    html += '<div class="row" style="background:#1b0a17;padding:8px;border:1px solid var(--line)">';
+    html += '<div><b>' + u.name + '</b> <span class="teal">(ขั้น ' + thaiNum(cur) + '/' + thaiNum(u.max) + ')</span><br><small class="dim">' + u.desc + '</small></div>';
+    if(isMax){
+      html += '<span class="gold" style="font-size:12px;font-weight:700">★ เต็มขั้น</span>';
+    } else {
+      html += '<button class="mini-btn" ' + (k.pts >= nextCost ? '' : 'disabled') + ' onclick="buyKarmaUp(\'' + u.key + '\',' + nextCost + ')">✦ ' + nextCost + '</button>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+
+  html += '<button class="btn ghost" id="btnCloseKarma" style="width:100%">ปิด</button>';
+  html += '</div>';
+
+  ov.innerHTML = html;
+  show(ov);
+
+  $('btnCloseKarma').onclick = () => hide(ov);
+}
+
+function buyKarmaUp(key, cost){
+  const k = getKarma();
+  if(k.pts < cost) return;
+  k.pts -= cost;
+  k[key] = (k[key] || 0) + 1;
+  saveKarma(k);
+  sfx.level();
+  openKarmaModal();
+}
 
 /* ── สร้างดันเจี้ยน ── */
 function genFloor(fl){
@@ -761,6 +888,20 @@ function genFloor(fl){
   if(boss){
     const b={...boss,id:'boss_'+fl,boss:true,ranged:false,awake:false};
     enemies.push(spawnFoe(b,lr.cx,Math.min(H-2,lr.cy+1)));
+  }
+  
+  // ตรวจสอบกองอัฐิชาติก่อน
+  const curSkel = getSkel();
+  if(curSkel && curSkel.floor === fl){
+    // วางกองอัฐิไว้ตรงจุดเดิมหรือห้องแรก
+    let sx = curSkel.x, sy = curSkel.y;
+    if(map[sy*W+sx] !== 1){ sx = rooms[0].cx + 1; sy = rooms[0].cy; }
+    items.push({ x: sx, y: sy, t: 'skel', name: 'กองอัฐิชาติก่อน', gold: curSkel.gold, wpn: curSkel.wpn });
+  }
+
+  if(player.cls === 'bibhek' || player.talents.some(t => t.id === 'bi_sight')){
+    for(const tr of traps){ map[tr.y*W+tr.x] = 6; }
+    msg('👁️ ญาณทิพย์แห่งพิเภกเบิกกว้าง — กับดักทั้งหมดถูกเปิดเผย!', 'good');
   }
   if(fl===1)msg('เจ้าก้าวเข้าสู่เงามืดของลงกา…');
   else {
@@ -1036,6 +1177,7 @@ function tryMove(dx,dy){
   if(n){interact(n);return;}
   player.x=nx;player.y=ny;
   const gi=items.findIndex(i=>i.x===nx&&i.y===ny);
+  
   if(gi>=0)pickup(gi);
   if(map[ny*W+nx]===2){
     if(stairs.locked){msg('มนตร์ดำผนึกบันไดไว้ — ต้องสังหารนายทัพเสียก่อน!','warn');}
@@ -1055,11 +1197,15 @@ function tryMove(dx,dy){
     sfx.level();
   }
   // เช็คกับดักที่ช่องเดิน
-  const trapIdx = traps.findIndex(tr => tr.x===nx && tr.y===ny);
+  if(player.cls === 'garuda' || player.talents.some(t => t.id === 'ga_fly')){
+    // พญาครุฑบินลอยข้ามกับดัก ไม่เหยียบโดน!
+  } else {
+    const trapIdx = traps.findIndex(tr => tr.x===nx && tr.y===ny);
   if(trapIdx >= 0){
     const tr = traps[trapIdx];
     map[ny*W+nx] = 6; // เผยกับดักบนแมพ
     triggerTrap(tr);
+  }
   }
   endTurn();
 }
@@ -1167,6 +1313,10 @@ function attackFoe(e, dirX=0, dirY=0){
     }
   }
 
+  if(e.id === 'naga' && (player.cls === 'garuda' || player.talents.some(t => t.id === 'ga_naga'))){
+    d *= 2;
+    msg('🦅 พญาครุฑกรงเล็บสังหารนาคิน ดาเมจทวีคูณ!', 'good');
+  }
   if(e.hp <= 0) killFoe(e); else msg((crit?'✦ คมขรรค์ฟันจุดตาย! ':'')+'เจ้าฟัน'+e.name+' -'+d);
 }
 function killFoe(e){
@@ -1180,6 +1330,14 @@ function killFoe(e){
   if(r<.06)items.push({x:e.x,y:e.y,t:'pot',name:'อมฤต',heal:12+floor*2});
   else if(r<.2)items.push({x:e.x,y:e.y,t:'gold',amt:5+R(10)});
   else if(r<.27)items.push({x:e.x,y:e.y,...genGroundItem()});
+  
+  if(e.id === 'naga'){
+    const k = getKarma();
+    k.nagaKills = (k.nagaKills || 0) + 1;
+    if(k.nagaKills >= 15) k.unlockedGaruda = true;
+    saveKarma(k);
+  }
+
   enemies=enemies.filter(o=>o!==e);
   if(e.boss){
     if(floor===FINAL && !endless){victory();return;}
@@ -1366,7 +1524,22 @@ function endTurn(){
 
 /* ── ของ / ร้านค้า / อาคม / เทวาลัย ── */
 function pickup(gi){
-  const it=items[gi];items.splice(gi,1);
+  const it=items[gi];
+  if(!it) return;
+  items.splice(gi,1);
+  if(it.t==='skel'){
+    player.gold += it.gold;
+    sfx.level(); flash = 0.5;
+    let recMsg = '💀 เจ้าพบกองอัฐิตนเองในชาติก่อน! กู้คืนเหรียญ ◉' + it.gold;
+    if(it.wpn && player.inv.length < (player.bagMax || 10)){
+      player.inv.push(it.wpn);
+      recMsg += ' และอาวุธ «' + it.wpn.name + '»';
+    }
+    msg(recMsg, 'good');
+    try { localStorage.removeItem(SKEL_KEY); } catch(e){}
+    updateHud();
+    return;
+  }
   if(it.t==='gold'){player.gold+=it.amt;msg('เก็บเหรียญกษาปณ์ +'+it.amt);sfx.gold();return;}
   if(player.inv.length>=10){msg('ถุงผ้าเต็ม! ของถูกทิ้งไว้…','warn');items.push(it);return;}
   player.inv.push(it);sfx.pick();
@@ -1642,7 +1815,27 @@ function hallInto(el){
 }
 function die(){
   state='dead';sfx.dead();localStorage.removeItem(SAVE_KEY);
-  const sc=score();hallAdd(sc);
+  const sc=score();
+  // แปลงแต้มปุญและคะแนนเป็นแต้มบารมีสะสมข้ามชาติ
+  const k = getKarma();
+  const earnedKarma = Math.floor(sc / 8) + (player.punya || 0);
+  k.pts += earnedKarma;
+  if(floor >= 10) k.unlockedBibhek = true;
+  saveKarma(k);
+
+  // บันทึกกองอัฐิชาติก่อน (Skeleton)
+  try {
+    const skel = {
+      floor: floor,
+      x: player.x,
+      y: player.y,
+      gold: Math.max(15, Math.floor(player.gold * 0.5)),
+      wpn: (player.wpn && player.wpn.tier > 0) ? { ...player.wpn } : null
+    };
+    localStorage.setItem(SKEL_KEY, JSON.stringify(skel));
+  } catch(e){}
+
+  hallAdd(sc);
   $('deadStats').innerHTML='เจ้าเดินทางถึง <b>ชั้น '+thaiNum(floor)+'</b> · ระดับ '+thaiNum(player.lvl)+
     ' · สังหาร '+player.killsTotal+' ตน<br>กิตติยศ <b class="gold">'+sc+'</b>';
   hallInto($('deadHall'));show($('deadOv'));
@@ -1661,7 +1854,14 @@ function enterEndless(){
 
 function victory(){
   state='win';sfx.level();localStorage.removeItem(SAVE_KEY);
-  const sc=score()+500;hallAdd(sc,true);
+  const sc=score()+500;
+  const k = getKarma();
+  const earnedKarma = Math.floor(sc / 6) + (player.punya || 0) + 150;
+  k.pts += earnedKarma;
+  k.unlockedBibhek = true;
+  saveKarma(k);
+
+  hallAdd(sc,true);
   $('winStats').innerHTML='ทศกัณฐ์ล่มสลาย แสงธรรมสาดส่องลงกา<br>'+
     'เจ้าบรรลุ <b class="gold">โมกษะ</b> — หลุดพ้นจากสังสารวัฏ!<br>กิตติยศ <b class="gold">'+sc+'</b>';
   hallInto($('winHall'));
@@ -1836,6 +2036,13 @@ function startRun(cls){
     mantras:[],floor:1,poison:0,burn:0};
   for(const s of C.mantras){if(!s.includes('@'))player.mantras.push(s);}
   rng=Math.random;time=0;endless=false;floats=[];logs=[];slashes=[];sparks=[];
+  
+  const karma = getKarma();
+  player.gold += (karma.goldLvl || 0) * 20;
+  player.bagMax = 10 + (karma.bagLvl || 0);
+  player.mhp += (karma.hpLvl || 0) * 5; player.hp = player.mhp;
+  player.mmp += (karma.mpLvl || 0) * 4; player.mp = player.mmp;
+
   genFloor(1);state='play';
   hideAll();updateHud();setControlsHint();saveGame();
 }
@@ -1944,7 +2151,7 @@ function render(){
       ctx.fillRect(sx, sy, T, T);
     }
 
-    const ic={pot:'pot',mana:'mana',gold:'gold',wpn:'wpn',arm:'arm',scr:'scr',throw:'wpn',relic:'arm',upg:'scr',hook:'wpn'}[it.t] || 'wpn';
+    const ic={pot:'pot',mana:'mana',gold:'gold',wpn:'wpn',arm:'arm',scr:'scr',throw:'wpn',relic:'arm',upg:'scr',hook:'wpn',skel:'skeleton'}[it.t] || 'wpn';
     drawSpr(ic,sx,sy+1);
   }
 
@@ -2335,17 +2542,28 @@ function renderRecords(){$('recordsList').innerHTML=hallGet().map(r=>
   '<li>'+r.n+' · ชั้น '+thaiNum(r.f)+' · กิตติยศ '+r.s+'</li>').join('')||'<li>ยังว่าง…</li>';}
 function buildClassCards(){
   const box=$('classList');box.innerHTML='';
+  const karma = getKarma();
   for(const key in CLASSES){
     const C=CLASSES[key];
+    const isLocked = (key === 'bibhek' && !karma.unlockedBibhek) || (key === 'garuda' && !karma.unlockedGaruda);
+
     const card=document.createElement('div');card.className='card';
-    card.innerHTML='<canvas class="mini" width="32" height="32"></canvas><h3>'+C.name+'</h3>'+
-      '<small>เลือด '+C.hp+' · มนตร์ '+C.mp+' · โจมตี '+C.atk+' · ป้อง '+C.def+'</small>'+
-      '<p>'+C.desc+'</p>';
+    if(isLocked){
+      card.style.opacity = '0.55';
+      card.style.filter = 'grayscale(0.85)';
+      card.innerHTML='<canvas class="mini" width="32" height="32"></canvas><h3 style="color:var(--dim)">🔒 ' + C.name + '</h3>'+
+        '<small class="red" style="font-size:10.5px">เงื่อนไข: ' + (C.req||'ปลดล็อกในภายหลัง') + '</small>'+
+        '<p style="font-size:11px">' + C.desc + '</p>';
+    } else {
+      card.innerHTML='<canvas class="mini" width="32" height="32"></canvas><h3>'+C.name+'</h3>'+
+        '<small>เลือด '+C.hp+' · มนตร์ '+C.mp+' · โจมตี '+C.atk+' · ป้อง '+C.def+'</small>'+
+        '<p>'+C.desc+'</p>';
+      card.onclick=()=>{initAudio();startRun(key);};
+    }
     const g=card.querySelector('canvas').getContext('2d');
     g.imageSmoothingEnabled=false;
     const img=SPR[C.sprite];
     if(img)g.drawImage(img,0,0,img.width,img.height,0,0,32,32);
-    card.onclick=()=>{initAudio();startRun(key);};
     box.appendChild(card);
   }
 }
@@ -2422,6 +2640,20 @@ function setupInput(){
       show($('classSel'));
     }
   };
+  
+  // เพิ่มปุ่มหอพระบารมีที่หน้าแรก
+  let btnKarma = $('btnKarma');
+  if(!btnKarma){
+    btnKarma = document.createElement('button');
+    btnKarma.id = 'btnKarma';
+    btnKarma.className = 'btn ghost';
+    btnKarma.style.color = 'var(--teal)';
+    btnKarma.style.borderColor = 'var(--teal)';
+    btnKarma.innerHTML = '🪷 หอพระบารมี (อัปเกรดถาวร)';
+    $('titleMenu').insertBefore(btnKarma, $('btnRecords'));
+  }
+  btnKarma.onclick = openKarmaModal;
+
   $('btnRecords').onclick=()=>{renderRecords();hide($('titleMenu'));show($('recordsBox'));};
   $('btnRecordsBack').onclick=()=>{hide($('recordsBox'));show($('titleMenu'));};
   $('btnBackTitle').onclick=()=>{hide($('classSel'));show($('title'));};
