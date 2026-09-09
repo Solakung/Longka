@@ -6,12 +6,15 @@
 <meta name="theme-color" content="#12050d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>ลงกา · วิถีแห่งกรรม — 16-bit Roguelike</title>
-<link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
+
+<link rel="manifest" href="manifest.json?v=__BUILD_VERSION__">
+<link rel="icon" href="icon.svg?v=__BUILD_VERSION__" type="image/svg+xml">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Chakra+Petch:wght@500;700&family=Sarabun:wght@400;600&family=Noto+Sans+Devanagari:wght@600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+
+<link rel="stylesheet" href="css/style.css?v=__BUILD_VERSION__">
 </head>
 <body>
 <div id="app">
@@ -140,6 +143,76 @@
     <button class="btn ghost" id="btnHelpClose">เข้าใจแล้ว</button></div>
 </div>
 
-<script src="js/game.js"></script>
+<div id="updateToast" style="
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(100px);
+  background:linear-gradient(135deg,#1a0815,#2a0d1e); color:#f5d76e;
+  padding:14px 22px; border-radius:10px; border:1px solid #f5d76e;
+  box-shadow:0 4px 20px rgba(245,215,110,0.4);
+  font-family:'Chakra Petch',sans-serif; font-size:14px; font-weight:600;
+  z-index:9999; opacity:0; transition:all 0.4s ease;
+  display:flex; align-items:center; gap:12px;
+  max-width:calc(100% - 40px);
+">
+  <span>✨ เวอร์ชั่นใหม่พร้อมแล้ว!</span>
+  <button onclick="window.location.reload()" style="
+    background:#f5d76e; color:#12050d; border:none; padding:6px 14px;
+    border-radius:6px; font-weight:700; cursor:pointer; font-family:inherit;
+  ">โหลดใหม่</button>
+</div>
+
+<!-- ═══ GAME SCRIPT ═══ -->
+<script src="js/game.js?v=__BUILD_VERSION__"></script>
+
+<!-- ═══ SERVICE WORKER REGISTRATION ═══ -->
+<script>
+(function() {
+  if (!('serviceWorker' in navigator)) return;
+
+  // ⬇️ ใส่ ?v=__BUILD_VERSION__ เพื่อบังคับโหลด sw.js ตัวใหม่เสมอ
+  navigator.serviceWorker.register('/sw.js?v=__BUILD_VERSION__', {
+    updateViaCache: 'none'
+  }).then(function(reg) {
+    
+    // ตรวจว่ามี sw.js ตัวใหม่กว่าในเซิร์ฟเวอร์ไหม
+    reg.addEventListener('updatefound', function() {
+      var newWorker = reg.installing;
+      if (!newWorker) return;
+
+      newWorker.addEventListener('statechange', function() {
+        // เมื่อ sw ใหม่ติดตั้งเสร็จแล้ว และมี sw เก่ายังควบคุมหน้าอยู่
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          console.log('🎮 พบเวอร์ชั่นใหม่!');
+          
+          // แสดง toast แจ้งเตือนผู้ใช้
+          var toast = document.getElementById('updateToast');
+          if (toast) {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(-50%) translateY(0)';
+            
+            // ซ่อนอัตโนมัติหลัง 10 วินาที
+            setTimeout(function() {
+              toast.style.opacity = '0';
+              toast.style.transform = 'translateX(-50%) translateY(100px)';
+            }, 10000);
+          }
+        }
+      });
+    });
+
+    // ⚡ ตรวจหา update ทุกครั้งที่เปิดเว็บ (ไม่ใช่แค่ครั้งแรก)
+    if (document.readyState === 'complete') {
+      reg.update();
+    } else {
+      window.addEventListener('load', function() {
+        reg.update();
+      });
+    }
+
+  }).catch(function(err) {
+    console.warn('SW registration failed:', err);
+  });
+})();
+</script>
+
 </body>
 </html>
