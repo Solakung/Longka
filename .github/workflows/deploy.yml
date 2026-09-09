@@ -2,8 +2,8 @@ name: Deploy Lanka Game
 
 on:
   push:
-    branches: [ "main" ] # ถ้า branch หลักของคุณชื่อ master ให้แก้ตรงนี้เป็น master
-  workflow_dispatch: # อนุญาตให้กดปุ่ม Run เองได้ผ่านหน้าเว็บ
+    branches: [ "main" ]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -23,29 +23,23 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Inject build version into files
         run: |
-          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
-          echo "🔨 Building version: $SHORT_SHA"
-          
-          # แทนที่ ${{ github.sha }} ใน sw.js ด้วย commit hash สั้นๆ
-          sed -i "s|\${{ github.sha }}|$SHORT_SHA|g" sw.js
-          
-          # แทนที่ __BUILD_VERSION__ ใน index.html ด้วย commit hash สั้นๆ
+          SHORT_SHA=$(echo "$GITHUB_SHA" | cut -c1-7)
+          echo "Building version: $SHORT_SHA"
+          sed -i "s|__BUILD_SHA__|$SHORT_SHA|g" sw.js
           sed -i "s|__BUILD_VERSION__|$SHORT_SHA|g" index.html
-          
-          echo "✅ Files updated successfully!"
-          echo "=== sw.js (line 1) ==="
+          echo "=== sw.js line 1 ==="
           head -1 sw.js
-          echo "=== index.html (asset tags) ==="
-          grep -E "(style\.css|game\.js|manifest\.json|icon\.svg)" index.html | head -5
-          
+          echo "=== index.html asset tags ==="
+          grep -E "style\.css|game\.js" index.html | head -4
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
-          
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
