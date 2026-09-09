@@ -464,6 +464,42 @@ const TILEC=[];
 
 /* ── ตารางข้อมูล ── */
 
+const CLASS_TALENTS = {
+  ksatriya: [
+    { id: 'k_rage', name: 'ขัตติยมานะ', icon: '👑', desc: 'เมื่อเลือดต่ำกว่า ๓๕% พลังโจมตีและคริติคอลเพิ่มเป็น ๒ เท่า' },
+    { id: 'k_fort', name: 'เกราะปราการ', icon: '🛡️', desc: 'พลังป้องกันถาวร +๓ และสะท้อนดาเมจ ๓ หน่วยใส่ศัตรู' },
+    { id: 'k_cleave', name: 'สังหารต่อเนื่อง', icon: '⚔️', desc: 'เมื่อสังหารศัตรู มีโอกาส ๖๐% ฟันฟรีใส่ศัตรูรอบข้างทันที' },
+    { id: 'k_heart', name: 'หทัยราชันย์', icon: '❤️', desc: 'เลือดสูงสุด +๒๐ และพลังโจมตีกายภาพ +๔ ถาวร' },
+    { id: 'k_pierce', name: 'เพลงดาบอโยธยา', icon: '🗡️', desc: 'คริติคอล +๑๕% และโจมตีทะลุเกราะศัตรู ๒๕%' },
+    { id: 'k_fury', name: 'โทสะกษัตริย์', icon: '🔥', desc: 'ทุกครั้งที่โดนโจมตี พลังโจมตีเพิ่มขึ้น +๑ ในห้องนั้น (สูงสุด +๘)' }
+  ],
+  brahmin: [
+    { id: 'b_boost', name: 'ฌานเพ่ง', icon: '✹', desc: 'คาถาอัคนีและวัชระแรงขึ้น ๓๕%' },
+    { id: 'b_drain', name: 'มนตราดูดวิญญาณ', icon: '🔮', desc: 'สังหารศัตรูด้วยคาถา ฟื้นมานาคืน ๕ หน่วยทันที' },
+    { id: 'b_shield', name: 'รัศมีคุ้มกาย', icon: '✨', desc: 'ใช้พลังมนตร์ซับดาเมจแทนเลือด ๕๐% เมื่อโดนโจมตี' },
+    { id: 'b_vaju', name: 'มหาเวทวายุ', icon: '❋', desc: 'คาถาวายุรัศมีกว้างขึ้นเป็น ๓ ช่อง และผลักศัตรูกระเด็น' },
+    { id: 'b_amrita', name: 'อมฤตทิพย์', icon: '✚', desc: 'คาถาอมฤตฟื้นเลือดแรงขึ้น +๑๕ และล้างพิษ/ไฟให้อัตโนมัติ' },
+    { id: 'b_pure', name: 'จิตบริสุทธิ์', icon: '📿', desc: 'พลังมนตร์สูงสุด +๒๐ และลดค่าร่ายทุกคาถาลง ๒ หน่วย' }
+  ],
+  vanara: [
+    { id: 'v_counter', name: 'ลิงลมเหยียบหัว', icon: '🐒', desc: 'เมื่อหลบหลีกการโจมตีสำเร็จ จะฟันสวนกลับ (Counter) ทันที' },
+    { id: 'v_crit', name: 'เปิดจุดตาย', icon: '🎯', desc: 'อัตราคริติคอลพุ่งขึ้น +๒๐% ถาวร' },
+    { id: 'v_haste', name: 'ก้าวพริบตา', icon: '⚡', desc: 'มีโอกาส ๓๕% โจมตีแล้วไม่เสียเทิร์น (โจมตีเบิ้ลฟรี)' },
+    { id: 'v_throw', name: 'ตรีเพชรซัด', icon: '🏹', desc: 'อาวุธขว้างแรงขึ้น ๒ เท่า และระยะขว้าง +๒ ช่อง' },
+    { id: 'v_stealth', name: 'วานรแปลงกาย', icon: '🍃', desc: 'หลบหลีกถาวร +๑๕% และศัตรูมองเห็นเรายากขึ้น' },
+    { id: 'v_wind', name: 'ลิงลมคะนอง', icon: '💨', desc: 'เมื่อเลือดเต็ม อัตราหลบหลีกเพิ่มเป็น ๕๐%' }
+  ],
+  rishi: [
+    { id: 'r_rest', name: 'ตบะฌาน', icon: '🧘', desc: 'ทุกครั้งที่กดยืนพักสำรวมลมปราณ (●) จะฟื้นเลือด ๓ หน่วย' },
+    { id: 'r_punya', name: 'ปุญฤทธิ์', icon: '✦', desc: 'พลังโจมตีและป้องกันเพิ่มขึ้นตามแต้มปุญ (ทุก ๕๐ ปุญ = ATK+๑, DEF+๑)' },
+    { id: 'r_sight', name: 'ตาทิพย์', icon: '👁️', desc: 'มองเห็นกับดักบนพื้นทั้งหมด และขยายระยะมองเห็น +๒ ช่อง' },
+    { id: 'r_indra', name: 'พรพระอินทร์', icon: '🛕', desc: 'เทวาลัยและสระอมฤตมอบบัฟสเตตัสถาวรเพิ่มขึ้น ๒ เท่า' },
+    { id: 'r_immune', name: 'กายทิพย์', icon: '🛡️', desc: 'ต้านทานสถานะติดพิษและติดไฟโดยสมบูรณ์' },
+    { id: 'r_rebirth', name: 'มนต์ชุบวิญญาณ', icon: '💎', desc: 'เมื่อเลือดหมด มีโอกาส ๕๐% ชุบชีวิตฟื้นคืนชีพ ๑ ครั้ง' }
+  ]
+};
+
+
 const RARITY_COLORS = {
   common: '#f4ecdc',
   rare: '#2ec4a6',
@@ -1030,6 +1066,10 @@ function tryMove(dx,dy){
 function waitTurn(){
   if(state!=='play')return;
   player.mp=Math.min(player.mmp,player.mp+1);
+  if(player.talents.some(t => t.id === 'r_rest')){
+    player.hp = Math.min(player.mhp, player.hp + 3);
+    floats.push({x:player.x, y:player.y, t:'+๓ เลือด', c:'#2ec4a6', life:1});
+  }
   msg('เจ้าสำรวมลมปราณ…');
   endTurn();
 }
@@ -1044,6 +1084,10 @@ function attackFoe(e, dirX=0, dirY=0){
   // คำนวณดาเมจพื้นฐาน (กระบองหนักเจาะเกราะ 50%)
   const defCut = (wpn.type === 'mace') ? (e.def >> 2) : (e.def >> 1);
   let d = Math.max(1, player.atk + wpn.v + R(4) - defCut);
+  if(player.talents.some(t => t.id === 'k_rage') && player.hp <= Math.floor(player.mhp * 0.35)){
+    d *= 2;
+    msg('👑 ขัตติยมานะสำแดงฤทธิ์! เลือดวิกฤตพลังโจมตีทวีคูณ!', 'warn');
+  }
   if(crit) d <<= 1;
   e.hp -= d; e.awake = true; e.flash = 5;
 
@@ -1153,6 +1197,10 @@ function checkLevel(){
     player.mhp+=7;player.mmp+=4;player.atk+=2;player.def+=1;
     player.hp=Math.min(player.mhp,player.hp+(player.mhp>>1));
     player.mp=player.mmp;
+    // ทุกๆ ๕ เลเวล รับ ๑ แต้มพรสวรรค์
+    if(player.lvl % 5 === 0){
+      player.talentPoints = (player.talentPoints || 0) + 1;
+    }
     for(const s of CLASSES[player.cls].mantras){
       if(!s.includes('@'))continue;
       const [k,l]=s.split('@');
@@ -1165,6 +1213,9 @@ function checkLevel(){
     msg('⟐ เลื่อนขั้นเป็นระดับ '+thaiNum(player.lvl)+'!','good');
     floats.push({x:player.x,y:player.y,t:'LEVEL UP',c:'#f5c542',life:1.4});
     sfx.level();
+    if(player.talentPoints > 0){
+      triggerTalentChoice();
+    }
   }
 }
 const xpNeed=l=>l*25+(l-1)*(l-1)*5;
@@ -1175,6 +1226,14 @@ function hurtPlayer(d,src,attacker=null){
   if(rng()*100 < dodgeRate){
     msg('เจ้าพลิกตัวหลบ'+src+'ได้!');
     floats.push({x:player.x,y:player.y,t:'พลาด!',c:'#2ec4a6',life:1});
+    if(attacker && player.talents.some(t => t.id === 'v_counter')){
+      const cDmg = Math.max(2, Math.floor((player.atk + player.wpn.v) * 0.8));
+      attacker.hp -= cDmg; attacker.flash = 4;
+      triggerSlash(attacker.x, attacker.y, '#2ec4a6');
+      floats.push({x:attacker.x, y:attacker.y, t:'เหยียบหัวสวน -'+cDmg, c:'#2ec4a6', life:1.2});
+      msg('🐒 ลิงลมเหยียบหัวสวนกลับใส่ ' + attacker.name + ' -' + cDmg, 'good');
+      if(attacker.hp <= 0) killFoe(attacker);
+    }
     return;
   }
 
@@ -1183,6 +1242,12 @@ function hurtPlayer(d,src,attacker=null){
     d = Math.max(1, Math.floor(d * 0.5));
   }
 
+  if(player.talents.some(t => t.id === 'b_shield') && player.mp > 0){
+    const absorb = Math.min(player.mp, Math.ceil(d * 0.5));
+    player.mp -= absorb;
+    d -= absorb;
+    floats.push({x:player.x, y:player.y, t:'ม่านมนตร์ -' + absorb + ' MP', c:'#6fe0cd', life:1});
+  }
   player.hp -= d; flash = .4; shake = 6; sfx.hurt();
   triggerSlash(player.x, player.y, '#e5482e');
   floats.push({x:player.x, y:player.y, t:'-'+d, c:'#ff5a4d', life:1});
@@ -1431,7 +1496,13 @@ function castMantra(key){
     triggerSlash(t.x,t.y,key==='agni'?'#ff8b1f':'#f5c542');
     floats.push({x:t.x,y:t.y,t:'-'+d,c:key==='agni'?'#ff8b1f':'#f5c542',life:1});
     msg((key==='agni'?'✹ เปลวเพลิง':'⌁ สายฟ้าพระอินทร์')+'สังหาร'+t.name+' -'+d);
-    if(t.hp<=0)killFoe(t);
+    if(t.hp<=0){
+      if(player.talents.some(tal => tal.id === 'b_drain')){
+        player.mp = Math.min(player.mmp, player.mp + 5);
+        floats.push({x:player.x, y:player.y, t:'+๕ MP', c:'#6fe0cd', life:1});
+      }
+      killFoe(t);
+    }
   }else if(key==='heal'){
     const h=10+player.lvl*2;player.hp=Math.min(player.mhp,player.hp+h);
     msg('✚ อมฤตชำระกาย ฟื้นเลือด +'+h,'good');
@@ -1644,6 +1715,109 @@ function loadGame(){
   }catch(e){return false;}
 }
 
+
+let currentTalentOptions = [];
+
+function triggerTalentChoice(){
+  const pool = CLASS_TALENTS[player.cls] || [];
+  const available = pool.filter(t => !player.talents.some(pt => pt.id === t.id));
+  if(!available.length) return; // ได้ครบหมดแล้ว
+
+  // สุ่มหยิบมา 2 ตัวเลือก
+  const shuffled = [...available].sort(() => rng() - 0.5);
+  currentTalentOptions = shuffled.slice(0, 2);
+
+  // รีเซ็ตการสุ่มฟรีสำหรับรอบนี้
+  player.freeRerolls = 2;
+  player.rerollCost = 10;
+
+  renderTalentModal();
+}
+
+function rerollTalents(){
+  if(player.freeRerolls > 0){
+    player.freeRerolls--;
+    msg('🎲 สุ่มวิชาใหม่ (ฟรี เหลือ ' + player.freeRerolls + ' ครั้ง)');
+  } else {
+    if(player.gold < player.rerollCost){
+      msg('เหรียญไม่พอสุ่มใหม่ (ต้องการ ◉' + player.rerollCost + ')', 'warn');
+      return;
+    }
+    player.gold -= player.rerollCost;
+    msg('🎲 สุ่มวิชาใหม่ เสียเหรียญ ◉' + player.rerollCost);
+    player.rerollCost *= 2; // เพิ่มทีละ 2 เท่า
+  }
+  sfx.pick();
+  updateHud();
+
+  const pool = CLASS_TALENTS[player.cls] || [];
+  const available = pool.filter(t => !player.talents.some(pt => pt.id === t.id));
+  const shuffled = [...available].sort(() => rng() - 0.5);
+  currentTalentOptions = shuffled.slice(0, 2);
+  renderTalentModal();
+}
+
+function selectTalent(t){
+  player.talents.push(t);
+  if(player.talentPoints > 0) player.talentPoints--;
+  if(player.talentPoints > 0) setTimeout(triggerTalentChoice, 400);
+  sfx.level(); flash = 0.6;
+  floats.push({x:player.x, y:player.y, t:'วิชา: ' + t.name, c:'#f5c542', life:2});
+  msg('✦ สำเร็จวิชาพรสวรรค์ «' + t.name + '»! ' + t.desc, 'good');
+
+  // ผลลัพธ์ถาวรบางสกิล
+  if(t.id === 'k_fort') player.def += 3;
+  if(t.id === 'k_heart'){ player.mhp += 20; player.hp += 20; player.atk += 4; }
+  if(t.id === 'v_stealth') player.dodge += 15;
+  if(t.id === 'b_pure'){ player.mmp += 20; player.mp += 20; }
+  if(t.id === 'r_immune'){ player.poison = 0; player.burn = 0; }
+
+  updateHud();
+  hide($('talentOv'));
+}
+
+function renderTalentModal(){
+  let ov = $('talentOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'talentOv';
+    ov.className = 'ov';
+    ov.style.zIndex = '300';
+    document.body.appendChild(ov);
+  }
+
+  let html = '<div class="panel" style="max-width:420px;text-align:center;border-color:var(--gold);box-shadow:0 0 24px rgba(245,197,66,.35)">';
+  html += '<div class="deva">विद्या</div>';
+  html += '<h2 style="font-family:Chakra Petch;color:var(--gold);margin:2px 0 4px;font-size:22px">✦ บรรลุวิชาพรสวรรค์ (ระดับ ' + thaiNum(player.lvl) + ')</h2>';
+  html += '<p class="dim" style="font-size:13px;margin:0 0 12px">เลือก ๑ ใน ๒ วิชา เพื่อหล่อหลอมจิตวิญญาณแห่ง ' + CLASSES[player.cls].name + '</p>';
+
+  html += '<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">';
+  currentTalentOptions.forEach((t, idx) => {
+    html += '<div style="background:#1e0c19;border:2px solid var(--line);padding:10px 12px;border-radius:4px;text-align:left;cursor:pointer;transition:border-color .2s" onmouseover="this.style.borderColor=\'var(--gold)\'" onmouseout="this.style.borderColor=\'var(--line)\'" onclick="selectTalent(currentTalentOptions[' + idx + '])">';
+    html += '<div style="display:flex;align-items:center;gap:8px">';
+    html += '<span style="font-size:20px">' + t.icon + '</span>';
+    html += '<b style="color:var(--gold);font-size:16px;font-family:Chakra Petch">' + t.name + '</b>';
+    html += '</div>';
+    html += '<p style="color:var(--ink);font-size:13px;margin:6px 0 0;line-height:1.4">' + t.desc + '</p>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  const rerollTxt = player.freeRerolls > 0 
+    ? '🎲 สุ่มใหม่ (ฟรี เหลือ ' + player.freeRerolls + ' ครั้ง)' 
+    : '🎲 สุ่มใหม่ (◉ ' + player.rerollCost + ')';
+
+  html += '<div style="display:flex;gap:8px;justify-content:center">';
+  html += '<button class="btn ghost" id="btnRerollTalent" style="font-size:14px;padding:8px 16px">' + rerollTxt + '</button>';
+  html += '</div>';
+  html += '</div>';
+
+  ov.innerHTML = html;
+  show(ov);
+
+  $('btnRerollTalent').onclick = rerollTalents;
+}
+
 /* ── สร้างตัวละคร / เริ่มเกม ── */
 function startRun(cls){
   seed=(Date.now()^(Math.random()*1e9))>>>0;
@@ -1655,6 +1829,10 @@ function startRun(cls){
     arm:{name:'ผ้าฝ้าย',baseName:'ผ้าฝ้าย',v:0,tier:0,r:'common',lore:'ผ้าฝ้ายธรรมดาป้องกันอะไรแทบไม่ได้'},
     relic:null,
     inv:[{t:'pot',name:'อมฤต',heal:14,r:'common',lore:'น้ำอมฤตฟื้นฟูเลือด'}, genScrollUpg()],
+    talents:[],
+    freeRerolls:2,
+    rerollCost:10,
+    pendingTalents:[],
     mantras:[],floor:1,poison:0,burn:0};
   for(const s of C.mantras){if(!s.includes('@'))player.mantras.push(s);}
   rng=Math.random;time=0;endless=false;floats=[];logs=[];slashes=[];sparks=[];
@@ -1909,6 +2087,113 @@ function drawMandala(){ // ฉากหน้าเมนู
 let lastT=0;
 function loop(t){time=Math.floor(t/50);render();requestAnimationFrame(loop)}
 
+
+function openStatusModal(){
+  let ov = $('statusOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'statusOv';
+    ov.className = 'ov';
+    ov.style.zIndex = '280';
+    document.body.appendChild(ov);
+  }
+
+  const C = CLASSES[player.cls];
+  const totalAtk = player.atk + (player.wpn ? player.wpn.v : 0);
+  const totalDef = player.def + (player.arm ? player.arm.v : 0);
+  let totalDodge = player.dodge;
+  if(player.arm && player.arm.affix === 'dodge') totalDodge += 15;
+  if(player.relic && player.relic.id === 'vanara_bangle') totalDodge += 25;
+
+  let totalCrit = 15;
+  if(player.wpn && player.wpn.type === 'dagger') totalCrit += 20;
+  if(player.wpn && player.wpn.affix === 'sharp') totalCrit += 15;
+  if(player.relic && player.relic.id === 'diamond_ring') totalCrit += 15;
+  if(player.talents.some(t => t.id === 'v_crit')) totalCrit += 20;
+
+  // โบนัสปุญฤทธิ์ของฤๅษี
+  if(player.talents.some(t => t.id === 'r_punya')){
+    const bonus = Math.floor(player.punya / 50);
+    // แจ้งในสเตตัส
+  }
+
+  let html = '<div class="panel" style="max-width:420px;border-color:var(--gold);box-shadow:0 0 20px rgba(245,197,66,.35)">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--line);padding-bottom:8px;margin-bottom:10px">';
+  html += '<div style="display:flex;align-items:center;gap:10px">';
+  html += '<canvas id="statusSprite" width="40" height="40" style="image-rendering:pixelated;background:#150914;border:2px solid var(--gold)"></canvas>';
+  html += '<div><h2 style="font-family:Chakra Petch;color:var(--gold);margin:0;font-size:20px">' + C.name + '</h2>';
+  html += '<small class="teal" style="font-size:12px">ระดับ ' + thaiNum(player.lvl) + ' · ประสบการณ์ ' + player.xp + '/' + xpNeed(player.lvl) + '</small></div>';
+  html += '</div>';
+  html += '<div class="chip gold" style="font-size:11px">◉ ' + player.gold + '</div>';
+  html += '</div>';
+
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;margin-bottom:12px">';
+  html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">🩸 เลือด: <b style="color:#ff7a5c">' + player.hp + '/' + player.mhp + '</b></div>';
+  html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">💧 มนตร์: <b style="color:#6fe0cd">' + player.mp + '/' + player.mmp + '</b></div>';
+  html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">⚔ โจมตีรวม: <b class="gold">' + totalAtk + '</b> <small class="dim">(' + player.atk + '+' + (player.wpn?player.wpn.v:0) + ')</small></div>';
+  html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">🛡 ป้องกันรวม: <b class="teal">' + totalDef + '</b> <small class="dim">(' + player.def + '+' + (player.arm?player.arm.v:0) + ')</small></div>';
+  html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">💨 หลบหลีก: <b style="color:#ffe9a3">' + totalDodge + '%</b></div>';
+  html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">🎯 คริติคอล: <b style="color:#f5c542">' + totalCrit + '%</b></div>';
+  html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">✦ ปุญบารมี: <b class="teal">' + player.punya + '</b></div>';
+  html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">☠ สังหาร: <b class="red">' + player.killsTotal + ' ตน</b></div>';
+  html += '</div>';
+
+  // อุปกรณ์สวมใส่ 3 ช่อง
+  html += '<h4 style="margin:8px 0 4px;color:var(--gold);font-size:13px">🛡️ อุปกรณ์คู่กาย</h4>';
+  html += '<div style="display:flex;flex-direction:column;gap:4px;font-size:12.5px;margin-bottom:10px">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;background:#150914;padding:4px 8px;border:1px solid var(--line)">';
+  html += '<span>⚔ อาวุธ: <b style="color:' + (RARITY_COLORS[player.wpn.r]||'#fff') + '">' + player.wpn.name + '</b> (โจมตี +' + player.wpn.v + ')</span>';
+  html += '<button class="mini-btn" onclick="inspectItem(player.wpn)">ส่อง</button>';
+  html += '</div>';
+
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;background:#150914;padding:4px 8px;border:1px solid var(--line)">';
+  html += '<span>🛡 เกราะ: <b style="color:' + (RARITY_COLORS[player.arm.r]||'#fff') + '">' + player.arm.name + '</b> (ป้องกัน +' + player.arm.v + ')</span>';
+  html += '<button class="mini-btn" onclick="inspectItem(player.arm)">ส่อง</button>';
+  html += '</div>';
+
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;background:#150914;padding:4px 8px;border:1px solid var(--line)">';
+  if(player.relic){
+    html += '<span>' + (player.relic.icon||'📿') + ' เครื่องราง: <b style="color:' + (RARITY_COLORS[player.relic.r]||'#fff') + '">' + player.relic.name + '</b></span>';
+    html += '<button class="mini-btn" onclick="inspectItem(player.relic)">ส่อง</button>';
+  } else {
+    html += '<span class="dim">📿 เครื่องราง: ยังไม่ได้สวมใส่</span>';
+    html += '<span></span>';
+  }
+  html += '</div>';
+  html += '</div>';
+
+  // วิชาพรสวรรค์ที่เลือกไว้
+  html += '<h4 style="margin:8px 0 4px;color:var(--teal);font-size:13px">✦ วิชาพรสวรรค์ประจำตัว</h4>';
+  if(!player.talents.length){
+    html += '<p class="dim" style="font-size:12px;margin:4px 0 10px">ยังไม่มีวิชาพรสวรรค์ (จะปลดล็อกทุกๆ ๕ เลเวล)</p>';
+  } else {
+    html += '<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px">';
+    player.talents.forEach(t => {
+      html += '<div style="background:#152623;padding:4px 8px;border-left:3px solid var(--teal);font-size:12px">';
+      html += '<b class="teal">' + t.icon + ' ' + t.name + ':</b> ' + t.desc;
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  html += '<div style="text-align:center;margin-top:12px"><button class="btn" id="btnCloseStatus" style="width:100%">ปิด</button></div>';
+  html += '</div>';
+
+  ov.innerHTML = html;
+  show(ov);
+
+  // วาดสไปรต์ตัวละครในแคนวาสสเตตัส
+  const scv = $('statusSprite');
+  if(scv){
+    const sg = scv.getContext('2d');
+    sg.imageSmoothingEnabled = false;
+    const img = SPR[player.sprite];
+    if(img) sg.drawImage(img, 0, 0, img.width, img.height, 4, 4, 32, 32);
+  }
+
+  $('btnCloseStatus').onclick = () => hide(ov);
+}
+
 /* ── UI helpers ── */
 function show(el){el.classList.remove('hidden')}
 function hide(el){el.classList.add('hidden')}
@@ -2101,8 +2386,8 @@ function setupInput(){
   $('btnWait').addEventListener('pointerdown',e=>{e.preventDefault();initAudio();waitTurn();});
   $('btnMantra').onclick=()=>{if(state==='play'){renderMantras();show($('mantraOv'));}};
   $('btnInv').onclick=()=>{if(state==='play'){renderInv();show($('invOv'));}};
-  $('hudL').onclick=()=>{if(state==='play'){renderInv();show($('invOv'));}};
-  $('hudR').onclick=()=>{if(state==='play'){renderInv();show($('invOv'));}};
+  $('hudL').onclick=()=>{if(state==='play'){openStatusModal();}};
+  $('hudR').onclick=()=>{if(state==='play'){openStatusModal();}};
   $('hudL').style.cursor='pointer';
   $('hudR').style.cursor='pointer';
   $('btnHelp').onclick=()=>show($('helpOv'));
