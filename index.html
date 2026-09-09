@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#12050d">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>ลงกา · วิถีแห่งกรรม — 8-bit Roguelike</title>
+<title>ลงกา · วิถีแห่งกรรม — 16-bit Roguelike</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -50,14 +50,14 @@
     </div>
   </footer>
 
-  <div id="controlsHint">ปุ่มกดอยู่บนจอ · เดินชนศัตรูเพื่อโจมตี</div>
+  <div id="controlsHint">เดินชนศัตรูเพื่อโจมตี</div>
 </div>
 
 <!-- ══ OVERLAYS ══ -->
 <div class="ov" id="title">
   <div class="deva">लंका</div>
   <h1 class="logo">ลงกา</h1>
-  <p class="tagline">วิถีแห่งกรรม · โร้กไลก์ ๘ บิต · บุกวิหารอสูร ๒๐ ชั้น ปราบทศกัณฐ์เพื่อโมกษะ</p>
+  <p class="tagline">วิถีแห่งกรรม · โร้กไลก์ ๑๖ บิต · บุกวิหารอสูร ๒๐ ชั้น เพื่อปราบทศกัณฐ์</p>
   <div class="menu" id="titleMenu">
     <button class="btn" id="btnNew">▶ เริ่มเดินทาง</button>
     <button class="btn ghost hidden" id="btnContinue">⟳ เดินทางต่อ</button>
@@ -132,11 +132,10 @@
 <div class="ov hidden" id="helpOv">
   <div class="panel"><h3>วิธีเล่น</h3>
     <p>◈ เดินชนศัตรูเพื่อโจมตี (เทิร์นต่อเทิร์น)<br>
-       ◈ เก็บของด้วยการเดินทับ · ▼ คือบันไดลงชั้นถัดไป<br>
+       ◈ เก็บของด้วยการเดินเหยียบ · ลงไปให้ลึกที่สุด<br>
        ◈ 🛕 เทวาลัย — สวดขอพร / ถวายเหรียญเพื่อปุญ<br>
-       ◈ วาณิช (ชั้น ๓, ๖, ๙…) รับเควสต์ล่าอสูรแลกเหรียญทอง — ทำซ้ำได้ไม่จำกัด!<br>
-       ◈ บอสทุกชั้นที่ ๕ · ชั้น ๒๐ คือ <b>ทศกัณฐ์</b><br>
-       ◈ ตาย = เริ่มใหม่ (โร้กไลก์) แต่ทำเนียบวีรชนจารึกไว้</p>
+       ◈ ค้นพบความลับมากมายในเกม<br>
+       ◈ ตาย = เริ่มใหม่ จารึกตำนานไว้ในทำเนียบวีรชน</p>
     <p class="dim">คีย์บอร์ด: ลูกศร/ADW เดิน · Space รอ · M อาคม · I ถุงผ้า · H ช่วยเหลือ</p>
     <button class="btn ghost" id="btnHelpClose">เข้าใจแล้ว</button></div>
 </div>
