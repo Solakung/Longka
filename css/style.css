@@ -60,7 +60,7 @@ button{font-family:inherit;cursor:pointer}
 /* ── OVERLAYS ── */
 .ov{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;
   justify-content:center;gap:12px;background:rgba(12,3,11,.9);padding:20px;overflow:auto;text-align:center}
-#title{background:rgba(12,3,11,.66)}
+#title{background:rgba(12,3,11,.9)}
 .hidden{display:none!important}
 .deva{font-family:'Noto Sans Devanagari',serif;color:var(--teal);font-size:24px;letter-spacing:8px;
   animation:floaty 3.5s ease-in-out infinite}
@@ -69,7 +69,7 @@ button{font-family:inherit;cursor:pointer}
   color:var(--gold);text-shadow:0 3px 0 #7a3d0a,0 6px 0 #3a1c05,0 12px 28px #000;
   animation:glow 2.6s ease-in-out infinite}
 @keyframes glow{50%{text-shadow:0 3px 0 #7a3d0a,0 6px 0 #3a1c05,0 0 34px rgba(245,197,66,.55)}}
-.tagline{color:var(--teal);font-size:13px;max-width:340px;margin:2px 0 10px}
+.tagline{color:var(--teal);font-size:13px;max-width:340px;margin:2px auto 10px}
 .foot{font-size:11px;color:var(--dim)}
 .ovTitle{font-family:'Chakra Petch';font-size:28px;color:var(--gold);margin:0}
 .ovTitle.red{color:var(--red)} .ovTitle.gold{color:var(--gold)}
@@ -122,7 +122,7 @@ ol{padding-left:22px;margin:4px 0} ol li{font-size:13px;margin:3px 0;color:var(-
 }
 .ov#title .menuScroll{
   flex:1;
-  width:100%;
+  width:min(94vw,460px);
   overflow-y:auto;
   overflow-x:hidden;
   max-height:62vh;
