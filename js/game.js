@@ -426,9 +426,37 @@ for(const name in SPRD){
     if(ch!=='.'&&PAL[ch]){g.fillStyle=PAL[ch];g.fillRect(x,y,1,1);}}});
   SPR[name]=c;
 }
-function drawSpr(s,dx,dy,w=16,h=16){
+function drawSpr(s,dx,dy,w=16,h=16,flipX=false,squash=0){
   const img=SPR[s];
-  if(img)ctx.drawImage(img,0,0,img.width,img.height,dx,dy,w,h);
+  if(!img)return;
+  if(flipX || squash > 0){
+    ctx.save();
+    ctx.translate(dx + (w >> 1), dy + (h >> 1));
+    if(flipX) ctx.scale(-1, 1);
+    if(squash > 0) ctx.scale(1.25, 0.75); // เด้งยุบตัวเมื่อโดนโจมตี
+    ctx.drawImage(img, 0, 0, img.width, img.height, -(w >> 1), -(h >> 1), w, h);
+    ctx.restore();
+  } else {
+    ctx.drawImage(img, 0, 0, img.width, img.height, dx, dy, w, h);
+  }
+}
+
+
+/* ── ธีมฉาก ๕ โซนตามระดับชั้น (Dynamic Biomes) ── */
+const BIOMES = [
+  { name: 'โถงวิหารศิลา', tint: 'rgba(245,197,66,0.06)', particle: '#f5c542' },
+  { name: 'ถ้ำบาดาลนาคราช', tint: 'rgba(46,196,166,0.08)', particle: '#2ec4a6' },
+  { name: 'คุกมารเพลิงกัลป์', tint: 'rgba(255,139,31,0.09)', particle: '#ff8b1f' },
+  { name: 'ท้องพระโรงทศกัณฐ์', tint: 'rgba(229,72,46,0.07)', particle: '#f5c542' },
+  { name: 'ห้วงสุญญากาศอเวจี', tint: 'rgba(141,85,201,0.09)', particle: '#8d55c9' }
+];
+
+function getBiome(fl){
+  if(fl <= 5) return BIOMES[0];
+  if(fl <= 10) return BIOMES[1];
+  if(fl <= 15) return BIOMES[2];
+  if(fl <= 20) return BIOMES[3];
+  return BIOMES[4];
 }
 
 /* ── แผ่นกระเบื้อง (วาดแบบสุ่มมีพื้นผิว) ── */
@@ -481,6 +509,13 @@ const TILEC=[];
    g.strokeStyle='#d43d2a';g.strokeRect(3,3,10,10);
    g.fillStyle='#ff5a4d';g.fillRect(6,6,4,4);
    TILEC[6]=[c];}
+  // แท่นบูชาบาปอสูรสีดำ (7)
+  {const c=document.createElement('canvas');c.width=T;c.height=T;const g=c.getContext('2d');
+   g.fillStyle='#120409';g.fillRect(0,0,T,T);
+   g.strokeStyle='#d43d2a';g.strokeRect(2,2,12,12);
+   g.fillStyle='#8f2438';g.fillRect(4,8,8,6);
+   g.fillStyle='#ff5a4d';g.fillRect(7,3,2,5);
+   TILEC[7]=[c];}
 })();
 
 /* ── ตารางข้อมูล ── */
@@ -666,10 +701,10 @@ const FOES=[
   {id:'yaksha',name:'ยักษ์ทวารบาล',sprite:'yaksha',hp:32,atk:10,def:3,xp:27,g:13,min:9,max:18},
 ];
 const BOSSES={
-  5:{name:'พญาขร',sprite:'rakshasa',hp:65,atk:9,def:2,xp:70,g:30},
-  10:{name:'มารีศ',sprite:'asura',hp:110,atk:12,def:3,xp:120,g:50},
-  15:{name:'กุมภกรรณ',sprite:'yaksha',hp:170,atk:15,def:5,xp:180,g:80},
-  20:{name:'ทศกัณฐ์',sprite:'boss',hp:260,atk:19,def:6,xp:0,g:120},
+  5:{name:'พญาขร',title:'นายทัพหน้าแห่งลงกา',sprite:'rakshasa',hp:65,atk:9,def:2,xp:70,g:30},
+  10:{name:'มารีศ',title:'อสูรจำแลงกวางทอง',sprite:'asura',hp:110,atk:12,def:3,xp:120,g:50},
+  15:{name:'กุมภกรรณ',title:'พญายักษ์หอกโมกขศักดิ์',sprite:'yaksha',hp:170,atk:15,def:5,xp:180,g:80},
+  20:{name:'ทศกัณฐ์',title:'พญายักษ์ ๑๐ หน้า ๒๐ กร จ้าวแห่งลงกา',sprite:'boss',hp:260,atk:19,def:6,xp:0,g:120},
 };
 const WEAPONS=[null,{n:'ขรรค์เหล็ก',a:2},{n:'ขรรค์อัคนี',a:4},{n:'ตรีศูล',a:7},
   {n:'วัชระ',a:10},{n:'จักรสุทรรศน์',a:14}];
@@ -707,6 +742,16 @@ function getBoss(fl){
 
 
 /* ── สถานะเกม & เอฟเฟกต์ ── */
+
+const PET_TYPES = {
+  monkey: { name: 'ลูกลิงลม', s: 'vanara', desc: 'เก็บเหรียญทองรอบตัวอัตโนมัติ' },
+  bird: { name: 'ลูกนกเวหา', s: 'garuda', desc: 'บินส่องเปิดหมอกสงครามล่วงหน้า' },
+  naga: { name: 'ลูกพญานาค', s: 'naga', desc: 'พ่นพิษใส่ศัตรูระยะไกลเทิร์นละ ๑ ครั้ง' }
+};
+
+let dustParticles = [];
+let bossSplash = null;
+
 let state='title',map,seen,vis,player=null,enemies=[],npcs=[],items=[],traps=[];
 let floor=1,seed=0,stairs={x:0,y:0,locked:false},kills={},time=0,endless=false;
 let shake=0,flash=0,floats=[],logs=[];
@@ -1139,6 +1184,8 @@ function genFloor(fl){
     if(floorR()<.12){map[(r.y+1)*W+r.x+1]=3;}
     // สระน้ำอมฤตศักดิ์สิทธิ์ (สุ่มเกิดเฉลี่ย 1 สระต่อ 2-3 ชั้น)
     if(floorR()<.08){map[(r.y+2)*W+r.x+2]=5;}
+    // แท่นบูชาบาปอสูรสีดำ (สุ่มเกิดสำหรับสายเสี่ยงดวง)
+    if(floorR()<.09 && fl > 2){map[(r.y+2)*W+r.x+1]=7;}
     // กับดักซ่อนเร้น
     if(floorR()<.35){
       const tx = r.x + 1 + Math.floor(floorR()*(r.w-2));
@@ -1197,7 +1244,17 @@ function genFloor(fl){
     if(enemies.some(e=>e.x===x&&e.y===y))continue;
     const pool=getFoePool(fl);
     const b=pool[Math.floor(floorR()*pool.length)];
-    enemies.push(spawnFoe(b,x,y));
+    const isElite = floorR() < 0.20 && fl > 1;
+    const spawnedF = spawnFoe(b,x,y);
+    if(isElite){
+      spawnedF.elite = true;
+      spawnedF.name = 'จอม' + b.name;
+      spawnedF.maxhp = Math.floor(spawnedF.maxhp * 1.5);
+      spawnedF.hp = spawnedF.maxhp;
+      spawnedF.atk = Math.floor(spawnedF.atk * 1.35);
+      spawnedF.g *= 2;
+    }
+    enemies.push(spawnedF);
   }
   if(boss){
     const b={...boss,id:'boss_'+fl,boss:true,ranged:false,awake:false};
@@ -1222,7 +1279,10 @@ function genFloor(fl){
     const tList = fl > 20 ? ABYSS_TITLES : FLOOR_TITLES;
     msg('ชั้น '+thaiNum(fl)+' — '+tList[(fl-1)%tList.length]+(fl>20?' (อเวจี)':''));
   }
-  if(boss){msg('☠ นายทัพ '+boss.name+' ครองชั้นนี้!','warn');sfx.boss();}
+  if(boss){
+    msg('☠ นายทัพ '+boss.name+' ครองชั้นนี้!','warn');sfx.boss();
+    bossSplash = { name: boss.name, title: boss.title || 'พญามารแห่งวิหารลงกา', time: 90 };
+  }
   computeFov();
 }
 function spawnFoe(base,x,y){
@@ -1305,6 +1365,23 @@ function genScr(){
   return{t:'scr',key:k,name:'คัมภีร์'+MANTRAS[k].n,r:'rare',lore:'คัมภีร์มนตราแห่งพระเวท ศึกษาเพื่อเรียนรู้หรือแปลงเป็นปุญ',price:35};
 }
 
+
+function genPetEgg(){
+  const pKeys = ['monkey', 'bird', 'naga'];
+  const pk = pick(pKeys);
+  const pInfo = PET_TYPES[pk];
+  return {
+    t: 'egg',
+    petType: pk,
+    name: 'ไข่' + pInfo.name,
+    icon: '🥚',
+    r: 'legendary',
+    desc: pInfo.desc,
+    lore: 'ไข่สัตว์อสูรวิเศษที่ตกทอดในวิหาร ใช้ฟักเป็นสัตว์เลี้ยงคู่ใจผจญภัย',
+    price: 65 + floor * 3
+  };
+}
+
 function genRelic(){
   const base = pick(RELICS);
   return {
@@ -1340,7 +1417,8 @@ function genGroundItem(){
   }
   if(r<.70) return genScrollUpg(); // คัมภีร์ตีบวก
   if(r<.75) return genRelic();
-  if(r<.80) return {...TOOL_HOOK}; // ตะขอเกี่ยวศิลา
+  if(r<.78) return {...TOOL_HOOK};
+  if(r<.82) return genPetEgg(); // ไข่สัตว์เลี้ยง
   if(r<.89){ const t = clamp(1 + Math.floor((floor-1)/5), 1, 4); return genW(t); }
   if(r<.96){ const t = clamp(1 + Math.floor((floor-1)/4), 1, 6); return genA(t); }
   return genScr();
@@ -1425,6 +1503,60 @@ function triggerTrap(tr){
   if(player.hp <= 0) die();
 }
 
+
+function openCursedAltarModal(ax, ay){
+  let ov = $('cursedAltarOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'cursedAltarOv';
+    ov.className = 'ov';
+    ov.style.zIndex = '340';
+    document.body.appendChild(ov);
+  }
+
+  const costHp = Math.max(5, Math.floor(player.mhp * 0.40));
+
+  let html = '<div class="panel" style="max-width:400px;border-color:var(--red);box-shadow:0 0 24px rgba(229,72,46,.45);text-align:center">';
+  html += '<div class="deva" style="color:var(--red)">रक्त</div>';
+  html += '<h2 style="font-family:Chakra Petch;color:var(--red);margin:2px 0 6px;font-size:22px">🩸 แท่นบูชาบาปอสูร</h2>';
+  html += '<p style="font-size:13px;color:var(--ink);margin:0 0 12px">เปลวเพลิงโลหิตกระหายการสังเวย ยอมเสียสละเลือด <b>' + costHp + ' หน่วย</b> เพื่อแลกกับสิ่งตอบแทนหรือไม่?</p>';
+
+  html += '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">';
+  html += '<button class="btn" id="btnSacWpn" style="background:#8f2438;color:#fff;border-color:#e5482e">⚔ สังเวยเลือดรับ ศาสตราวุธเทวะ (-' + costHp + ' HP)</button>';
+  html += '<button class="btn" id="btnSacGold" style="background:#5c2a3a;color:#f5c542;border-color:#f5c542">◉ สังเวยเลือดรับ ทองคำ ๑๕๐ ◉ (-' + costHp + ' HP)</button>';
+  html += '<button class="btn ghost" id="btnLeaveCursed">เดินผ่าน (ไม่สนใจ)</button>';
+  html += '</div></div>';
+
+  ov.innerHTML = html;
+  show(ov);
+
+  $('btnSacWpn').onclick = () => {
+    hide(ov);
+    map[ay*W+ax] = 4; // มอดดับ
+    player.hp -= costHp; flash = 0.6; shake = 6; sfx.hurt();
+    player.usedCursedAltar = true;
+    const godWpn = genW(4);
+    if(player.inv.length < (player.bagMax||10)) player.inv.push(godWpn);
+    else items.push({x:player.x, y:player.y, ...godWpn});
+    msg('🩸 เลือดถูกสูบสังเวย! ได้รับ «' + godWpn.name + '» จากแท่นบูชาบาป!', 'good');
+    updateHud();
+    if(player.hp <= 0) die();
+  };
+
+  $('btnSacGold').onclick = () => {
+    hide(ov);
+    map[ay*W+ax] = 4;
+    player.hp -= costHp; flash = 0.6; shake = 6; sfx.hurt();
+    player.usedCursedAltar = true;
+    player.gold += 150;
+    msg('🩸 เลือดถูกสูบสังเวย! ได้รับเหรียญทอง ◉๑๕๐ จากแท่นบูชาบาป!', 'good');
+    updateHud();
+    if(player.hp <= 0) die();
+  };
+
+  $('btnLeaveCursed').onclick = () => hide(ov);
+}
+
 /* ── การกระทำของผู้เล่น ── */
 function canWalk(x,y){return x>=0&&y>=0&&x<W&&y<H&&map[y*W+x]!==0}
 function enemyAt(x,y){return enemies.find(e=>e.x===x&&e.y===y&&e.hp>0)}
@@ -1432,6 +1564,8 @@ function npcAt(x,y){return npcs.find(n=>n.x===x&&n.y===y)}
 function tryMove(dx,dy){
   if(state!=='play')return;
   const nx=player.x+dx,ny=player.y+dy;
+  if(dx < 0) player.facing = -1;
+  else if(dx > 0) player.facing = 1;
   if(!canWalk(nx,ny)){
     // ตรวจสอบว่ามีสมบัติซ่อน/ฝังอยู่ในซอกกำแพงตรงหน้าหรือไม่!
     const wallItemIdx = items.findIndex(it => it.x === nx && it.y === ny);
@@ -1500,6 +1634,9 @@ function tryMove(dx,dy){
       show($('stairsOv'));
     }
   }else if(map[ny*W+nx]===3){show($('altarOv'));}
+  else if(map[ny*W+nx]===7){
+    openCursedAltarModal(nx, ny);
+  }
   else if(map[ny*W+nx]===5){
     // ดื่มน้ำในสระอมฤต
     map[ny*W+nx]=1; // ใช้แล้วกลายเป็นพื้น
@@ -1584,7 +1721,31 @@ function attackFoe(e, dirX=0, dirY=0){
 
   triggerSlash(e.x, e.y, slashColor);
   floats.push({x:e.x, y:e.y, t:'-'+d, c:crit?'#f5c542':'#ffffff', life:1});
-  shake = crit ? 8 : 4; sfx.hit(); triggerHaptic(crit ? 'crit' : 'crit');
+  shake = crit ? 8 : 4; sfx.hit();
+  // ☠ บอสเฟส ๒ และท่าไม้ตายเมื่อเลือดต่ำกว่า ๕๐%
+  if(e.boss && !e.phase2 && e.hp <= Math.floor(e.maxhp * 0.5)){
+    e.phase2 = true;
+    sfx.boss(); shake = 9; flash = 0.6;
+    if(floor === 5){
+      msg('☠ พญาขรคำรามก้องวิหาร! สรรพกำลังเปรตผุดขึ้นจากธรณี!', 'warn');
+      for(let s=0; s<2; s++){
+        const ptx = e.x + (s===0?1:-1), pty = e.y;
+        if(canWalk(ptx, pty) && !enemyAt(ptx, pty)) enemies.push(spawnFoe(FOES[0], ptx, pty));
+      }
+    } else if(floor === 15){
+      msg('☠ กุมภกรรณตื่นจากบรรทมเต็มตา! เงื้อหอกโมกขศักดิ์พุ่งทะลวง!', 'warn');
+      triggerSlash(player.x, player.y, '#e5482e');
+      hurtPlayer(16, 'หอกโมกขศักดิ์');
+    } else if(floor === 20){
+      msg('☠ ทศกัณฐ์เปิดเนตร ๑๐ หน้า ๒๐ กร! เพลิงกัลป์ปะทุรอบทิศ!', 'warn');
+      e.atk += 6;
+      player.burn = (player.burn || 0) + 3;
+      for(let dy=-1; dy<=1; dy++) for(let dx=-1; dx<=1; dx++){
+        triggerSlash(e.x+dx, e.y+dy, '#ff8b1f');
+      }
+    }
+  }
+ triggerHaptic(crit ? 'crit' : 'crit');
 
   // กลไกมีดสั้น: มีโอกาส 45% ฟันเบิ้ล ๒ ครั้งติด (Double Strike)
   if(wpn.type === 'dagger' && e.hp > 0 && rng() < 0.45){
@@ -1635,7 +1796,14 @@ function attackFoe(e, dirX=0, dirY=0){
   if(e.hp <= 0) killFoe(e); else msg((crit?'✦ คมขรรค์ฟันจุดตาย! ':'')+'เจ้าฟัน'+e.name+' -'+d);
 }
 function killFoe(e){
-  floats.push({x:e.x,y:e.y,t:'✝',c:'#ff8b1f',life:1});
+  // สลายร่างเป็นกลุ่มควันวิญญาณ ไม่ทิ้งซากศพเกะกะ
+  for(let spk=0; spk<8; spk++){
+    sparks.push({
+      x: e.x * T + 8, y: e.y * T + 8,
+      vx: (Math.random() - 0.5) * 3, vy: (Math.random() - 0.5) * 3,
+      c: e.boss ? '#f5c542' : '#8d55c9', life: 0.8
+    });
+  }
   player.xp+=e.xp;player.killsTotal++;
   unlockAch('first_blood');
   if(player.killsTotal >= 50) unlockAch('slayer_50');
@@ -1658,6 +1826,10 @@ function killFoe(e){
   }
 
   enemies=enemies.filter(o=>o!==e);
+  if(e.elite){
+    msg('👑 ล้มจอม' + e.name + 'สำเร็จ! หีบสมบัติล้ำค่าหล่นลงพื้น!', 'good');
+    items.push({ x: e.x, y: e.y, ...genW(clamp(Math.floor(floor/4)+1, 1, 4)) });
+  }
   if(e.boss){
     if(floor === 5) unlockAch('boss_khara');
     if(floor === 10) unlockAch('boss_maricha');
@@ -1842,6 +2014,29 @@ function endTurn(){
     }
   }
 
+  
+  // 🐾 สัตว์เลี้ยงออกปฏิบัติการ
+  if(player.pet){
+    if(player.pet.type === 'monkey'){
+      // ลูกลิงลมช่วยเก็บเหรียญทองรอบตัว ๓ ช่อง
+      const nearGoldIdx = items.findIndex(it => it.t === 'gold' && Math.max(Math.abs(it.x-player.x), Math.abs(it.y-player.y)) <= 3);
+      if(nearGoldIdx >= 0){
+        const gIt = items.splice(nearGoldIdx, 1)[0];
+        player.gold += gIt.amt;
+        sfx.gold();
+        msg('🐒 ลูกลิงลมกระโดดเก็บเหรียญ ◉' + gIt.amt + ' มาให้!', 'good');
+      }
+    } else if(player.pet.type === 'naga' && time % 2 === 0){
+      // ลูกพญานาคพ่นพิษใส่ศัตรู
+      const visFoe = enemies.find(e => vis[e.y*W+e.x] && Math.max(Math.abs(e.x-player.x), Math.abs(e.y-player.y)) <= 4);
+      if(visFoe){
+        visFoe.poison = (visFoe.poison || 0) + 2; visFoe.flash = 3;
+        triggerSlash(visFoe.x, visFoe.y, '#43b05c');
+        floats.push({x:visFoe.x, y:visFoe.y, t:'พิษพญานาค!', c:'#43b05c', life:1});
+      }
+    }
+  }
+
   computeFov();updateHud();saveGame();
 }
 
@@ -1923,6 +2118,16 @@ function useItem(i){
     player.inv.splice(i,1);
     if(oldArm&&oldArm.tier>0)player.inv.push(oldArm);
     msg('สวม «'+it.name+'» ป้องกัน+'+it.v);sfx.pick();
+  }
+    else if(it.t==='egg'){
+    player.pet = { ...PET_TYPES[it.petType], type: it.petType };
+    player.inv.splice(i, 1);
+    sfx.level(); flash = 0.5;
+    floats.push({x:player.x, y:player.y, t:'สัตว์เลี้ยงฟัก!', c:'#f5c542', life:2});
+    msg('🐣 ' + it.name + ' ฟักออกเป็น «' + player.pet.name + '» เดินตามช่วยผจญภัย!', 'good');
+    updateHud();
+    renderInv();
+    return;
   }
   else if(it.t==='relic'){
     const oldRelic = player.relic;
@@ -2190,8 +2395,15 @@ function victory(){
   saveKarma(k);
 
   hallAdd(sc,true);
-  $('winStats').innerHTML='ทศกัณฐ์ล่มสลาย แสงธรรมสาดส่องลงกา<br>'+
-    'เจ้าบรรลุ <b class="gold">โมกษะ</b> — หลุดพ้นจากสังสารวัฏ!<br>กิตติยศ <b class="gold">'+sc+'</b>';
+  if(player.punya >= 80 && !player.usedCursedAltar){
+    // ฉากจบที่ ๑: โมกษะธรรมะ (Good Ending)
+    $('winStats').innerHTML='<span class="teal" style="font-weight:700">✦ ฉากจบ: โมกษะธรรมะ (หลุดพ้นบริสุทธิ์)</span><br>'+
+      'ทศกัณฐ์ล่มสลาย แสงธรรมสาดส่องทั่วเกาะลงกา<br>ดวงจิตของเจ้าหลุดพ้นจากวัฏสงสารอย่างแท้จริง!<br>กิตติยศ <b class="gold">'+sc+'</b>';
+  } else {
+    // ฉากจบที่ ๒: กลียุคจ้าวมาร (Cursed Asura Ending)
+    $('winStats').innerHTML='<span class="red" style="font-weight:700">☠ ฉากจบ: กลียุคจ้าวมาร (ผู้สืบทอดบัลลังก์อสูร)</span><br>'+
+      'เจ้าสังหารทศกัณฐ์แต่ใจถูกครอบงำด้วยไออสูร… กลืนกินดวงใจทศกัณฐ์<br>และสวมมงกุฎ ๑๐ หน้า กลายเป็นจ้าวมารตนใหม่ครองลงกา!<br>กิตติยศ <b class="gold">'+sc+'</b>';
+  }
   hallInto($('winHall'));
 
   // เพิ่มปุ่มทางเลือกดำดิ่งสู่อเวจี
@@ -2361,7 +2573,8 @@ function startRun(cls){
     freeRerolls:2,
     rerollCost:10,
     pendingTalents:[],
-    mantras:[],floor:1,poison:0,burn:0};
+    mantras:[],floor:1,poison:0,burn:0,
+    facing:1,prevX:0,prevY:0,pet:null,usedCursedAltar:false};
   for(const s of C.mantras){if(!s.includes('@'))player.mantras.push(s);}
   rng=Math.random;time=0;endless=false;floats=[];logs=[];slashes=[];sparks=[];
   
@@ -2414,13 +2627,23 @@ function updateHud(){
 function drawTile(mx, my, sx, sy){
   const t = map[my * W + mx];
   const px = sx * T, py = sy * T;
+  const bio = getBiome(floor);
+
   if(t === 0){
     const v = ((mx * 7 + my * 13) & 1);
     ctx.drawImage(TILEC[0][v], px, py);
+    ctx.fillStyle = bio.tint; ctx.fillRect(px, py, T, T);
   }
   else if(t === 1){
     const v = ((mx * 5 + my * 11) & 1);
     ctx.drawImage(TILEC[1][v], px, py);
+    ctx.fillStyle = bio.tint; ctx.fillRect(px, py, T, T);
+
+    // 🧱 2.5D Drop Shadows: เงาทึบจากขอบกำแพงทอดยาวลงมาที่พื้น ๕ พิกเซล
+    if(my > 0 && map[(my - 1) * W + mx] === 0){
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+      ctx.fillRect(px, py, T, 5);
+    }
   }
   else if(t === 2){
     ctx.drawImage(TILEC[1][0], px, py);
@@ -2450,6 +2673,12 @@ function drawTile(mx, my, sx, sy){
   }
   else if(t === 6){ // กับดักที่เผยแล้ว
     ctx.drawImage(TILEC[6][0], px, py);
+  }
+  else if(t === 7){ // แท่นบูชาบาปสีดำ
+    ctx.drawImage(TILEC[7][0], px, py);
+    const flm = 0.4 + 0.3 * Math.sin(time * 0.3 + mx);
+    ctx.fillStyle = 'rgba(212,61,42,' + flm.toFixed(2) + ')';
+    ctx.fillRect(px + 6, py + 2, 4, 6);
   }
 }
 
@@ -2496,7 +2725,11 @@ function render(){
     if(e.bumpX){ex+=e.bumpX;e.bumpX*=0.5;if(Math.abs(e.bumpX)<0.5)e.bumpX=0;}
     if(e.bumpY){ey+=e.bumpY;e.bumpY*=0.5;if(Math.abs(e.bumpY)<0.5)e.bumpY=0;}
 
-    if(e.boss){
+    if(e.elite){
+    msg('👑 ล้มจอม' + e.name + 'สำเร็จ! หีบสมบัติล้ำค่าหล่นลงพื้น!', 'good');
+    items.push({ x: e.x, y: e.y, ...genW(clamp(Math.floor(floor/4)+1, 1, 4)) });
+  }
+  if(e.boss){
     if(floor === 5) unlockAch('boss_khara');
     if(floor === 10) unlockAch('boss_maricha');
     if(floor === 15) unlockAch('boss_kumbha');
@@ -2505,18 +2738,38 @@ function render(){
       ctx.fillRect(ex-2,ey-2,T+4,T+4);
     }
 
-    if(e.flash>0){ // กระพริบขาวเมื่อโดนตี
+    // ออร่ามอนสเตอร์ระดับหัวหน้า (Elite)
+    if(e.elite){
+      ctx.strokeStyle = 'rgba(245, 197, 66, ' + (0.35 + 0.35 * Math.sin(time * 0.3 + e.x)).toFixed(2) + ')';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(ex - 1, ey - 1, T + 2, T + 2);
+    }
+
+    const eSquash = e.squash || 0;
+    if(e.squash > 0) e.squash--;
+
+    if(e.flash>0){
       e.flash--;
       ctx.fillStyle='#ffffff';
       ctx.fillRect(ex+1,ey+1,T-2,T-2);
     } else {
       const eBob = (((time + e.x * 4) & 8) ? 0 : -1);
-      drawSpr(e.sprite, ex, ey + eBob);
+      const flipE = e.x > player.x;
+      drawSpr(e.sprite, ex, ey + eBob, 16, 16, flipE, eSquash);
     }
 
-    if(e.hp<e.maxhp){ // หลอดเลือดศัตรู
-      ctx.fillStyle='#000';ctx.fillRect(ex,ey-3,T,2);
-      ctx.fillStyle='#e5482e';ctx.fillRect(ex,ey-3,T*Math.max(0,e.hp/e.maxhp),2);
+    if(e.hp < e.maxhp){
+      // หลอดเลือดบอสแบบมีแถบ Lag Bar สีเหลืองไหลตาม
+      if(e.boss){
+        if(!e.lagHp || e.lagHp < e.hp) e.lagHp = e.hp;
+        if(e.lagHp > e.hp) e.lagHp -= Math.max(0.6, (e.lagHp - e.hp) * 0.08);
+        ctx.fillStyle='#000'; ctx.fillRect(ex - 2, ey - 4, T + 4, 3);
+        ctx.fillStyle='#f5c542'; ctx.fillRect(ex - 2, ey - 4, (T + 4) * Math.max(0, e.lagHp/e.maxhp), 3);
+        ctx.fillStyle='#e5482e'; ctx.fillRect(ex - 2, ey - 4, (T + 4) * Math.max(0, e.hp/e.maxhp), 3);
+      } else {
+        ctx.fillStyle='#000'; ctx.fillRect(ex, ey-3, T, 2);
+        ctx.fillStyle='#e5482e'; ctx.fillRect(ex, ey-3, T * Math.max(0, e.hp/e.maxhp), 2);
+      }
     }
   }
 
@@ -2528,7 +2781,15 @@ function render(){
       playerBump.x*=0.6; playerBump.y*=0.6;
     }
     const pBob = ((time & 8) ? 0 : -1);
-    drawSpr(player.sprite, px, py + pBob);
+    const flipP = player.facing === -1;
+    drawSpr(player.sprite, px, py + pBob, 16, 16, flipP, 0);
+
+    // วาดสัตว์เลี้ยงเดินตามหลัง
+    if(player.pet){
+      const petSpr = player.pet.s || 'vanara';
+      const petX = (player.prevX - camX) * T, petY = (player.prevY - camY) * T;
+      drawSpr(petSpr, petX + 2, petY + 2, 12, 12, flipP, 0);
+    }
   }
 
   for(let vy=0;vy<VH;vy++)for(let vx=0;vx<VW;vx++){ // หมอกสงคราม
@@ -2587,6 +2848,42 @@ function render(){
   if(flash>0){ctx.fillStyle='rgba(212,42,32,'+(flash*.5).toFixed(2)+')';
     ctx.fillRect(0,0,cv.width,cv.height);flash-=.05;}
   ctx.setTransform(1,0,0,1,0,0);
+  
+  // 🍂 ละอองบรรยากาศลอยในอากาศตามธีมฉาก (Atmospheric Floating Particles)
+  const curBio = getBiome(floor);
+  if(dustParticles.length < 16){
+    dustParticles.push({
+      x: Math.random() * cv.width, y: Math.random() * cv.height,
+      vx: (Math.random() - 0.5) * 0.35, vy: -0.25 - Math.random() * 0.35,
+      alpha: 0.2 + Math.random() * 0.5, c: curBio.particle
+    });
+  }
+  for(const dp of dustParticles){
+    dp.x += dp.vx; dp.y += dp.vy;
+    if(dp.y < 0) dp.y = cv.height;
+    if(dp.x < 0) dp.x = cv.width;
+    ctx.fillStyle = dp.c;
+    ctx.globalAlpha = dp.alpha * 0.45;
+    ctx.fillRect(dp.x, dp.y, 1.5, 1.5);
+  }
+  ctx.globalAlpha = 1;
+
+  // ☠ แบนเนอร์เปิดตัวบอส (Boss Intro Splash Banner)
+  if(bossSplash && bossSplash.time > 0){
+    bossSplash.time--;
+    ctx.fillStyle = 'rgba(12, 3, 14, 0.82)';
+    ctx.fillRect(0, 70, cv.width, 85);
+    ctx.strokeStyle = '#f5c542';
+    ctx.strokeRect(12, 74, cv.width - 24, 77);
+    ctx.font = 'bold 8.5px monospace';
+    ctx.fillStyle = '#ff8b1f';
+    ctx.textAlign = 'center';
+    ctx.fillText('☠ ' + bossSplash.title + ' ☠', cv.width / 2, 98);
+    ctx.font = 'bold 13px Chakra Petch, sans-serif';
+    ctx.fillStyle = '#f5c542';
+    ctx.fillText(bossSplash.name, cv.width / 2, 124);
+  }
+
   drawMinimap(camX,camY);
 }
 
