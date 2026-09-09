@@ -70,187 +70,330 @@ const PAL={k:'#14080f',w:'#f4ecdc',g:'#f5c542',o:'#ff8b1f',r:'#d43d2a',t:'#2ec4a
   b:'#3a6ea5',p:'#8d55c9',s:'#e8b06a',d:'#7a4a22',f:'#ffe9a3',e:'#43b05c',
   m:'#8f2438',E:'#7fae7a',c:'#c9a86a','0':'#000000'};
 const SPRD={
-warrior:[
-  "..gggg..",
-  ".gssssg.",
-  ".gskksg.",
-  "ggrrrrgg",
-  "ggrrrrgg",
-  ".rrrrrr.",
-  ".dww.wwd",
-  ".dd...dd"
+"warrior": [
+  "......ffff......",
+  ".....fggggf.....",
+  "....fggggggf....",
+  "....gssssssg....",
+  "...gssk00kssg...",
+  "...gssssssssg...",
+  "..ggrrrrrrrrg...",
+  ".ggggrrrrrrgggg.",
+  ".ggg.rrrrrr.ggg.",
+  ".....rrrrrr.....",
+  "....gwwwwwwg....",
+  "....gwwwwwwg....",
+  "...dd.wwww.dd...",
+  "...dd......dd...",
+  "..ddd......ddd..",
+  "................"
 ],
-brahmin:[
-  "..wwww..",
-  ".wwwwww.",
-  ".wskksw.",
-  ".wwwwww.",
-  "wwwoowww",
-  ".wwwwww.",
-  ".dwwwwd.",
-  ".dd..dd."
+"brahmin": [
+  ".....fwwwwf.....",
+  "....fwwwwwwf....",
+  "....fwwwwwwf....",
+  "....wwssssww....",
+  "...wwsk00ksww...",
+  "...wwssssssww...",
+  "..wwwwowoowwww..",
+  "..wwwwowoowwww..",
+  "..ww.ww..ww.ww..",
+  ".....wwwwww.....",
+  "....wwwwwwww....",
+  "....wwwwwwww....",
+  "....dd....dd....",
+  "...ddd....ddd...",
+  "...dd......dd...",
+  "................"
 ],
-vanara:[
-  "ww....ww",
-  "wwwwwwww",
-  "wwkwwkww",
-  ".wwssww.",
-  "gggggggg",
-  "ggwwwwgg",
-  ".wwwwww.",
-  ".ww..ww."
+"vanara": [
+  "....ww....ww....",
+  "...wwww..wwww...",
+  "..wwwwwwwwwwww..",
+  "..wwkwwwwwwkww..",
+  "..wwwk0000kwww..",
+  "...wwssssssww...",
+  "..ggggwwwwgggg..",
+  ".gggggwwwwggggg.",
+  ".ggg..wwww..ggg.",
+  "......wwww......",
+  "....wwwwwwww....",
+  "...wwww..wwww...",
+  "...wwww..wwww...",
+  "...ww......ww...",
+  "..www......www..",
+  "................"
 ],
-rishi:[
-  "..kkkk..",
-  ".kssssk.",
-  ".kskksk.",
-  "wwwwwwww",
-  "woooooww",
-  ".oooooo.",
-  ".doooood",
-  ".dd..dd."
+"rishi": [
+  "......kkkk......",
+  ".....kkkkkk.....",
+  "....kksssskk....",
+  "....kkskkskk....",
+  "....kksssskk....",
+  "....wwwwwwww....",
+  "..wwooooooooww..",
+  "..wwooooooooww..",
+  "..d.oooooooo.d..",
+  "....oooooooo....",
+  "....oooooooo....",
+  "...dooooooood...",
+  "...dd......dd...",
+  "..ddd......ddd..",
+  "..ddd......ddd..",
+  "................"
 ],
-// มอนสเตอร์ใหม่: หนา บึกบึน ตัน ไม่ก้างปลา
-preta:[
-  "..EEEE..",
-  ".EEEEEE.",
-  ".EE00EE.",
-  ".EEEEEE.",
-  "..EEEE..",
-  ".EEEEEE.",
-  "EEEEEEEE",
-  ".EE..EE."
+"preta": [
+  "......EEEE......",
+  ".....EEEEEE.....",
+  "....EEE00EEE....",
+  "....EEEEEEEE....",
+  ".....EEEEEE.....",
+  "......EEEE......",
+  ".....EEEEEE.....",
+  "....EEEEEEEE....",
+  "...EE.EEEE.EE...",
+  "...E..EEEE..E...",
+  "......EEEE......",
+  ".....EEEEEE.....",
+  "....EE....EE....",
+  "...EEE....EEE...",
+  "...E........E...",
+  "................"
 ],
-asura:[
-  "rr....rr",
-  "rrrrrrrr",
-  "rrgrrgrr",
-  "rrrrrrrr",
-  "mmmmmmmm",
-  "mmmmmmmm",
-  ".mmmmmm.",
-  ".rr..rr."
+"asura": [
+  "....rr....rr....",
+  "...rrrr..rrrr...",
+  "..rrrrrrrrrrrr..",
+  "..rrgrrrrrrgrr..",
+  "..rrg00rr00grr..",
+  "..rrrrrrrrrrrr..",
+  ".mmmmmmmmmmmmmm.",
+  ".mmmmmmmmmmmmmm.",
+  ".mm.mmmmmmmm.mm.",
+  "....mmmmmmmm....",
+  "....mmmmmmmm....",
+  "...rrmm..mmrr...",
+  "...rr......rr...",
+  "..rrr......rrr..",
+  "..rrr......rrr..",
+  "................"
 ],
-naga:[
-  ".tttttt.",
-  "tttttttt",
-  "ttgttgtt",
-  "tttttttt",
-  ".tttttt.",
-  "tttttttt",
-  ".tttttt.",
-  "..tttt.."
+"naga": [
+  ".....tttttt.....",
+  "...tttttttttt...",
+  "..tttttttttttt..",
+  "..tttg0000gttt..",
+  "..tttttttttttt..",
+  "...tttttttttt...",
+  "....tttttttt....",
+  ".....tttttt.....",
+  ".....tttttt.....",
+  "....tttttttt....",
+  "...tttt..tttt...",
+  "...tttt..tttt...",
+  "....tttttttt....",
+  ".....tttttt.....",
+  "......tttt......",
+  "................"
 ],
-rakshasa:[
-  "pp....pp",
-  "pppppppp",
-  "ppgppgpp",
-  "ppwwppww",
-  "pppppppp",
-  "pppppppp",
-  ".pppppp.",
-  ".pp..pp."
+"rakshasa": [
+  "....pp....pp....",
+  "...pppp..pppp...",
+  "..pppppppppppp..",
+  "..ppgppggppgpp..",
+  "..ppg00gg00gpp..",
+  "..ppwwwwwwwwpp..",
+  ".pppppppppppppp.",
+  ".pppppppppppppp.",
+  ".pp.pppppppp.pp.",
+  "....pppppppp....",
+  "....pppppppp....",
+  "...pppp..pppp...",
+  "...pp......pp...",
+  "..ppp......ppp..",
+  "..ppp......ppp..",
+  "................"
 ],
-yaksha:[
-  ".dggggd.",
-  "deeeeeed",
-  "de00e0ed",
-  "gggggggg",
-  "ggrrrrgg",
-  ".rrrrrr.",
-  ".eeeeee.",
-  ".dd..dd."
+"yaksha": [
+  "...ddggggggdd...",
+  "..ddeeeeeeeedd..",
+  "..dde00ee00edd..",
+  "..ddeeeeeeeedd..",
+  "..d.eewwwwee.d..",
+  ".gggggggggggggg.",
+  ".ggrrrrrrrrrrgg.",
+  ".ggrrrrrrrrrrgg.",
+  "....rrrrrrrr....",
+  "....eeeeeeee....",
+  "....eeeeeeee....",
+  "...eeee..eeee...",
+  "...dd......dd...",
+  "..ddd......ddd..",
+  "..ddd......ddd..",
+  "................"
 ],
-boss:[
-  "f.gggg.f",
-  "fggggggf",
-  "geeeeeeg",
-  "ge00e0eg",
-  "gewwweeg",
-  "rrrrrrrr",
-  "rrrrrrrr",
-  ".rr..rr."
+"boss": [
+  "...ffggggggff...",
+  "..ffffggggffff..",
+  ".ffggeeeeeeggff.",
+  ".fggge00ee00ggf.",
+  ".fgggeewwwweeggf",
+  ".gggggeeeeeegggg",
+  "ggrrrrrrrrrrrrgg",
+  "ggrrrrrrrrrrrrgg",
+  "gg.rrrrrrrrrr.gg",
+  "...rrrrrrrrrr...",
+  "...rrrrrrrrrr...",
+  "...rrrr..rrrr...",
+  "...rr......rr...",
+  "..rrr......rrr..",
+  "..rrr......rrr..",
+  "................"
 ],
-merchant:[
-  "..oooo..",
-  ".oooooo.",
-  ".oskkso.",
-  ".gggggg.",
-  "gggggggg",
-  ".gggggg.",
-  ".oooooo.",
-  ".dd..dd."
+"merchant": [
+  "......oooo......",
+  ".....oooooo.....",
+  "....ooosssko....",
+  "....oos00sko....",
+  "....ooosssko....",
+  "...gggggggggg...",
+  "..gggggggggggg..",
+  "..ggggg..ggggg..",
+  "..gg.gggggg.gg..",
+  ".....oooooo.....",
+  "....oooooooo....",
+  "...oooooooooo...",
+  "...dd......dd...",
+  "..ddd......ddd..",
+  "..ddd......ddd..",
+  "................"
 ],
-hermit:[
-  "..kkkk..",
-  ".kssssk.",
-  ".kskksk.",
-  "wwwwwwww",
-  ".oooooo.",
-  "oooooooo",
-  ".oooooo.",
-  ".dd..dd."
+"hermit": [
+  "......kkkk......",
+  ".....kkkkkk.....",
+  "....kksssskk....",
+  "....kkskkskk....",
+  "....kksssskk....",
+  "....wwwwwwww....",
+  "..wwooooooooww..",
+  "..wwooooooooww..",
+  "..wwooooooooww..",
+  "....oooooooo....",
+  "....oooooooo....",
+  "...oooooooooo...",
+  "...dd......dd...",
+  "..ddd......ddd..",
+  "..ddd......ddd..",
+  "................"
 ],
-pot:[
-  "...ww...",
-  "..wwww..",
-  ".rrrrrr.",
-  ".rrwwrr.",
-  ".rrrrrr.",
-  ".rrrrrr.",
-  "..rrrr..",
-  "........"
+"pot": [
+  "......wwww......",
+  "......wwww......",
+  ".....rrrrrr.....",
+  "....rrrrrrrr....",
+  "...rrrrrrrrrr...",
+  "..rrrrwwwwrrrr..",
+  "..rrrrrrrrrrrr..",
+  "..rrrrrrrrrrrr..",
+  "...rrrrrrrrrr...",
+  "....rrrrrrrr....",
+  ".....rrrrrr.....",
+  "................",
+  "................",
+  "................",
+  "................",
+  "................"
 ],
-mana:[
-  "...ww...",
-  "..wwww..",
-  ".tttttt.",
-  ".ttwwtt.",
-  ".tttttt.",
-  ".tttttt.",
-  "..tttt..",
-  "........"
+"mana": [
+  "......wwww......",
+  "......wwww......",
+  ".....tttttt.....",
+  "....tttttttt....",
+  "...tttttttttt...",
+  "..ttttwwwwtttt..",
+  "..tttttttttttt..",
+  "..tttttttttttt..",
+  "...tttttttttt...",
+  "....tttttttt....",
+  ".....tttttt.....",
+  "................",
+  "................",
+  "................",
+  "................",
+  "................"
 ],
-gold:[
-  "........",
-  "..gggg..",
-  ".gffffg.",
-  ".gffffg.",
-  ".gffffg.",
-  ".gffffg.",
-  "..gggg..",
-  "........"
+"gold": [
+  "................",
+  ".....gggggg.....",
+  "...gggggggggg...",
+  "..ggggffffgggg..",
+  "..gggffffffggg..",
+  ".gggfffffffffgg.",
+  ".gggffffffffggg.",
+  ".gggffffffffggg.",
+  ".gggffffffffggg.",
+  "..gggffffffggg..",
+  "..ggggffffgggg..",
+  "...gggggggggg...",
+  ".....gggggg.....",
+  "................",
+  "................",
+  "................"
 ],
-wpn:[
-  "....ww..",
-  "....ww..",
-  "....ww..",
-  "....ww..",
-  "...gggg.",
-  "....dd..",
-  "....dd..",
-  "........"
+"wpn": [
+  ".........www....",
+  "........wwww....",
+  ".......wwwww....",
+  "......wwwww.....",
+  ".....wwwww......",
+  "....wwwww.......",
+  "...ggggg........",
+  "..gggggg........",
+  "...ggggg........",
+  "....dd..........",
+  ".....dd.........",
+  "......dd........",
+  "................",
+  "................",
+  "................",
+  "................"
 ],
-arm:[
-  ".cc..cc.",
-  ".cccccc.",
-  "cccccccc",
-  "cccccccc",
-  "cccccccc",
-  ".cccccc.",
-  "..cccc..",
-  "........"
+"arm": [
+  "...cc......cc...",
+  "..cccc....cccc..",
+  ".cccccc..cccccc.",
+  ".cccccccccccccc.",
+  ".cccccccccccccc.",
+  ".cccccccccccccc.",
+  "..cccccccccccc..",
+  "..cccccccccccc..",
+  "...cccccccccc...",
+  "....cccccccc....",
+  ".....cccccc.....",
+  "......cccc......",
+  "................",
+  "................",
+  "................",
+  "................"
 ],
-scr:[
-  ".wwwwww.",
-  "wwwwwwww",
-  "wwkkkkww",
-  "wwwwwwww",
-  "wwkkkkww",
-  "wwwwwwww",
-  ".wwwwww.",
-  "........"
-],
+"scr": [
+  "....wwwwwwww....",
+  "...wwwwwwwwww...",
+  "..wwkkkkkkkkww..",
+  "..wwwwwwwwwwww..",
+  "..wwkkkkkkkkww..",
+  "..wwwwwwwwwwww..",
+  "..wwkkkkkkkkww..",
+  "..wwwwwwwwwwww..",
+  "...wwwwwwwwww...",
+  "....wwwwwwww....",
+  "................",
+  "................",
+  "................",
+  "................",
+  "................",
+  "................"
+]
 };
 const SPR={};
 for(const name in SPRD){
@@ -1312,7 +1455,8 @@ function render(){
       ctx.fillStyle='#ffffff';
       ctx.fillRect(ex+1,ey+1,T-2,T-2);
     } else {
-      drawSpr(e.sprite,ex,ey+(Math.sin(time*0.1+e.x)>0.6?-1:0));
+      const eBob = (((time + e.x * 4) & 8) ? 0 : -1);
+      drawSpr(e.sprite, ex, ey + eBob);
     }
 
     if(e.hp<e.maxhp){ // หลอดเลือดศัตรู
@@ -1328,13 +1472,31 @@ function render(){
       px+=playerBump.x; py+=playerBump.y;
       playerBump.x*=0.6; playerBump.y*=0.6;
     }
-    drawSpr(player.sprite,px,py);
+    const pBob = ((time & 8) ? 0 : -1);
+    drawSpr(player.sprite, px, py + pBob);
   }
 
   for(let vy=0;vy<VH;vy++)for(let vx=0;vx<VW;vx++){ // หมอกสงคราม
     const x=camX+vx,y=camY+vy;
     if(!seen[y*W+x]){continue;}
-    if(!vis[y*W+x]){ctx.fillStyle='rgba(5,1,8,.62)';ctx.fillRect(vx*T,vy*T,T,T);}
+    if(!vis[y*W+x]){
+      ctx.fillStyle='rgba(8,3,11,.68)';
+      ctx.fillRect(vx*T,vy*T,T,T);
+    }
+  }
+
+  // 🪔 ระบบแสงคบเพลิงไล่เฉดสีส้มทอง (Dynamic Torchlight with Flame Flicker)
+  if(player.hp > 0){
+    const pScreenX = (player.x - camX) * T + 8;
+    const pScreenY = (player.y - camY) * T + 8;
+    const flicker = Math.sin(time * 0.16) * 3 + Math.cos(time * 0.35) * 2;
+    const torchGrad = ctx.createRadialGradient(pScreenX, pScreenY, 8, pScreenX, pScreenY, 88 + flicker);
+    torchGrad.addColorStop(0, 'rgba(245, 197, 66, 0.12)'); // สีทองอบอุ่นรอบตัว
+    torchGrad.addColorStop(0.35, 'rgba(255, 139, 31, 0.05)'); // สีส้มเรือง
+    torchGrad.addColorStop(0.85, 'rgba(18, 5, 13, 0.08)');
+    torchGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = torchGrad;
+    ctx.fillRect(0, 0, cv.width, cv.height);
   }
 
   // วาดเอฟเฟกต์ฟันดาบ (Slash Arc)
@@ -1592,4 +1754,3 @@ if('serviceWorker' in navigator){
 }
 buildClassCards();setupInput();refreshTitle();fitCanvas();
 requestAnimationFrame(loop);
-
