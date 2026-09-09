@@ -639,7 +639,13 @@ const WEAPON_BASE = [
   { n: 'ขรรค์เพชรจุติ', type: 'dagger', a: 13, r: 'mythic', lore: 'กริชประกายเพชร ตัดเกราะมารได้ดุจตัดกระดาษ' },
   { n: 'หอกโมกขศักดิ์', type: 'spear', a: 15, r: 'mythic', lore: 'หอกวิเศษของกุมภกรรณ ไร้พ่ายในระยะ ๒ ช่อง' },
   { n: 'คทาพรหมมาสตร์', type: 'mace', a: 17, r: 'mythic', lore: 'คทาเทวะแห่งพระพรหม ทุบมารสะท้านตรีโลก' },
-  { n: 'จักรสุทรรศน์', type: 'cleave', a: 16, r: 'mythic', lore: 'กงจักรประกายรังสีของพระนารายณ์ กวาดล้างอสูรสิ้น' }
+  { n: 'จักรสุทรรศน์', type: 'cleave', a: 16, r: 'mythic', lore: 'กงจักรประกายรังสีของพระนารายณ์ กวาดล้างอสูรสิ้น' },
+  // Tier 5 (Supreme & Cursed - สเตตัสสูงมากแต่มีผลเสียต่อผู้ใช้)
+  { n: 'ขรรค์กระหายเลือด', type: 'dagger', a: 22, r: 'mythic', cursed: 'blood_drain', curseDesc: 'สูบเลือดผู้ใช้ ๒ HP ทุกครั้งที่ฟันโดนศัตรู', lore: 'กริชอาถรรพ์ที่กระหายโลหิต ยิ่งฟันยิ่งบ้าคลั่งแต่สูบพลังชีวิตเจ้าของ' },
+  { n: 'หอกวิญญาณสถิต', type: 'spear', a: 24, r: 'mythic', cursed: 'no_dodge', curseDesc: 'ระยะแทง ๒ ช่อง แต่ทำให้หลบหลีกกลายเป็น ๐%', lore: 'หอกโบราณที่ล่ามตรวนวิญญาณผู้ถือไว้กับพื้น แทงทะลวงไกลแต่ไร้ซึ่งความพริ้วไหว' },
+  { n: 'กระบองมารพญายม', type: 'mace', a: 26, r: 'mythic', cursed: 'sluggish', curseDesc: 'ทุบกระเด็น ๒ ช่อง เจาะเกราะ ๑๐๐% แต่ตัวหนักอึ้งทุกๆ ๓ ก้าว', lore: 'กระบองเหล็กนรกที่หนักอึ้งดุจขุนเขา ทุบมารแหลกสลายแต่ถ่วงการก้าวเดิน' },
+  { n: 'จักรโลหิตกาลกิณี', type: 'cleave', a: 25, r: 'mythic', cursed: 'max_half_heal', curseDesc: 'ฟันกวาดรอบทิศ คริ ๓๕% แต่ดื่มยาอมฤตได้ไม่เกินครึ่งหลอด', lore: 'กงจักรเปื้อนเลือดที่ปลุกสัญชาตญาณมาร กวาดล้างศัตรูแต่ปิดกั้นการฟื้นฟูกาย' }
+
 ];
 
 const ARMOR_BASE = [
@@ -648,7 +654,10 @@ const ARMOR_BASE = [
   { n: 'เกราะโซ่ถัก', d: 5, r: 'rare', lore: 'เกราะห่วงเหล็กกล้าถักเหนียวแน่น ป้องกันการแทง' },
   { n: 'เกราะเกล็ดนาค', d: 8, r: 'legendary', lore: 'เกราะเกล็ดนาคเขียวมรกต แข็งแกร่งและเบาสบาย' },
   { n: 'เกราะวัชรัง', d: 11, r: 'legendary', lore: 'เกราะเพชรห่อหุ้มกาย ดาบมารแทงไม่ระคาย' },
-  { n: 'เกราะสุริยะเทวะ', d: 15, r: 'mythic', lore: 'เกราะทองคำเปล่งรังสีสุริยเทพ ป้องกันสูงสุดในสามโลก' }
+  { n: 'เกราะสุริยะเทวะ', d: 15, r: 'mythic', lore: 'เกราะทองคำเปล่งรังสีสุริยเทพ ป้องกันสูงสุดในสามโลก' },
+  { n: 'เกราะกระดูกอสูรทมิฬ', d: 18, r: 'mythic', cursed: 'drain_mp', curseDesc: 'เกราะหนามหาศาล แต่เผาผลาญพลังมนตร์ ๒ MP ทุกเทิร์น', lore: 'เกราะกระดูกของพญามารโบราณ แข็งแกร่งจนดาบแทงไม่ระคายแต่สูบกลืนไอเวท' },
+  { n: 'เสื้อยันต์เพลิงอเวจี', d: 12, r: 'mythic', cursed: 'fire_vuln', curseDesc: 'พลังโจมตี +๖ สะท้อนไฟ แต่รับดาเมจจากไฟและพิษแรงขึ้น ๒ เท่า', lore: 'ผ้ายันต์อาบเปลวเพลิงนรก เพิ่มพลังรุกรานแต่ทำให้ผู้สวมทนไฟและพิษไม่ได้' }
+
 ];
 
 const RELICS = [
@@ -656,7 +665,11 @@ const RELICS = [
   { id: 'beads', name: 'ประคำร้อยแปด', icon: '📿', r: 'rare', desc: 'ลดการใช้พลังมนตร์คาถาลง ๕๐%', lore: 'ประคำไม้กฤษณานักพรต จิตบริสุทธิ์ใช้พลังมนตร์น้อยลง' },
   { id: 'ankh', name: 'มณีโมกษะ', icon: '💎', r: 'mythic', desc: 'ชุบชีวิตฟื้นคืนชีพ ๑ ครั้งเมื่อเลือดหมด!', lore: 'มณีศักดิ์สิทธิ์จากแดนสรวง ฉุดดวงวิญญาณกลับจากยมโลก' },
   { id: 'vanara_bangle', name: 'กำไลพญาวานร', icon: '💍', r: 'rare', desc: 'เพิ่มอัตราการหลบหลีก +๒๕%', lore: 'กำไลทองคำที่หนุมานประทานพร ร่างกายพลิ้วไหวดุจสายลม' },
-  { id: 'diamond_ring', name: 'ธำมรงค์เพชร', icon: '💍', r: 'legendary', desc: 'เงินดรอป +๕๐% และคริติคอล +๑๕%', lore: 'แหวนเพชรเม็ดงาม ดึงดูดทรัพย์และโชคลาภการรบ' }
+  { id: 'diamond_ring', name: 'ธำมรงค์เพชร', icon: '💍', r: 'legendary', desc: 'เงินดรอป +๕๐% และคริติคอล +๑๕%', lore: 'แหวนเพชรเม็ดงาม ดึงดูดทรัพย์และโชคลาภการรบ' },
+  { id: 'heart_ravana', name: 'ดวงใจทศกัณฐ์', icon: '❤️‍🔥', r: 'mythic', desc: 'โจมตี +๑๐ และดูดเลือด ๕ หน่วยเมื่อฆ่าศัตรู (แต่ศัตรูตีแรงขึ้น ๒๕%)', cursed: 'harder_foes', curseDesc: 'ศัตรูทั้งหมดในวิหารตีแรงขึ้น ๒๕%', lore: 'กล่องดวงใจของพญายักษ์ที่ยังเต้นตุบๆ มอบพลังมารมหาศาลแลกกับความคลั่งของศัตรู' },
+  { id: 'ring_greed', name: 'ธำมรงค์คนโลภ', icon: '💍', r: 'legendary', desc: 'เงินดรอปเพิ่มเป็น ๒.๕ เท่า (แต่ทำเหรียญหล่นเมื่อโดนตี)', cursed: 'lose_gold_hit', curseDesc: 'ทำเหรียญทองหล่นหายตามดาเมจที่โดนตี', lore: 'แหวนทองคำสลักยันต์ดึงดูดทรัพย์ ยิ่งโลภยิ่งมั่งคั่งแต่เมื่อเพลี่ยงพล้ำทรัพย์ย่อมร่วงโรย' },
+  { id: 'skull_rosary', name: 'ประคำกระดูกมาร', icon: '📿', r: 'mythic', desc: 'ร่ายคาถาทุกบทฟรี ๐ MP (แต่เสียพลังชีวิตแทน MP)', cursed: 'blood_magic', curseDesc: 'จ่ายพลังชีวิตแทนพลังมนตร์เมื่อร่ายอาคม', lore: 'สายประคำร้อยจากกะโหลกอสูร แลกไอโลหิตของตนเป็นมนตราทำลายล้าง' }
+
 ];
 
 
@@ -1622,10 +1635,16 @@ function spawnFoe(base,x,y){
     atk:base.atk+atkBonus,g:gBase+(floor>>1),flash:0,bumpX:0,bumpY:0};
 }
 function genW(tier){
-  const t = clamp(tier || 1, 1, 4);
+  // สเกลเทียร์ตามความลึกของชั้น: ชั้น 1-5 = T1-T2, ชั้น 6-12 = T2-T3, ชั้น 13-18 = T3-T4, ชั้น 19+ = T4-T5
+  let maxT = 2;
+  if(floor >= 19) maxT = 5;
+  else if(floor >= 13) maxT = 4;
+  else if(floor >= 6) maxT = 3;
+
+  const t = clamp(tier || (1 + Math.floor(floorR() * maxT)), 1, 5);
   const pool = WEAPON_BASE.filter((_, idx) => Math.floor(idx / 4) + 1 === t);
   const base = pick(pool.length ? pool : WEAPON_BASE);
-  const plus = floor > 20 ? Math.floor((floor - 20) / 4) + 1 : 0;
+  const plus = floor > 20 ? Math.floor((floor - 20) / 3) + 1 : 0;
   const pName = plus ? ' +' + thaiNum(plus) : '';
 
   const it = {
@@ -1637,8 +1656,10 @@ function genW(tier){
     tier: t,
     plus: plus,
     r: base.r,
+    cursed: base.cursed || null,
+    curseDesc: base.curseDesc || null,
     lore: base.lore,
-    price: (t * 40) + (plus * 25)
+    price: (t * 45) + (plus * 30)
   };
 
   // สุ่มพลังแฝงพิเศษ ยิ่งชั้นลึกโอกาสยิ่งสูง
@@ -1657,9 +1678,14 @@ function genW(tier){
   return it;
 }
 function genA(tier){
-  const t = clamp(tier || 1, 1, ARMOR_BASE.length);
+  let maxT = 3;
+  if(floor >= 19) maxT = ARMOR_BASE.length;
+  else if(floor >= 12) maxT = 5;
+  else if(floor >= 6) maxT = 4;
+
+  const t = clamp(tier || (1 + Math.floor(floorR() * maxT)), 1, ARMOR_BASE.length);
   const base = ARMOR_BASE[t - 1] || ARMOR_BASE[0];
-  const plus = floor > 20 ? Math.floor((floor - 20) / 4) + 1 : 0;
+  const plus = floor > 20 ? Math.floor((floor - 20) / 3) + 1 : 0;
   const pName = plus ? ' +' + thaiNum(plus) : '';
 
   const it = {
@@ -1670,8 +1696,10 @@ function genA(tier){
     tier: t,
     plus: plus,
     r: base.r,
+    cursed: base.cursed || null,
+    curseDesc: base.curseDesc || null,
     lore: base.lore,
-    price: (t * 35) + (plus * 20)
+    price: (t * 40) + (plus * 25)
   };
 
   const affixChance = Math.min(0.9, 0.15 + floor * 0.035);
@@ -2064,6 +2092,13 @@ function attackFoe(e, dirX=0, dirY=0){
   triggerSlash(e.x, e.y, slashColor);
   floats.push({x:e.x, y:e.y, t:'-'+d, c:crit?'#f5c542':'#ffffff', life:1});
   shake = crit ? 8 : 4; sfx.hit();
+  // คำสาปขรรค์กระหายเลือด: สูบเลือดผู้ใช้ 2 HP ทุกครั้งที่ฟันโดน
+  if(wpn.cursed === 'blood_drain'){
+    player.hp -= 2;
+    floats.push({x: player.x, y: player.y, t: '-๒ สูบเลือด', c: '#d43d2a', life: 0.8});
+    msg('🩸 «' + wpn.name + '» กัดกินไอชีวิตของเจ้า! -๒ HP', 'warn');
+    if(player.hp <= 0){ die(); return; }
+  }
   // ☠ บอสเฟส ๒ และท่าไม้ตายเมื่อเลือดต่ำกว่า ๕๐%
   if(e.boss && !e.phase2 && e.hp <= Math.floor(e.maxhp * 0.5)){
     e.phase2 = true;
@@ -2153,12 +2188,17 @@ function killFoe(e){
     });
   }
   player.xp+=e.xp;player.killsTotal++;
+    if(player.relic && player.relic.id === 'heart_ravana'){
+    player.hp = Math.min(player.mhp, player.hp + 5);
+    floats.push({x: player.x, y: player.y, t: '+๕ ดวงใจมาร', c: '#ff7a5c', life: 1});
+  }
   unlockAch('first_blood');
   if(player.killsTotal >= 50) unlockAch('slayer_50');
   if(player.killsTotal >= 100) unlockAch('slayer_100');
   discoverFoe(e.id);kills[e.id]=(kills[e.id]||0)+1;
   const g = (e.g && !isNaN(e.g)) ? e.g + R(Math.max(1, e.g)) : 8;
   if(player.relic && player.relic.id === 'diamond_ring') g = Math.floor(g * 1.5);
+  if(player.relic && player.relic.id === 'ring_greed') g = Math.floor(g * 2.5);
   player.gold = (!isNaN(player.gold) ? player.gold : 0) + g;
   msg(e.name+'แตกดับ! +'+e.xp+' ประสบการณ์ +'+g+' เหรียญ');
   const r=rng();
@@ -2222,6 +2262,7 @@ function checkLevel(){
 const xpNeed=l=>l*25+(l-1)*(l-1)*5;
 function hurtPlayer(d,src,attacker=null){
   let dodgeRate = player.dodge;
+  if(player.wpn && player.wpn.cursed === 'no_dodge') dodgeRate = 0; // คำสาปหอกวิญญาณสถิต
   if(player.relic && player.relic.id === 'vanara_bangle') dodgeRate += 25;
   if(player.arm && player.arm.affix === 'dodge') dodgeRate += 15;
   if(rng()*100 < dodgeRate){
@@ -2249,7 +2290,14 @@ function hurtPlayer(d,src,attacker=null){
     d -= absorb;
     floats.push({x:player.x, y:player.y, t:'ม่านมนตร์ -' + absorb + ' MP', c:'#6fe0cd', life:1});
   }
-  player.hp -= d; flash = .4; shake = 6; sfx.hurt(); triggerHaptic('hurt');
+  player.hp -= d; flash = .4; shake = 6; sfx.hurt();
+    // คำสาปธำมรงค์คนโลภ: ทำเหรียญทองหล่นตามดาเมจที่โดนตี
+  if(player.relic && player.relic.id === 'ring_greed' && player.gold > 0){
+    const lostG = Math.min(player.gold, d * 2);
+    player.gold -= lostG;
+    floats.push({x: player.x, y: player.y, t: '-' + lostG + ' ◉', c: '#f5c542', life: 1});
+    msg('💰 เจ้าทำเหรียญทองหล่นกระจาย! -' + lostG + ' ◉', 'warn');
+  } triggerHaptic('hurt');
   triggerSlash(player.x, player.y, '#e5482e');
   floats.push({x:player.x, y:player.y, t:'-'+d, c:'#ff5a4d', life:1});
   msg(src+'ทำร้ายเจ้า -'+d, 'warn');
@@ -2301,14 +2349,18 @@ function enemiesAct(){
     if(dist===1){
       // ศัตรูพุ่งกระแทกเข้าหาผู้เล่น
       e.bumpX = Math.sign(dx)*6; e.bumpY = Math.sign(dy)*6;
-      let d=Math.max(1,e.atk+R(3)-((player.def+playerArmDef)>>1));
+      let eAtkVal = e.atk;
+      if(player.relic && player.relic.id === 'heart_ravana') eAtkVal = Math.floor(eAtkVal * 1.25);
+      let d=Math.max(1,eAtkVal+R(3)-((player.def+playerArmDef)>>1));
       if(rng()<.08){d<<=1;msg(e.name+'จู่โจมเข้าจุดตาย!','warn');}
       hurtPlayer(d,e.name,e);
       continue;
     }
     if(e.ranged&&dist<=5&&dist>1&&los(e.x,e.y,player.x,player.y)){
       // พ่นพิษคิดเกราะป้องกันด้วย
-      const d=Math.max(1,e.atk+R(2)-((player.def+playerArmDef)>>1));
+      let eRAtkVal = e.atk;
+      if(player.relic && player.relic.id === 'heart_ravana') eRAtkVal = Math.floor(eRAtkVal * 1.25);
+      const d=Math.max(1,eRAtkVal+R(2)-((player.def+playerArmDef)>>1));
       hurtPlayer(d,e.name+' (พ่นพิษ)',e);
       triggerSlash(player.x,player.y,'#43b05c');
       continue;
@@ -2333,14 +2385,16 @@ function endTurn(){
   // ประมวลผลสถานะติดไฟ / ติดพิษ ของผู้เล่น
   if(player.poison > 0){
     player.poison--;
-    player.hp -= 1;
-    floats.push({x:player.x, y:player.y, t:'-๑ พิษ', c:'#43b05c', life:0.9});
+    const pDmgP = (player.arm && player.arm.cursed === 'fire_vuln') ? 2 : 1;
+    player.hp -= pDmgP;
+    floats.push({x:player.x, y:player.y, t:'-' + thaiNum(pDmgP) + ' พิษ', c:'#43b05c', life:0.9});
     if(player.hp <= 0){ die(); return; }
   }
   if(player.burn > 0){
     player.burn--;
-    player.hp -= 2;
-    floats.push({x:player.x, y:player.y, t:'-๒ ไฟ', c:'#ff8b1f', life:0.9});
+    const pDmgF = (player.arm && player.arm.cursed === 'fire_vuln') ? 4 : 2;
+    player.hp -= pDmgF;
+    floats.push({x:player.x, y:player.y, t:'-' + thaiNum(pDmgF) + ' ไฟ', c:'#ff8b1f', life:0.9});
     if(player.hp <= 0){ die(); return; }
   }
 
@@ -2437,6 +2491,17 @@ function endTurn(){
     }
   }
 
+    // คำสาปเกราะกระดูกอสูรทมิฬ: สูบกลืนไอเวท ๒ MP ทุกเทิร์น (ถ้า MP หมดจะสูบเลือดแทน)
+  if(player.arm && player.arm.cursed === 'drain_mp'){
+    if(player.mp >= 2){
+      player.mp -= 2;
+      floats.push({x: player.x, y: player.y, t: '-๒ MP', c: '#6fe0cd', life: 0.7});
+    } else {
+      player.hp -= 2;
+      floats.push({x: player.x, y: player.y, t: '-๒ HP', c: '#d43d2a', life: 0.8});
+      if(player.hp <= 0){ die(); return; }
+    }
+  }
   computeFov();updateHud();saveGame();
 }
 
@@ -2505,7 +2570,9 @@ function useItem(i){
     player.vow = null;
     if(player.hp <= 0){ die(); return; }
   }
-  if(it.t==='pot'){player.hp=Math.min(player.mhp,player.hp+it.heal);
+  if(it.t==='pot'){
+    const maxCap = (player.wpn && player.wpn.cursed === 'max_half_heal') ? Math.floor(player.mhp * 0.5) : player.mhp;
+    player.hp = Math.min(maxCap, player.hp + it.heal);
     msg('ดื่มอมฤต ฟื้นเลือด +'+it.heal,'good');sfx.pick();
     player.inv.splice(i,1);}
   else if(it.t==='mana'){player.mp=Math.min(player.mmp,player.mp+it.mana);
@@ -2641,7 +2708,18 @@ function castMantra(key){
       msg('❋ ลมพายุวายุพัดดับเปลวเพลิงบนร่างเจ้ามอดสนิท!', 'good');
     }
   }
-  if(used){player.mp-=reqMp;sfx.cast();hide($('mantraOv'));endTurn();}
+  if(used){
+  let used=true;
+  if(player.relic && player.relic.id === 'skull_rosary'){
+    const hpCost = Math.max(2, Math.ceil(m.mp * 0.75));
+    player.hp -= hpCost; flash = 0.5; shake = 4; sfx.hurt();
+    floats.push({x: player.x, y: player.y, t: '-' + hpCost + ' HP', c: '#d43d2a', life: 1});
+    msg('📿 ประคำกระดูกมารสูบไอโลหิต ' + hpCost + ' HP ร่ายอาคม!', 'warn');
+    if(player.hp <= 0){ die(); return; }
+  } else {
+    player.mp -= reqMp;
+  }
+sfx.cast();hide($('mantraOv'));endTurn();}
 }
 function interact(n){
   if(n.type==='dilemma_asura'){
@@ -3795,6 +3873,13 @@ function inspectItem(it){
 
   html += '<h2 style="font-family:Chakra Petch;color:' + rCol + ';margin:4px 0 6px;font-size:20px">' + it.name + '</h2>';
   html += '<div style="color:var(--gold);font-size:13px;font-weight:600;margin-bottom:8px">' + typeTag + '</div>';
+
+  if(it.cursed){
+    html += '<div style="background:#26050b;border:2px solid var(--red);padding:6px 8px;border-radius:4px;margin:6px 0;text-align:left">';
+    html += '<div style="color:var(--red);font-weight:700;font-size:13px">☠ อุปกรณ์ต้องสาป (Cursed Drawback)</div>';
+    html += '<div style="color:#ff8b8b;font-size:12px;margin-top:2px"><b>ข้อแลกเปลี่ยน:</b> ' + it.curseDesc + '</div>';
+    html += '</div>';
+  }
 
   if(it.t === 'wpn' && it.type && WEAPON_TYPES[it.type]){
     html += '<p style="color:var(--teal);font-size:13px;background:#152623;padding:6px 8px;border-left:3px solid var(--teal);margin:6px 0"><b>กลไกอาวุธ:</b> ' + WEAPON_TYPES[it.type].desc + '</p>';
