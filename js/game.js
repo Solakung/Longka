@@ -584,6 +584,298 @@ const TILEC=[];
 
 /* ── ตารางข้อมูล ── */
 
+/* ── ๕. โหมดลานประลองยุทธ์ท้าความเร็ว (Trial Arena / Boss Rush Mode) ── */
+let isBossRushMode = false;
+let bossRushWave = 1;
+
+function startBossRushMode(cls){
+  isBossRushMode = true;
+  bossRushWave = 1;
+  initAudio();
+  startRun(cls, 999999);
+  floor = 5;
+  msg('⚔ ก้าวเข้าสู่ลานประลองยุทธ์ทศเศียร! พิชิตบอสทีละระลอก!', 'warn');
+}
+
+
+/* ── ๔. ระบบสัตว์ขี่เทวะพาหนะ (Sacred Steeds & Mount Stance) ── */
+const MOUNT_ITEMS = [
+  { id: 'horse', name: 'ขลุ่ยเรียกม้าอุปการ', icon: '🐎', turns: 16, desc: 'ขึ้นขี่ม้าอัศวเมธ เดินไว x๒ และพุ่งชนศัตรู +๖ ดาเมจ ๑๖ เทิร์น', lore: 'ขลุ่ยทองเหลืองเป่าเรียกม้าวิเศษแห่งพระราม พุ่งทะยานรวดเร็วตัดผ่านสมรภูมิ' },
+  { id: 'elephant', name: 'มงคลพญาคชสาร', icon: '🐘', turns: 14, desc: 'ขึ้นขี่พญาช้างศึก ทุบศัตรูกระเด็น และเหยียบทำลายสิ่งกีดขวาง', lore: 'มงคลคล้องคอช้างเอราวัณ มอบพละกำลังดุจขุนเขาเหยียบย่ำไพรี' }
+];
+
+function genMountItem(){
+  const m = pick(MOUNT_ITEMS);
+  return {
+    t: 'mount',
+    mountId: m.id,
+    name: m.name,
+    icon: m.icon,
+    turns: m.turns,
+    desc: m.desc,
+    r: 'legendary',
+    lore: m.lore,
+    price: 65 + floor * 3
+  };
+}
+
+
+/* ── ๓. หีบสังสารวัฏข้ามชาติ (Past Life Reliquary - ฝาก ๑ ชิ้น & จ่ายปุญแลก) ── */
+const STASH_KEY = 'lanka_stash_v1';
+
+function getStashItem(){
+  try { return JSON.parse(localStorage.getItem(STASH_KEY)) || null; } catch(e){ return null; }
+}
+
+function saveStashItem(item){
+  try { localStorage.setItem(STASH_KEY, JSON.stringify(item)); } catch(e){}
+}
+
+function openStashModal(){
+  let ov = $('stashOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'stashOv';
+    ov.className = 'ov';
+    ov.style.zIndex = '360';
+    document.body.appendChild(ov);
+  }
+
+  const stored = getStashItem();
+  const reclaimCost = 30;
+
+  let html = '<div class="panel" style="max-width:420px;border-color:var(--gold);box-shadow:0 0 26px rgba(245,197,66,.4);text-align:center">';
+  html += '<div class="deva">संस्कार</div>';
+  html += '<h2 style="font-family:Chakra Petch;color:var(--gold);margin:2px 0 6px;font-size:22px">🪷 หีบสังสารวัฏข้ามชาติ</h2>';
+  html += '<p style="font-size:12.5px;color:var(--ink);margin:0 0 12px">ฝากของวิเศษ ๑ ชิ้นข้ามภพชาติสู่การเดินทางครั้งถัดไป (แลกคืนด้วยแต้มปุญ)</p>';
+
+  if(stored){
+    html += '<div style="background:#1a0c1a;border:2px solid var(--gold);padding:10px;border-radius:4px;margin-bottom:14px;text-align:left">';
+    html += '<div style="color:var(--gold);font-weight:700">📦 ของวิเศษที่ฝากไว้จากชาติก่อน:</div>';
+    html += '<b style="color:' + (RARITY_COLORS[stored.r]||'#fff') + ';font-size:15px">' + stored.name + '</b>';
+    html += '<div style="font-size:12px;color:var(--teal)">' + statTxt(stored) + '</div>';
+    html += '<div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center">';
+    html += '<span class="teal" style="font-size:12px">ค่าปลดผนึก: <b>๓๐ ปุญ</b> (มี ' + player.punya + ')</span>';
+    html += '<button class="mini-btn" ' + (player.punya >= reclaimCost ? '' : 'disabled') + ' onclick="reclaimStashItem()">แลกคืนสู่ถุงผ้า</button>';
+    html += '</div></div>';
+  } else {
+    html += '<div class="row dim" style="justify-content:center;padding:12px;margin-bottom:14px">ยังไม่มีของวิเศษที่ฝากไว้ในหีบ</div>';
+  }
+
+  // ตัวเลือกฝากของที่กำลังถืออยู่
+  html += '<div style="text-align:left;border-top:1px dashed var(--line);padding-top:10px;margin-bottom:14px">';
+  html += '<div style="font-size:12px;color:var(--ink);margin-bottom:6px">เลือกฝากอาวุธหรือเครื่องรางปัจจุบันลงในหีบ:</div>';
+  if(player.wpn && player.wpn.tier > 0){
+    html += '<button class="btn ghost" style="font-size:12px;width:100%;margin-bottom:6px" onclick="depositToStash(player.wpn)">ฝากอาวุธ: «' + player.wpn.name + '»</button>';
+  }
+  if(player.relic){
+    html += '<button class="btn ghost" style="font-size:12px;width:100%" onclick="depositToStash(player.relic)">ฝากเครื่องราง: «' + player.relic.name + '»</button>';
+  }
+  html += '</div>';
+
+  html += '<button class="btn" id="btnCloseStash" style="width:100%">ปิด</button>';
+  html += '</div>';
+
+  ov.innerHTML = html;
+  show(ov);
+
+  $('btnCloseStash').onclick = () => hide(ov);
+}
+
+function depositToStash(it){
+  saveStashItem(it);
+  sfx.level();
+  msg('🪷 ฝาก «' + it.name + '» ลงในหีบสังสารวัฏแล้ว! ชาติถัดไปสามารถใช้ปุญแลกคืนมาได้', 'good');
+  openStashModal();
+}
+
+function reclaimStashItem(){
+  const stored = getStashItem();
+  if(!stored || player.punya < 30) return;
+  player.punya -= 30;
+  if(player.inv.length < (player.bagMax || 10)){
+    player.inv.push(stored);
+  } else {
+    items.push({x: player.x, y: player.y, ...stored});
+  }
+  localStorage.removeItem(STASH_KEY);
+  sfx.level(); flash = 0.5;
+  msg('🪷 สละ ๓๐ ปุญบารมี เบิก «' + stored.name + '» จากชาติก่อนกลับคืนสู่ถุงผ้าสำเร็จ!', 'good');
+  hide($('stashOv'));
+  updateHud();
+}
+
+
+/* ── ๒. มินิเกมสะเดาะกุญแจโบราณ (Lockpicking Mini-Game) ── */
+function openLockpickModal(chestItem, onUnlock){
+  let ov = $('lockpickOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'lockpickOv';
+    ov.className = 'ov';
+    ov.style.zIndex = '380';
+    document.body.appendChild(ov);
+  }
+
+  let needlePos = 0, needleDir = 1, lpTimer = null;
+  const targetMin = 42, targetMax = 62;
+
+  let html = '<div class="panel" style="max-width:380px;border-color:var(--gold);box-shadow:0 0 28px rgba(245,197,66,.45);text-align:center">';
+  html += '<div class="deva">तांडव</div>';
+  html += '<h2 style="font-family:Chakra Petch;color:var(--gold);margin:2px 0 6px;font-size:22px">🔓 สะเดาะกุญแจกลโบราณ</h2>';
+  html += '<p style="font-size:12.5px;color:var(--ink);margin:0 0 14px">แตะปุ่ม "สะเดาะกลไก" ให้ตรงจังหวะที่เข็มวิ่งเข้าสู่ <b class="teal">แถบสีเขียว</b></p>';
+
+  // ลานหน้าปัดกลไก
+  html += '<div style="width:100%;height:32px;background:#130612;border:2px solid var(--line);border-radius:4px;position:relative;margin-bottom:16px;overflow:hidden">';
+  html += '<div style="position:absolute;left:' + targetMin + '%;width:' + (targetMax - targetMin) + '%;height:100%;background:rgba(46,196,166,0.4);border-left:2px solid var(--teal);border-right:2px solid var(--teal)"></div>';
+  html += '<div id="lpNeedle" style="position:absolute;left:0%;width:4px;height:100%;background:#ff3b30;box-shadow:0 0 8px #ff3b30"></div>';
+  html += '</div>';
+
+  html += '<div style="display:flex;gap:8px">';
+  html += '<button class="btn ghost" id="btnCancelLp" style="width:40%">ถอยออก</button>';
+  html += '<button class="btn" id="btnActionLp" style="width:60%;font-size:14px;background:#158574">🔓 สะเดาะกลไก!</button>';
+  html += '</div></div>';
+
+  ov.innerHTML = html;
+  show(ov);
+
+  const needleEl = $('lpNeedle');
+  lpTimer = setInterval(() => {
+    needlePos += needleDir * 2.5;
+    if(needlePos >= 98){ needlePos = 98; needleDir = -1; }
+    if(needlePos <= 2){ needlePos = 2; needleDir = 1; }
+    if(needleEl) needleEl.style.left = needlePos + '%';
+  }, 35);
+
+  $('btnActionLp').onclick = () => {
+    clearInterval(lpTimer);
+    if(needlePos >= targetMin && needlePos <= targetMax){
+      // สะเดาะสำเร็จ!
+      hide(ov);
+      sfx.level(); flash = 0.6;
+      msg('🔓 กลไกกุญแจโบราณปลดล็อคสำเร็จ! หีบสมบัติเปิดออก!', 'good');
+      if(onUnlock) onUnlock();
+    } else {
+      // พลาด โดนเข็มพิษทิ่ม
+      player.hp = Math.max(1, player.hp - 4);
+      flash = 0.4; sfx.hurt();
+      msg('⚠ สะเดาะกุญแจพลาด! สปริงเข็มกลไกดีดใส่เจ้า -๔ HP', 'warn');
+      hide(ov);
+      updateHud();
+    }
+  };
+
+  $('btnCancelLp').onclick = () => {
+    clearInterval(lpTimer);
+    hide(ov);
+  };
+}
+
+
+/* ── ๑. ระบบผสานสองมนตรา (Mantra Fusion) ── */
+const MANTRA_FUSIONS = [
+  {
+    id: 'firestorm',
+    name: 'พายุเพลิงกัลป์',
+    icon: '🌪️',
+    m1: 'agni', m2: 'vaju',
+    mp: 11,
+    desc: 'ระเบิดพายุเพลิงหมุนวน ๕×๕ ช่องรอบตัว เผาไหม้ศัตรู ๑๔ ดาเมจ และจุดไฟเผากอเถาวัลย์',
+    color: '#ff8b1f'
+  },
+  {
+    id: 'thunderstorm',
+    name: 'พายุอัสนีบาต',
+    icon: '⛈️',
+    m1: 'vajra', m2: 'vaju',
+    mp: 15,
+    desc: 'สายฟ้าพระอินทร์ฟาดลงมาผ่าศัตรูทุกตัวในห้องพร้อมกัน ๑๘ ดาเมจ และช็อตสตั๊น ๑ เทิร์น',
+    color: '#f5c542'
+  },
+  {
+    id: 'static_barrier',
+    name: 'เกราะสายฟ้าศักดิ์สิทธิ์',
+    icon: '🛡️',
+    m1: 'heal', m2: 'vajra',
+    mp: 14,
+    desc: 'ฟื้นเลือด ๒๐ หน่วย พร้อมสร้างม่านสายฟ้าคุ้มกาย ๑๐ เทิร์น สะท้อนช็อตสตั๊นผู้ที่มาตี',
+    color: '#2ec4a6'
+  },
+  {
+    id: 'phoenix_flame',
+    name: 'เพลิงชุบวิญญาณ',
+    icon: '🪷',
+    m1: 'heal', m2: 'agni',
+    mp: 12,
+    desc: 'ฟื้นเลือด ๑๖ หน่วย พร้อมระเบิดคลื่นเพลิงผลักศัตรูรอบตัวกระเด็น ๒ ช่อง',
+    color: '#ff7a5c'
+  }
+];
+
+function castMantraFusion(fusionId){
+  const f = MANTRA_FUSIONS.find(x => x.id === fusionId);
+  if(!f) return;
+  const reqMp = (player.relic && player.relic.id === 'beads') ? Math.max(1, Math.ceil(f.mp / 2)) : f.mp;
+  if(player.mp < reqMp){
+    msg('พลังมนตร์ไม่พอผสานอาคม… (ต้องการ ' + reqMp + ' MP)', 'warn');
+    return;
+  }
+  player.mp -= reqMp;
+  sfx.boss(); flash = 0.6; shake = 8;
+  hide($('mantraOv'));
+
+  if(f.id === 'firestorm'){
+    // เผาไหม้ 5x5 ช่องรอบตัว
+    for(let dy=-2; dy<=2; dy++) for(let dx=-2; dx<=2; dx++){
+      const tx = player.x + dx, ty = player.y + dy;
+      if(canWalk(tx, ty)){
+        triggerSlash(tx, ty, '#ff8b1f');
+        if(isGrass(tx, ty)) igniteGrass(tx, ty);
+        const foe = enemyAt(tx, ty);
+        if(foe){
+          const d = 14 + player.lvl * 3;
+          foe.hp -= d; foe.burn = (foe.burn||0) + 3; foe.flash = 6;
+          floats.push({x: tx, y: ty, t: 'พายุเพลิง -' + d, c: '#ff8b1f', life: 1.2});
+          if(foe.hp <= 0) killFoe(foe);
+        }
+      }
+    }
+    msg('🌪️ มหาอาคม «พายุเพลิงกัลป์» พัดโหมกระหน่ำเผาผลาญศัตรูรอบทิศ!', 'good');
+  } else if(f.id === 'thunderstorm'){
+    // ผ่าศัตรูทุกตัวในห้อง
+    for(const foe of enemies.slice()){
+      if(vis[foe.y * W + foe.x]){
+        const d = 18 + player.lvl * 3;
+        foe.hp -= d; foe.stun = 1; foe.flash = 6;
+        triggerSlash(foe.x, foe.y, '#f5c542');
+        floats.push({x: foe.x, y: foe.y, t: 'อัสนีบาต -' + d, c: '#f5c542', life: 1.5});
+        if(isWater(foe.x, foe.y)) electrifyWater(foe.x, foe.y, d);
+        if(foe.hp <= 0) killFoe(foe);
+      }
+    }
+    msg('⛈️ มหาอาคม «พายุอัสนีบาต» สายฟ้าฟาดผ่ากระหน่ำศัตรูทั้งห้อง!', 'good');
+  } else if(f.id === 'static_barrier'){
+    const h = 20 + player.lvl * 2;
+    player.hp = Math.min(player.mhp, player.hp + h);
+    player.buffStaticBarrier = 10;
+    floats.push({x: player.x, y: player.y, t: '+' + h + ' HP & เกราะสายฟ้า!', c: '#2ec4a6', life: 2});
+    msg('🛡️ มหาอาคม «เกราะสายฟ้าศักดิ์สิทธิ์» ฟื้นฟู ' + h + ' HP และสร้างม่านไฟฟ้าสะท้อนช็อตศัตรู ๑๐ เทิร์น!', 'good');
+  } else if(f.id === 'phoenix_flame'){
+    const h = 16 + player.lvl * 2;
+    player.hp = Math.min(player.mhp, player.hp + h);
+    for(const foe of enemies.slice()){
+      if(Math.max(Math.abs(foe.x-player.x), Math.abs(foe.y-player.y)) <= 2){
+        foe.hp -= 10; foe.flash = 4;
+        floats.push({x: foe.x, y: foe.y, t: '-๑๐', c: '#ff7a5c', life: 1});
+        if(foe.hp <= 0) killFoe(foe);
+      }
+    }
+    msg('🪷 มหาอาคม «เพลิงชุบวิญญาณ» ชุบชูกาย ' + h + ' HP พร้อมระเบิดคลื่นความร้อนผลักศัตรูกระเด็น!', 'good');
+  }
+  endTurn();
+}
+
+
 /* ── ระบบแนะนำเบื้องต้นสำหรับผู้เล่นใหม่ (New Player Hints & Tooltips) ── */
 function showHint(id, text){
   try {
@@ -3242,6 +3534,13 @@ function endTurn(){
   if(player.buffIronskin > 0) player.buffIronskin--;
   if(player.buffInvis > 0) player.buffInvis--;
   if(player.buffCoating > 0) player.buffCoating--;
+  if(player.mountTurns > 0){
+    player.mountTurns--;
+    if(player.mountTurns === 0){
+      player.mountStance = null;
+      msg('สัตว์ขี่เทวะสลายร่างกลับสู่สรวงสวรรค์…');
+    }
+  }
 
   // ทหารวานรช่วยสู้
   if(player.summons > 0){
@@ -3417,7 +3716,18 @@ function useItem(i){
     if(oldArm&&oldArm.tier>0)player.inv.push(oldArm);
     msg('สวม «'+it.name+'» ป้องกัน+'+it.v);sfx.pick();
   }
-        else if(it.t==='ore'){
+        else if(it.t==='mount'){
+    player.mountStance = it.mountId;
+    player.mountTurns = it.turns;
+    sfx.boss(); flash = 0.6;
+    msg('🐎 ' + it.name + '! เจ้าขึ้นขี่พาหนะเทวะ ' + it.desc, 'good');
+    floats.push({x: player.x, y: player.y, t: 'ขึ้นขี่พาหนะ!', c: '#f5c542', life: 2});
+    player.inv.splice(i, 1);
+    updateHud();
+    endTurn();
+    return;
+  }
+  else if(it.t==='ore'){
     smithInfuseWeapon(it, i);
     renderInv();
     return;
@@ -5155,6 +5465,13 @@ function renderMantras(){
   $('mpHint').textContent='พลังมนตร์ '+player.mp+'/'+player.mmp;
   const list=$('mantraList');list.innerHTML='';
   if(!player.mantras.length){list.innerHTML='<div class="row dim">ยังไม่รู้แจ้งอาคมใด ๆ</div>';return;}
+  
+  // ๑. รายการคาถาพื้นฐาน
+  const hBasic = document.createElement('h4');
+  hBasic.style.margin = '4px 0'; hBasic.style.color = 'var(--gold)'; hBasic.style.fontSize = '12.5px';
+  hBasic.textContent = '📜 อาคมพื้นฐาน';
+  list.appendChild(hBasic);
+
   player.mantras.forEach(k=>{
     const m=MANTRAS[k];
     const r=document.createElement('div');r.className='row';
@@ -5163,6 +5480,27 @@ function renderMantras(){
     const b=document.createElement('button');b.className='mini-btn';b.textContent='ร่าย';
     b.disabled=player.mp<m.mp;b.onclick=()=>castMantra(k);
     r.appendChild(b);list.appendChild(r);
+  });
+
+  // ๒. รายการผสานสองอาคม (Mantra Fusion)
+  const hFusion = document.createElement('h4');
+  hFusion.style.margin = '10px 0 4px'; hFusion.style.color = 'var(--teal)'; hFusion.style.fontSize = '12.5px';
+  hFusion.textContent = '✨ มหาอาคมผสานธาตุ (Fusion)';
+  list.appendChild(hFusion);
+
+  MANTRA_FUSIONS.forEach(f => {
+    const knowsBoth = player.mantras.includes(f.m1) && player.mantras.includes(f.m2);
+    const r = document.createElement('div'); r.className = 'row';
+    r.style.background = '#180d19'; r.style.border = '1px solid ' + (knowsBoth ? f.color : '#3d1c28');
+    r.style.opacity = knowsBoth ? '1' : '0.5';
+
+    r.innerHTML = '<div><span>' + f.icon + ' <b style="color:' + f.color + '">' + f.name + '</b> <span class="teal">' + f.mp + ' MP</span></span>' +
+      '<div style="font-size:11px;color:var(--ink)">' + f.desc + '</div></div>';
+    const b = document.createElement('button'); b.className = 'mini-btn'; b.textContent = 'ผสาน';
+    b.style.background = knowsBoth ? '#158574' : '#333';
+    b.disabled = !knowsBoth || player.mp < f.mp;
+    b.onclick = () => castMantraFusion(f.id);
+    r.appendChild(b); list.appendChild(r);
   });
 }
 function renderRecords(){$('recordsList').innerHTML=hallGet().map(r=>
@@ -5185,7 +5523,11 @@ function buildClassCards(){
       card.innerHTML='<canvas class="mini" width="32" height="32"></canvas><h3>'+C.name+'</h3>'+
         '<small>เลือด '+C.hp+' · มนตร์ '+C.mp+' · โจมตี '+C.atk+' · ป้อง '+C.def+'</small>'+
         '<p>'+C.desc+'</p>';
-      card.onclick=()=>{initAudio();startRun(key);};
+      card.onclick=()=>{
+        initAudio();
+        if(window._selectBossRush){ window._selectBossRush = false; startBossRushMode(key); }
+        else { startRun(key); }
+      };
     }
     const g=card.querySelector('canvas').getContext('2d');
     g.imageSmoothingEnabled=false;
@@ -5346,6 +5688,11 @@ function setupInput(){
     makeGridBtn('btnAch', '🏆 เกียรติยศ', 'var(--gold)', 'var(--gold)', openAchModal);
     makeGridBtn('btnCodex', '📖 สารานุกรม', 'var(--teal)', null, openCodexModal);
     makeGridBtn('btnSet', '⚙️ ตั้งค่า', null, null, openSettingsModal);
+    makeGridBtn('btnStash', '🪷 หีบข้ามชาติ', 'var(--gold)', null, openStashModal);
+    makeGridBtn('btnBossRush', '⚔️ ลานประลอง', '#ff7a5c', '#ff7a5c', () => {
+      isDailyRun = false; hide($('title')); show($('classSel'));
+      window._selectBossRush = true;
+    });
 
     // ย้ายปุ่มทำเนียบและวิธีเล่นมาเป็นคู่ล่าง
     let botGrid = $('titleBotGrid');
