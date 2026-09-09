@@ -538,9 +538,56 @@ const TILEC=[];
    g.fillStyle='#41236d';g.fillRect(4,4,8,8);
    g.fillStyle='#ffe9a3';g.fillRect(7,6,2,4);
    TILEC[10]=[c];}
+  // เตาหลอมโอสถทิพย์แห่งหิมพานต์ (11)
+  {const c=document.createElement('canvas');c.width=T;c.height=T;const g=c.getContext('2d');
+   g.fillStyle='#1c1209';g.fillRect(0,0,T,T);
+   g.strokeStyle='#f5c542';g.strokeRect(2,2,12,12);
+   g.fillStyle='#7a4a22';g.fillRect(3,6,10,7);
+   g.fillStyle='#2ec4a6';g.fillRect(5,7,6,3); // น้ำยาฟองเดือด
+   g.fillStyle='#ff8b1f';g.fillRect(6,12,4,2); // เปลวไฟใต้เตา
+   TILEC[11]=[c];}
+  // ศิลาจารึกวิญญาณโบราณ (12)
+  {const c=document.createElement('canvas');c.width=T;c.height=T;const g=c.getContext('2d');
+   g.fillStyle='#120a16';g.fillRect(0,0,T,T);
+   g.strokeStyle='#2ec4a6';g.strokeRect(3,2,10,12);
+   g.fillStyle='#2c1524';g.fillRect(4,3,8,10);
+   g.fillStyle='#6fe0cd';g.fillRect(6,5,4,2);g.fillRect(6,8,4,2);
+   TILEC[12]=[c];}
 })();
 
 /* ── ตารางข้อมูล ── */
+
+/* ── ช่องสวมใส่ชิ้นที่ ๔: มงกุฎ / ชฎา / หน้ากาก (Headgear) ── */
+const HEADGEAR_BASE = [
+  { n: 'ผ้าโพกศีรษะโยคี', r: 'common', def: 1, mp: 6, desc: 'ป้องกัน +๑, มานา +๖', lore: 'ผ้าฝ้ายทอมือของนักพรต สวมใส่สบายจิตใจสงบ' },
+  { n: 'รัดเกล้าทองแดง', r: 'common', def: 2, crit: 6, desc: 'ป้องกัน +๒, คริติคอล +๖%', lore: 'รัดเกล้าโบราณ เสริมความแม่นยำในการจู่โจม' },
+  { n: 'ชฎาทองคำอโยธยา', r: 'rare', def: 2, mp: 16, mBoost: 25, desc: 'ป้องกัน +๒, มานา +๑๖, คาถาแรงขึ้น +๒๕%', lore: 'ชฎาทรงยอดแหลมทองคำสลักลายกนก เปล่งรัศมีแห่งพระเวท' },
+  { n: 'หน้ากากพญายักษ์', r: 'rare', def: 4, atk: 2, desc: 'ป้องกัน +๔, โจมตี +๒, ข่มขวัญศัตรู', lore: 'หน้ากากอสูรเขี้ยวโง้ง น่าเกรงขามดุจนายทัพลงกา' },
+  { n: 'รัดเกล้าเพชรสุริยะ', r: 'legendary', def: 3, crit: 18, atk: 4, desc: 'ป้องกัน +๓, คริติคอล +๑๘%, โจมตี +๔', lore: 'รัดเกล้าประดับเพชรน้ำเอก เปล่งรัศมีสุริยเทพตัดจุดตาย' },
+  { n: 'หน้ากากวานรเผือก', r: 'legendary', def: 3, dodge: 18, desc: 'ป้องกัน +๓, หลบหลีก +๑๘%, คล่องตัวสูง', lore: 'หน้ากากรูปหนุมาน สวมใส่แล้วว่องไวดุจลมกรด' },
+  { n: 'มงกุฎชัยพิชัยพรหมมาสตร์', r: 'mythic', def: 6, atk: 6, mp: 25, desc: 'โจมตี +๖, ป้องกัน +๖, มานา +๒๕, คริ +๑๐%', lore: 'ยอดมงกุฎแห่งพระราม ผู้ใดสวมใส่จะได้รับชัยชนะในทุกสมรภูมิ' }
+];
+
+function genHeadgear(tier){
+  const t = clamp(tier || (1 + Math.floor(floorR() * (floor > 12 ? HEADGEAR_BASE.length : 4))), 1, HEADGEAR_BASE.length);
+  const base = HEADGEAR_BASE[t - 1] || HEADGEAR_BASE[0];
+  return {
+    t: 'head',
+    name: base.n,
+    baseName: base.n,
+    def: base.def || 0,
+    atk: base.atk || 0,
+    mp: base.mp || 0,
+    crit: base.crit || 0,
+    dodge: base.dodge || 0,
+    mBoost: base.mBoost || 0,
+    r: base.r,
+    desc: base.desc,
+    lore: base.lore,
+    price: (t * 35) + 20
+  };
+}
+
 
 const CLASS_TALENTS = {
   ksatriya: [
@@ -613,7 +660,11 @@ const WEAPON_TYPES = {
   dagger: { name: 'มีดสั้น/กริช', icon: '🗡️', desc: 'โอกาสฟันเบิ้ล ๒ ครั้งติด และคริติคอลสูง' },
   spear: { name: 'หอกยาว/ตรีศูล', icon: '🔱', desc: 'แทงทะลุระยะ ๒ ช่องโดยไม่ต้องประชิด' },
   mace: { name: 'กระบองหนัก', icon: '🔨', desc: 'ดาเมจทะลุเกราะ ๕๐% และทุบกระเด็น ๑ ช่อง' },
-  cleave: { name: 'อาวุธกวาด', icon: '🪓', desc: 'ฟันกวาดศัตรูทุกตัวรอบตัวพร้อมกัน' }
+  cleave: { name: 'อาวุธกวาด', icon: '🪓', desc: 'ฟันกวาดศัตรูทุกตัวรอบตัวพร้อมกัน' },
+  bow: { name: 'ธนู/หน้าไม้', icon: '🏹', desc: 'ยิงทะลวงระยะไกล ๕ ช่องโดยไม่ต้องเสี่ยงประชิด' },
+  whip: { name: 'แส้อัสนีบาต', icon: '⚡', desc: 'ฟาดระยะ ๒ ช่อง และกระตุกดึงศัตรูเข้ามาหาตัว' },
+  claw: { name: 'กรงเล็บวานร', icon: '🐾', desc: 'รัวกรงเล็บ ๓ ฮิตติดกันอย่างบ้าคลั่ง' },
+  fan: { name: 'พัดวายุสลายมาร', icon: '🪭', desc: 'พัดคลื่นลมกระแทกศัตรูกระเด็นถอยหลัง ๓ ช่อง' }
 };
 
 const WEAPON_BASE = [
@@ -1467,8 +1518,12 @@ function genFloor(fl){
     if(floorR()<.12){map[(r.y+1)*W+r.x+1]=3;}
     // สระน้ำอมฤตศักดิ์สิทธิ์ (สุ่มเกิดเฉลี่ย 1 สระต่อ 2-3 ชั้น)
     if(floorR()<.08){map[(r.y+2)*W+r.x+2]=5;}
-    // แท่นบูชาบาปอสูรสีดำ (สุ่มเกิดสำหรับสายเสี่ยงดวง)
-    if(floorR()<.09 && fl > 2){map[(r.y+2)*W+r.x+1]=7;}
+    // แท่นบูชาบาปอสูรสีดำ
+    if(floorR()<.08 && fl > 2){map[(r.y+2)*W+r.x+1]=7;}
+    // เตาหลอมโอสถทิพย์แห่งหิมพานต์ (11)
+    if(floorR()<.12){map[(r.y+1)*W+r.x+3]=11;}
+    // ศิลาจารึกวิญญาณโบราณ (12)
+    if(floorR()<.10 && fl > 1){map[(r.y+2)*W+r.x+3]=12;}
     // กับดักซ่อนเร้น
     if(floorR()<.35){
       const tx = r.x + 1 + Math.floor(floorR()*(r.w-2));
@@ -1723,6 +1778,47 @@ function genScr(){
 }
 
 
+
+const SCROLL_TYPES = [
+  { id: 'map', name: 'คัมภีร์เบิกเนตร', desc: 'เปิดหมอกสงครามทั้งชั้นให้เห็นห้องทั้งหมดทันที', r: 'rare', lore: 'คัมภีร์มหาเนตรทิพย์ แผ่รังสีญาณส่องสว่างวิหารทั้งมิติ' },
+  { id: 'curse', name: 'คัมภีร์ชำระคำสาป', desc: 'ลบล้างผลเสียของอุปกรณ์ต้องสาปทิ้งอย่างถาวร!', r: 'legendary', lore: 'คัมภีร์น้ำทิพย์พระเวท ชำระล้างไออสูรออกจากอาวุธและเกราะต้องสาป' },
+  { id: 'summon', name: 'คัมภีร์อัญเชิญทวยหาญ', desc: 'อัญเชิญทหารวานร ๒ ตัวมาช่วยรุมศัตรูในห้อง', r: 'rare', lore: 'คัมภีร์มหายันต์หนุมาน เรียกวิญญาณทหารเอกมาร่วมรบ' },
+  { id: 'teleport', name: 'คัมภีร์ย้ายมิติ', desc: 'วาร์ปหนีออกจากจุดวิกฤตไปสู่ห้องที่ปลอดภัยทันที', r: 'common', lore: 'คัมภีร์มนตราล่องนภา สลับมิติพาร่างกายหนีวงล้อมอสูร' }
+];
+
+function genTacticalScroll(){
+  const s = pick(SCROLL_TYPES);
+  return {
+    t: 'scroll_tac',
+    scrollId: s.id,
+    name: s.name,
+    desc: s.desc,
+    r: s.r,
+    lore: s.lore,
+    price: 35 + floor * 2
+  };
+}
+
+const POTION_ELIXIRS = [
+  { id: 'ironskin', name: 'ยาผิวเหล็กไหล', turns: 12, desc: 'เพิ่มป้องกัน +๑๐ ชั่วคราว ๑๒ เทิร์น', r: 'rare', lore: 'โอสถเคี่ยวจากแร่เหล็กไหลพันปี ดื่มแล้วผิวกายแข็งแกร่งดุจศิลา' },
+  { id: 'invis', name: 'ยาแปลงกายล่องหน', turns: 8, desc: 'ศัตรูมองไม่เห็น ๘ เทิร์น โจมตีติดคริติคอล ๑๐๐%', r: 'legendary', lore: 'น้ำมันว่านล่องหน ทาชโลมกายแล้วอำพรางร่างจากสายตามาร' },
+  { id: 'coating', name: 'ยาน้ำมันชโลมดาบ', turns: 15, desc: 'โจมตีติดไฟและพิษพร้อมกัน ๑๕ ครั้ง', r: 'rare', lore: 'น้ำมันยางไม้หิมพานต์ ชโลมคมดาบให้เผาไหม้และอาบพิษร้าย' }
+];
+
+function genElixir(id = null){
+  const el = id ? POTION_ELIXIRS.find(e => e.id === id) : pick(POTION_ELIXIRS);
+  return {
+    t: 'elixir',
+    elixirId: el.id,
+    name: el.name,
+    turns: el.turns,
+    desc: el.desc,
+    r: el.r,
+    lore: el.lore,
+    price: 45 + floor * 2
+  };
+}
+
 function genPetEgg(){
   const pKeys = ['monkey', 'bird', 'naga'];
   const pk = pick(pKeys);
@@ -1765,19 +1861,22 @@ function genScrollUpg(){
 
 function genGroundItem(){
   const r=floorR();
-  if(r<.12) return {t:'pot', name:'อมฤต', heal:12+floor*2, r:'common', lore:'น้ำอมฤตบริสุทธิ์ ฟื้นฟูพลังชีวิต'};
-  if(r<.24) return {t:'mana', name:'น้ำโสม', mana:10+floor*2, r:'common', lore:'น้ำสกัดจากโสมพันปี ฟื้นฟูพลังมนตร์'};
-  if(r<.48) return {t:'gold', amt:8+Math.floor(floorR()*(10+floor*3))};
-  if(r<.62){
+  if(r<.10) return {t:'pot', name:'อมฤต', heal:12+floor*2, r:'common', lore:'น้ำอมฤตบริสุทธิ์ ฟื้นฟูพลังชีวิต'};
+  if(r<.18) return {t:'mana', name:'น้ำโสม', mana:10+floor*2, r:'common', lore:'น้ำสกัดจากโสมพันปี ฟื้นฟูพลังมนตร์'};
+  if(r<.38) return {t:'gold', amt:8+Math.floor(floorR()*(10+floor*3))};
+  if(r<.48) return genTacticalScroll(); // คัมภีร์ยุทธวิธี
+  if(r<.56) return genElixir(); // ยาวิเศษ
+  if(r<.66){
     const th = pick(THROWABLES);
     return {t:'throw', name: th.name, dmg: th.dmg + Math.floor(floor * 0.8), range: th.range, c: th.c, burn: th.burn||0, r:'common', lore:'อาวุธขว้างโจมตีระยะไกล ' + thaiNum(th.range) + ' ช่อง', price: 20 + floor*2};
   }
-  if(r<.70) return genScrollUpg(); // คัมภีร์ตีบวก
-  if(r<.75) return genRelic();
-  if(r<.78) return {...TOOL_HOOK};
-  if(r<.82) return genPetEgg(); // ไข่สัตว์เลี้ยง
-  if(r<.89){ const t = clamp(1 + Math.floor((floor-1)/5), 1, 4); return genW(t); }
-  if(r<.96){ const t = clamp(1 + Math.floor((floor-1)/4), 1, 6); return genA(t); }
+  if(r<.73) return genScrollUpg(); // คัมภีร์ตีบวก
+  if(r<.78) return genRelic(); // เครื่องราง
+  if(r<.82) return genHeadgear(); // มงกุฎ/ชฎา
+  if(r<.85) return {...TOOL_HOOK};
+  if(r<.88) return genPetEgg(); // ไข่สัตว์เลี้ยง
+  if(r<.94){ const t = clamp(1 + Math.floor((floor-1)/4), 1, 5); return genW(t); }
+  if(r<.98){ const t = clamp(1 + Math.floor((floor-1)/4), 1, ARMOR_BASE.length); return genA(t); }
   return genScr();
 }
 
@@ -1914,6 +2013,65 @@ function openCursedAltarModal(ax, ay){
   $('btnLeaveCursed').onclick = () => hide(ov);
 }
 
+
+/* ── ระบบเตาหลอมโอสถทิพย์ & ปรุงยาวิเศษ (Alchemy & Concoctions) ── */
+function openAlchemyModal(cx, cy){
+  let ov = $('alchemyOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'alchemyOv';
+    ov.className = 'ov';
+    ov.style.zIndex = '350';
+    document.body.appendChild(ov);
+  }
+
+  const potCount = player.inv.filter(it => it.t === 'pot' || it.t === 'mana').length;
+
+  let html = '<div class="panel" style="max-width:440px;border-color:var(--gold);box-shadow:0 0 26px rgba(245,197,66,.4);text-align:center">';
+  html += '<div class="deva">रसायन</div>';
+  html += '<h2 style="font-family:Chakra Petch;color:var(--gold);margin:2px 0 6px;font-size:22px">⚗️ เตาหลอมโอสถทิพย์หิมพานต์</h2>';
+  html += '<p style="font-size:13px;color:var(--ink);margin:0 0 12px">นำยาโอสถพื้นฐาน ๒ ขวดในถุงผ้า มาเคี่ยวสกัดเป็นยาวิเศษชั้นสูง</p>';
+
+  html += '<div style="display:flex;flex-direction:column;gap:8px;text-align:left;margin-bottom:14px">';
+  POTION_ELIXIRS.forEach(el => {
+    html += '<div class="row" style="background:#1b0c18;padding:8px;border:1px solid var(--line)">';
+    html += '<div><b class="gold">' + el.name + '</b><br><small class="teal">' + el.desc + '</small></div>';
+    html += '<button class="mini-btn" ' + (potCount >= 2 ? '' : 'disabled') + ' onclick="brewElixir(\'' + el.id + '\',' + cx + ',' + cy + ')">เคี่ยว (ใช้ยา ๒ ขวด)</button>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  html += '<button class="btn ghost" id="btnCloseAlchemy" style="width:100%">ปิด</button>';
+  html += '</div>';
+
+  ov.innerHTML = html;
+  show(ov);
+
+  $('btnCloseAlchemy').onclick = () => hide(ov);
+}
+
+function brewElixir(elixirId, cx, cy){
+  // ลบยา 2 ขวดออกจากถุงผ้า
+  let removed = 0;
+  for(let i = player.inv.length - 1; i >= 0 && removed < 2; i--){
+    if(player.inv[i].t === 'pot' || player.inv[i].t === 'mana'){
+      player.inv.splice(i, 1);
+      removed++;
+    }
+  }
+
+  const elItem = genElixir(elixirId);
+  player.inv.push(elItem);
+  sfx.level(); flash = 0.5;
+  msg('⚗️ เตาหลอมเดือดพล่าน! สกัดได้ «' + elItem.name + '» สำเร็จ!', 'good');
+  floats.push({x: player.x, y: player.y, t: 'หลอมโอสถสำเร็จ!', c: '#2ec4a6', life: 2});
+
+  hide($('alchemyOv'));
+  map[cy * W + cx] = 1; // เตาถูกใช้แล้วกลายเป็นพื้น
+  updateHud();
+  endTurn();
+}
+
 /* ── การกระทำของผู้เล่น ── */
 function canWalk(x,y){return x>=0&&y>=0&&x<W&&y<H&&map[y*W+x]!==0}
 function enemyAt(x,y){return enemies.find(e=>e.x===x&&e.y===y&&e.hp>0)}
@@ -1964,17 +2122,23 @@ function tryMove(dx,dy){
     attackFoe(e, dx, dy);endTurn();return;
   }
 
-  // ระบบหอกยาว/ตรีศูล: แทงทะลวงระยะ ๒ ช่อง! (Reach Attack)
-  if(player.wpn && player.wpn.type === 'spear'){
-    const tx2 = player.x + dx * 2, ty2 = player.y + dy * 2;
-    const e2 = enemyAt(tx2, ty2);
-    if(e2 && canWalk(nx, ny)){
-      playerBump={x:dx*12, y:dy*12, time:4};
-      triggerSlash(tx2, ty2, '#2ec4a6');
-      msg('🔱 «' + player.wpn.name + '» แทงทะลวงระยะ ๒ ช่องเข้าใส่ ' + e2.name + '!', 'good');
-      attackFoe(e2, dx, dy);
-      endTurn();
-      return;
+  // ระบบหอกยาว/ตรีศูล/แส้/ธนู: โจมตีทะลวงระยะไกล!
+  if(player.wpn && (player.wpn.type === 'spear' || player.wpn.type === 'whip' || player.wpn.type === 'bow')){
+    const reachMax = (player.wpn.type === 'bow') ? 5 : 2;
+    for(let dist = 2; dist <= reachMax; dist++){
+      const tx = player.x + dx * dist, ty = player.y + dy * dist;
+      const targetFoe = enemyAt(tx, ty);
+      if(targetFoe){
+        // เช็คว่าไม่มีกำแพงขวางทาง
+        if(los(player.x, player.y, tx, ty)){
+          playerBump={x:dx*8, y:dy*8, time:4};
+          triggerSlash(tx, ty, player.wpn.type === 'bow' ? '#f5c542' : '#2ec4a6');
+          msg((player.wpn.type === 'bow' ? '🏹 แผลงศร «' : '🔱 «') + player.wpn.name + '» โจมตีระยะไกลใส่ ' + targetFoe.name + '!', 'good');
+          attackFoe(targetFoe, dx, dy);
+          endTurn();
+          return;
+        }
+      }
     }
   }
   const n=npcAt(nx,ny);
@@ -1991,6 +2155,18 @@ function tryMove(dx,dy){
       show($('stairsOv'));
     }
   }else if(map[ny*W+nx]===3){show($('altarOv'));}
+  else if(map[ny*W+nx]===11){
+    openAlchemyModal(nx, ny);
+  }
+  else if(map[ny*W+nx]===12){
+    map[ny*W+nx] = 1; // อ่านแล้วกลายเป็นพื้น
+    player.xp += 60; player.punya += 25;
+    sfx.level(); flash = 0.4;
+    floats.push({x: player.x, y: player.y, t: '+๖๐ EXP +๒๕ ปุญ', c: '#2ec4a6', life: 2});
+    msg('📜 เจ้าอ่านศิลาจารึกวิญญาณโบราณ — จิตใจผ่องแผ้ว ได้รับ +๖๐ EXP และปุญบารมี +๒๕!', 'good');
+    updateHud(); checkLevel(); endTurn();
+    return;
+  }
   else if(map[ny*W+nx]===10){
     openVowModal(nx, ny);
   }
@@ -2131,6 +2307,46 @@ function attackFoe(e, dirX=0, dirY=0){
     floats.push({x:e.x, y:e.y-0.3, t:'ฟันเบิ้ล -' + d2, c:'#2ec4a6', life:1.2});
     msg('🗡️ «' + wpn.name + '» ตวัดฟันเบิ้ลติดกัน ๒ ครั้ง! -' + d2, 'good');
     triggerSlash(e.x, e.y, '#2ec4a6');
+  }
+
+  // กลไกธนู/หน้าไม้: โจมตีเจาะเกราะจากระยะไกล
+  if(wpn.type === 'bow'){
+    slashColor = '#f5c542';
+    // ธนูพระรามยิงแสงทิพย์
+    if(wpn.name.includes('พระราม')) d = Math.floor(d * 1.3);
+  }
+
+  // กลไกแส้อัสนีบาต: ตีระยะ ๒ ช่อง และกระตุกดึงศัตรูเข้ามาหาตัว ๑ ช่อง
+  if(wpn.type === 'whip' && e.hp > 0 && (dirX || dirY)){
+    const pullX = e.x - dirX, pullY = e.y - dirY;
+    if(canWalk(pullX, pullY) && !enemyAt(pullX, pullY) && !(pullX === player.x && pullY === player.y)){
+      e.x = pullX; e.y = pullY; e.bumpX = -dirX * 8; e.bumpY = -dirY * 8;
+      msg('⚡ «' + wpn.name + '» ฟาดตวัดกระตุก ' + e.name + ' เข้ามาหาตัว!', 'good');
+    }
+  }
+
+  // กลไกกรงเล็บวานร: รัวโจมตี ๓ ฮิตติดกัน!
+  if(wpn.type === 'claw' && e.hp > 0 && rng() < 0.50){
+    const d3 = Math.max(1, Math.floor(d * 0.45));
+    e.hp -= d3 * 2; e.flash = 4;
+    floats.push({x: e.x, y: e.y - 0.4, t: 'รัว ๓ ฮิต! -' + (d3*2), c: '#ff7a5c', life: 1.2});
+    msg('🐾 «' + wpn.name + '» รัวกรงเล็บฉีกร่าง ๓ ครั้งซ้อน! -' + (d3*2), 'good');
+    triggerSlash(e.x, e.y, '#ff7a5c');
+  }
+
+  // กลไกพัดวายุสลายมาร: พัดกระแทกศัตรูกระเด็นถอยหลัง ๓ ช่อง
+  if(wpn.type === 'fan' && e.hp > 0 && (dirX || dirY)){
+    let curX = e.x, curY = e.y;
+    for(let k=0; k<3; k++){
+      const nextX = curX + dirX, nextY = curY + dirY;
+      if(canWalk(nextX, nextY) && !enemyAt(nextX, nextY) && !npcAt(nextX, nextY)){
+        curX = nextX; curY = nextY;
+      } else break;
+    }
+    if(curX !== e.x || curY !== e.y){
+      e.x = curX; e.y = curY; e.bumpX = dirX * 14; e.bumpY = dirY * 14;
+      msg('🪭 «' + wpn.name + '» โบกพัดคลื่นพายุกระแทก ' + e.name + ' กระเด็นไกล!', 'good');
+    }
   }
 
   // กลไกกระบองหนัก: ทุบศัตรูกระเด็นถอยหลัง ๑ ช่อง (Knockback)
@@ -2502,6 +2718,25 @@ function endTurn(){
       if(player.hp <= 0){ die(); return; }
     }
   }
+  
+  // ประมวลผลบัฟยาวิเศษ
+  if(player.buffIronskin > 0) player.buffIronskin--;
+  if(player.buffInvis > 0) player.buffInvis--;
+  if(player.buffCoating > 0) player.buffCoating--;
+
+  // ทหารวานรช่วยสู้
+  if(player.summons > 0){
+    const nearFoe = enemies.find(e => vis[e.y*W+e.x] && Math.max(Math.abs(e.x-player.x), Math.abs(e.y-player.y)) <= 3);
+    if(nearFoe){
+      const sAtk = 8 + R(5);
+      nearFoe.hp -= sAtk; nearFoe.flash = 4;
+      triggerSlash(nearFoe.x, nearFoe.y, '#f5c542');
+      floats.push({x: nearFoe.x, y: nearFoe.y, t: 'วานรช่วย -' + sAtk, c: '#f5c542', life: 1});
+      msg('🐒 ทหารวานรเข้าจู่โจมใส่ ' + nearFoe.name + ' -' + sAtk, 'good');
+      if(nearFoe.hp <= 0) killFoe(nearFoe);
+    }
+  }
+
   computeFov();updateHud();saveGame();
 }
 
@@ -2593,7 +2828,66 @@ function useItem(i){
     if(oldArm&&oldArm.tier>0)player.inv.push(oldArm);
     msg('สวม «'+it.name+'» ป้องกัน+'+it.v);sfx.pick();
   }
-    else if(it.t==='egg'){
+    else if(it.t==='head'){
+    const oldHead = player.head;
+    player.head = it;
+    player.inv.splice(i, 1);
+    if(oldHead) player.inv.push(oldHead);
+    msg('สวมมงกุฎ/ชฎา «' + it.name + '» ' + it.desc, 'good');
+    sfx.level();
+  }
+  else if(it.t==='scroll_tac'){
+    // คัมภีร์ยุทธวิธี
+    if(it.scrollId === 'map'){
+      seen.fill(1);
+      msg('📜 คัมภีร์เบิกเนตรส่องสว่าง! แผนที่วิหารทั้งชั้นถูกเปิดเผยทั้งหมด!', 'good');
+      sfx.level(); flash = 0.5;
+    } else if(it.scrollId === 'curse'){
+      // ล้างคำสาปอุปกรณ์
+      let cleansed = false;
+      if(player.wpn && player.wpn.cursed){
+        player.wpn.cursed = null; player.wpn.curseDesc = null;
+        player.wpn.name = player.wpn.name.replace('[ต้องสาป]', '[ชำระแล้ว]');
+        cleansed = true;
+      }
+      if(player.arm && player.arm.cursed){
+        player.arm.cursed = null; player.arm.curseDesc = null;
+        player.arm.name = player.arm.name.replace('[ต้องสาป]', '[ชำระแล้ว]');
+        cleansed = true;
+      }
+      player.poison = 0; player.burn = 0;
+      sfx.level(); flash = 0.8;
+      msg('✨ คัมภีร์ชำระคำสาป! ลบล้างผลเสียของอุปกรณ์ต้องสาปทิ้งอย่างถาวร!', 'good');
+    } else if(it.scrollId === 'summon'){
+      // อัญเชิญทหารวานร
+      player.summons = (player.summons || 0) + 3;
+      msg('📜 คัมภีร์อัญเชิญสำแดงฤทธิ์! ทหารวานรผุดขึ้นมาร่วมรบ!', 'good');
+      sfx.level();
+    } else if(it.scrollId === 'teleport'){
+      // วาร์ปหนีฉุกเฉิน
+      msg('🌀 คัมภีร์ย้ายมิติทำงาน! เจ้าถูกเคลื่อนย้ายไปสู่ห้องปลอดภัย', 'good');
+      player.x = 2 + Math.floor(rng()*(W-4)); player.y = 2 + Math.floor(rng()*(H-4));
+      while(map[player.y*W+player.x] !== 1){ player.x = 2 + Math.floor(rng()*(W-4)); player.y = 2 + Math.floor(rng()*(H-4)); }
+      sfx.cast();
+    }
+    player.inv.splice(i, 1);
+    updateHud();
+    endTurn();
+    return;
+  }
+  else if(it.t==='elixir'){
+    // ยาวิเศษ
+    if(it.elixirId === 'ironskin') player.buffIronskin = (player.buffIronskin || 0) + it.turns;
+    else if(it.elixirId === 'invis') player.buffInvis = (player.buffInvis || 0) + it.turns;
+    else if(it.elixirId === 'coating') player.buffCoating = (player.buffCoating || 0) + it.turns;
+    sfx.level(); flash = 0.4;
+    msg('🧪 ดื่ม «' + it.name + '» ' + it.desc, 'good');
+    player.inv.splice(i, 1);
+    updateHud();
+    endTurn();
+    return;
+  }
+  else if(it.t==='egg'){
     player.pet = { ...PET_TYPES[it.petType], type: it.petType };
     player.inv.splice(i, 1);
     sfx.level(); flash = 0.5;
@@ -3117,6 +3411,8 @@ function startRun(cls, forcedSeed = 0){
     wpn:{name:'มีดฝึกซ้อม',baseName:'มีดฝึกซ้อม',type:'dagger',v:1,tier:0,r:'common',lore:'มีดสั้นทำจากไม้เนื้อแข็งสำหรับฝึกเพลงดาบ'},
     arm:{name:'ผ้าฝ้าย',baseName:'ผ้าฝ้าย',v:0,tier:0,r:'common',lore:'ผ้าฝ้ายธรรมดาป้องกันอะไรแทบไม่ได้'},
     relic:null,
+    head:null,
+    buffIronskin:0,buffInvis:0,buffCoating:0,summons:0,
     inv:[{t:'pot',name:'อมฤต',heal:14,r:'common',lore:'น้ำอมฤตฟื้นฟูเลือด'}, genScrollUpg()],
     talents:[],
     freeRerolls:2,
@@ -3245,6 +3541,18 @@ function drawTile(mx, my, sx, sy){
     ctx.fillStyle = 'rgba(245, 197, 66, ' + gl.toFixed(2) + ')';
     ctx.fillRect(px + 4, py + 4, 8, 8);
   }
+  else if(t === 11){ // เตาหลอมโอสถทิพย์
+    ctx.drawImage(TILEC[11][0], px, py);
+    const flk = Math.sin(time * 0.3 + mx) * 1.5;
+    ctx.fillStyle = 'rgba(46,196,166,0.35)';
+    ctx.fillRect(px + 4, py + 5 + flk, 8, 4);
+  }
+  else if(t === 12){ // ศิลาจารึกวิญญาณ
+    ctx.drawImage(TILEC[12][0], px, py);
+    const gl = 0.25 + 0.25 * Math.sin(time * 0.2 + mx);
+    ctx.fillStyle = 'rgba(111,224,205,' + gl.toFixed(2) + ')';
+    ctx.fillRect(px + 5, py + 4, 6, 8);
+  }
 }
 
 function render(){
@@ -3275,7 +3583,7 @@ function render(){
       ctx.fillRect(sx, sy, T, T);
     }
 
-    const ic={pot:'pot',mana:'mana',gold:'gold',wpn:'wpn',arm:'arm',scr:'scr',throw:'wpn',relic:'arm',upg:'scr',hook:'wpn',skel:'skeleton'}[it.t] || 'wpn';
+    const ic={pot:'pot',mana:'mana',gold:'gold',wpn:'wpn',arm:'arm',scr:'scr',throw:'wpn',relic:'arm',upg:'scr',hook:'wpn',skel:'skeleton',head:'arm',scroll_tac:'scr',elixir:'pot',egg:'pot'}[it.t] || 'wpn';
     drawSpr(ic,sx,sy+1);
   }
 
@@ -3521,8 +3829,11 @@ function openStatusModal(){
   }
 
   const C = CLASSES[player.cls];
-  const totalAtk = player.atk + (player.wpn ? player.wpn.v : 0);
-  const totalDef = player.def + (player.arm ? player.arm.v : 0);
+  let totalAtk = player.atk + (player.wpn ? player.wpn.v : 0);
+  if(player.head && player.head.atk) totalAtk += player.head.atk;
+  let totalDef = player.def + (player.arm ? player.arm.v : 0);
+  if(player.head && player.head.def) totalDef += player.head.def;
+  if(player.buffIronskin > 0) totalDef += 10; // บัฟยาผิวเหล็กไหล
   let totalDodge = player.dodge;
   if(player.arm && player.arm.affix === 'dodge') totalDodge += 15;
   if(player.relic && player.relic.id === 'vanara_bangle') totalDodge += 25;
@@ -3566,6 +3877,14 @@ function openStatusModal(){
   // อุปกรณ์สวมใส่ 3 ช่อง
   html += '<h4 style="margin:8px 0 4px;color:var(--gold);font-size:13px">🛡️ อุปกรณ์คู่กาย</h4>';
   html += '<div style="display:flex;flex-direction:column;gap:4px;font-size:12.5px;margin-bottom:10px">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;background:#150914;padding:4px 8px;border:1px solid var(--line)">';
+  if(player.head){
+    html += '<span>👑 ชฎา/มงกุฎ: <b style="color:' + (RARITY_COLORS[player.head.r]||'#fff') + '">' + player.head.name + '</b></span>';
+    html += '<button class="mini-btn" onclick="inspectItem(player.head)">ส่อง</button>';
+  } else {
+    html += '<span class="dim">👑 ชฎา/มงกุฎ: ยังไม่ได้สวมใส่</span><span></span>';
+  }
+  html += '</div>';
   html += '<div style="display:flex;justify-content:space-between;align-items:center;background:#150914;padding:4px 8px;border:1px solid var(--line)">';
   html += '<span>⚔ อาวุธ: <b style="color:' + (RARITY_COLORS[player.wpn.r]||'#fff') + '">' + player.wpn.name + '</b> (โจมตี +' + player.wpn.v + ')</span>';
   html += '<button class="mini-btn" onclick="inspectItem(player.wpn)">ส่อง</button>';
@@ -3905,8 +4224,11 @@ function inspectItem(it){
 }
 
 function renderInv(){
-  const totalAtk = player.atk + (player.wpn ? player.wpn.v : 0);
-  const totalDef = player.def + (player.arm ? player.arm.v : 0);
+  let totalAtk = player.atk + (player.wpn ? player.wpn.v : 0);
+  if(player.head && player.head.atk) totalAtk += player.head.atk;
+  let totalDef = player.def + (player.arm ? player.arm.v : 0);
+  if(player.head && player.head.def) totalDef += player.head.def;
+  if(player.buffIronskin > 0) totalDef += 10; // บัฟยาผิวเหล็กไหล
   let totalDodge = player.dodge;
   if(player.arm && player.arm.affix === 'dodge') totalDodge += 15;
 
@@ -3917,6 +4239,7 @@ function renderInv(){
   equipHtml += '<div>💨 <b>หลบหลีก: ' + totalDodge + '%</b> &nbsp;·&nbsp; ✦ <b>ปุญ: ' + player.punya + '</b> &nbsp;·&nbsp; ☠ <b>สังหาร: ' + player.killsTotal + ' ตน</b></div>';
   if(player.wpn && player.wpn.afDesc) equipHtml += '<div style="color:' + (player.wpn.afColor||'#ff8b1f') + '">✦ อาวุธ: ' + player.wpn.afDesc + '</div>';
   if(player.arm && player.arm.afDesc) equipHtml += '<div style="color:' + (player.arm.afColor||'#2ec4a6') + '">✦ เกราะ: ' + player.arm.afDesc + '</div>';
+  if(player.head) equipHtml += '<div style="color:#ffe9a3">👑 <b>ชฎา/มงกุฎ: ' + player.head.name + '</b> — ' + player.head.desc + '</div>';
   if(player.relic) equipHtml += '<div style="color:#f5c542">' + (player.relic.icon||'📿') + ' <b>เครื่องราง: ' + player.relic.name + '</b> — ' + player.relic.desc + '</div>';
   if(player.vow) equipHtml += '<div style="color:#ffe9a3;background:#24190c;padding:4px 6px;margin-top:4px;border:1px dashed var(--gold)">📿 <b>ถือสัจจะ: ' + player.vow.name + '</b> (ถึงชั้น ' + thaiNum(player.vow.endFloor) + ')</div>';
   else equipHtml += '<div class="dim" style="font-size:12px">📿 เครื่องราง: ยังไม่ได้สวมใส่</div>';
