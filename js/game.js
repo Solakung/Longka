@@ -553,9 +553,161 @@ const TILEC=[];
    g.fillStyle='#2c1524';g.fillRect(4,3,8,10);
    g.fillStyle='#6fe0cd';g.fillRect(6,5,4,2);g.fillRect(6,8,4,2);
    TILEC[12]=[c];}
+  // ตลาดมืดอสูร (13)
+  {const c=document.createElement('canvas');c.width=T;c.height=T;const g=c.getContext('2d');
+   g.fillStyle='#100306';g.fillRect(0,0,T,T);
+   g.strokeStyle='#d43d2a';g.strokeRect(2,2,12,12);
+   g.fillStyle='#5c1422';g.fillRect(4,4,8,8);
+   g.fillStyle='#ff2200';g.fillRect(6,6,4,4); // ตราสัญลักษณ์มาร
+   TILEC[13]=[c];}
 })();
 
 /* ── ตารางข้อมูล ── */
+
+/* ── ๕. ระบบเพลิงกรรมท้าทาย (Ascension / Heat Modifiers) ── */
+let heatSettings = {
+  toughFoes: false,   // ศัตรูเลือด +30%
+  moreTraps: false,   // กับดัก ๒ เท่า
+  costlyShops: false, // ร้านค้าแพงขึ้น 50%
+  darkTorches: false  // คบไฟมืดสนิท
+};
+
+function getHeatMultiplier(){
+  let mult = 1.0;
+  if(heatSettings.toughFoes) mult += 0.35;
+  if(heatSettings.moreTraps) mult += 0.30;
+  if(heatSettings.costlyShops) mult += 0.35;
+  if(heatSettings.darkTorches) mult += 0.50;
+  return mult;
+}
+
+function openHeatModal(){
+  let ov = $('heatOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'heatOv';
+    ov.className = 'ov';
+    ov.style.zIndex = '360';
+    document.body.appendChild(ov);
+  }
+
+  let html = '<div class="panel" style="max-width:420px;border-color:#ff8b1f;box-shadow:0 0 28px rgba(255,139,31,.45);text-align:center">';
+  html += '<div class="deva" style="color:#ff8b1f">तपस्</div>';
+  html += '<h2 style="font-family:Chakra Petch;color:#ff8b1f;margin:2px 0 6px;font-size:22px">🔥 เพลิงกรรมท้าทาย (Heat Modifiers)</h2>';
+  html += '<p style="font-size:12.5px;color:var(--ink);margin:0 0 12px">เปิดรับบททดสอบอันหนักหน่วง เพื่อรับแต้มบารมีสะสมทวีคูณ (x' + getHeatMultiplier().toFixed(2) + ')</p>';
+
+  html += '<div style="display:flex;flex-direction:column;gap:8px;text-align:left;margin-bottom:14px;font-size:13px">';
+  
+  html += '<label class="row" style="cursor:pointer"><span>👹 อสูรกายคลั่ง (ศัตรูเลือด +๓๐%)</span><input type="checkbox" id="chkHeat1" ' + (heatSettings.toughFoes ? 'checked' : '') + '></label>';
+  html += '<label class="row" style="cursor:pointer"><span>⚙️ ดงขวากหนาม (กับดักในวิหาร x๒ เท่า)</span><input type="checkbox" id="chkHeat2" ' + (heatSettings.moreTraps ? 'checked' : '') + '></label>';
+  html += '<label class="row" style="cursor:pointer"><span>💰 ตลาดขูดรีด (ร้านค้าราคาแพงขึ้น ๕๐%)</span><input type="checkbox" id="chkHeat3" ' + (heatSettings.costlyShops ? 'checked' : '') + '></label>';
+  html += '<label class="row" style="cursor:pointer"><span>🌑 ราตรีทมิฬ (คบไฟมืดสนิทเหลือ ๒.๕ ช่อง)</span><input type="checkbox" id="chkHeat4" ' + (heatSettings.darkTorches ? 'checked' : '') + '></label>';
+
+  html += '</div>';
+  html += '<button class="btn" id="btnCloseHeat" style="width:100%">ยืนยันบททดสอบ</button>';
+  html += '</div>';
+
+  ov.innerHTML = html;
+  show(ov);
+
+  $('chkHeat1').onchange = (e) => { heatSettings.toughFoes = e.target.checked; };
+  $('chkHeat2').onchange = (e) => { heatSettings.moreTraps = e.target.checked; };
+  $('chkHeat3').onchange = (e) => { heatSettings.costlyShops = e.target.checked; };
+  $('chkHeat4').onchange = (e) => { heatSettings.darkTorches = e.target.checked; };
+
+  $('btnCloseHeat').onclick = () => hide(ov);
+}
+
+
+/* ── ๔. ระบบกับดักพกพาของผู้เล่น (Deployable Traps & Player Tools) ── */
+const PLAYER_TOOLS = [
+  { id: 'bear_trap', name: 'กับดักหนามพับได้', icon: '⚙️', desc: 'วางดักบนพื้น ศัตรูเหยียบโดนดาเมจ ๑๕ และล็อคขา ๓ เทิร์น', lore: 'กับดักเหล็กกล้าฟันปลา ล่อมอนสเตอร์มาเหยียบเพื่อสกัดการเคลื่อนที่' },
+  { id: 'smoke_bomb', name: 'ระเบิดควันพรางตัว', icon: '💨', desc: 'ระเบิดม่านควันหนาทึบ ศัตรูในควันตาบอดตีไม่โดน ๕ เทิร์น', lore: 'ควันสมุนไพรฉุนแสบตา ทำให้ศัตรูสูญเสียทัศนวิสัย' },
+  { id: 'decoy_straw', name: 'หุ่นฟางล่อเป้า', icon: '🎎', desc: 'วางหุ่นจำลองล่อให้ศัตรูทั้งห้องรุมเข้าไปตีหุ่นแทนเรา', lore: 'หุ่นฟางลงยันต์ลวงตา ดึงดูดความสนใจของอสูรร้าย' }
+];
+
+function genPlayerTool(){
+  const t = pick(PLAYER_TOOLS);
+  return {
+    t: 'player_tool',
+    toolId: t.id,
+    name: t.name,
+    icon: t.icon,
+    desc: t.desc,
+    r: 'rare',
+    lore: t.lore,
+    price: 35 + floor * 2
+  };
+}
+
+let playerDeployedTraps = []; // รายการกับดักที่ผู้เล่นวาง {x, y, id, life}
+
+
+/* ── ๒. ระบบเสบียงอาหาร & พลังกาย (Hunger & Sacred Rations) ── */
+const RATIONS = [
+  { id: 'banana', name: 'กล้วยทิพย์', icon: '🍌', hunger: 35, heal: 6, desc: 'ฟื้นฟูพลังกาย +๓๕ และฟื้นเลือด +๖', lore: 'กล้วยป่าในหิมพานต์ หวานหอมเพิ่มกำลังวังชา' },
+  { id: 'cashew', name: 'มะม่วงหิมพานต์', icon: '🥜', hunger: 55, haste: 15, desc: 'ฟื้นฟูพลังกาย +๕๕ และเดินไว ๑๕ เทิร์น', lore: 'เม็ดมะม่วงหิมพานต์คั่วไฟ ปลุกสัญชาตญาณความปราดเปรียว' },
+  { id: 'jujube', name: 'พุทราทองคำ', icon: '🍎', hunger: 100, heal: 20, desc: 'อิ่มเต็ม ๑๐๐% ฟื้นเลือด +๒๐ และล้างดีบัฟ', lore: 'ผลไม้สวรรค์ที่ร่วงหล่นจากต้นกัลปพฤกษ์ ชุบชูพลังกายใจบริสุทธิ์' }
+];
+
+function genRation(){
+  const r = pick(RATIONS);
+  return {
+    t: 'ration',
+    rationId: r.id,
+    name: r.name,
+    icon: r.icon,
+    hunger: r.hunger,
+    heal: r.heal || 0,
+    haste: r.haste || 0,
+    desc: r.desc,
+    r: 'common',
+    lore: r.lore,
+    price: 15 + floor * 2
+  };
+}
+
+
+/* ── ๑. ระบบเจาะรูฝังอัญมณีนพเก้า (Gem Socketing) ── */
+const GEMS = [
+  { id: 'gem_ruby', name: 'ทับทิมเพลิง', icon: '🔴', color: '#ff3b30', desc: 'โจมตีธาตุไฟ +๕ และเผาศัตรู ๓ เทิร์น', lore: 'พลอยสีชาดแห่งสุริยเทพ ร้อนแรงแผดเผาอสูร' },
+  { id: 'gem_emerald', name: 'มรกตนาคินทร์', icon: '🟢', color: '#34c759', desc: 'โจมตีเคลือบพิษ +๔ และต้านทานพิษ', lore: 'อัญมณีสีเขียวเหนี่ยวนำพิษพญานาค หลั่งไอพิษใส่ศัตรู' },
+  { id: 'gem_sapphire', name: 'ไพลินวารี', icon: '🔵', color: '#007aff', desc: 'โจมตีธาตุเย็น ทำให้ศัตรูชะงักสโลว์ ๒ เทิร์น', lore: 'แก้วสีน้ำเงินมหาสมุทร แช่แข็งโลหิตอสูรให้ชะงักงัน' },
+  { id: 'gem_moonstone', name: 'มุกดาหาร', icon: '⚪', color: '#f4ecdc', desc: 'ฟื้นฟูมานา +๒ MP ทุกครั้งที่ฟันโดน', lore: 'ไข่มุกราตรีแห่งจันทรา ซึมซับไอวิญญาณเปลี่ยนเป็นพลังมนตร์' },
+  { id: 'gem_diamond', name: 'เพชรน้ำเอก', icon: '💎', color: '#f5c542', desc: 'พลังโจมตีเพียวๆ +๖ และคริ +๑๐%', lore: 'ยอดเพชรแห่งวิษณุเทพ คมกล้าตัดสรรพสิ่งไร้รอยต่อ' }
+];
+
+function genGem(){
+  const g = pick(GEMS);
+  return {
+    t: 'gem',
+    gemId: g.id,
+    name: g.name,
+    icon: g.icon,
+    color: g.color,
+    desc: g.desc,
+    r: 'rare',
+    lore: g.lore,
+    price: 50 + floor * 3
+  };
+}
+
+function socketGemToEquip(gemItem, invIdx){
+  if(!player.wpn){ msg('ไม่มีอาวุธที่จะฝังอัญมณี…', 'warn'); return; }
+  player.wpn.gems = player.wpn.gems || [];
+  if(player.wpn.gems.length >= 2){
+    msg('«' + player.wpn.name + '» ช่องฝังอัญมณีเต็มแล้ว (สูงสุด ๒ เม็ด)', 'warn');
+    return;
+  }
+  player.wpn.gems.push(gemItem);
+  player.wpn.name += ' [' + gemItem.name + ']';
+  player.inv.splice(invIdx, 1);
+  sfx.level(); flash = 0.5;
+  msg('💎 ฝัง «' + gemItem.name + '» ลงใน «' + player.wpn.name + '» สำเร็จ! ' + gemItem.desc, 'good');
+  floats.push({x: player.x, y: player.y, t: 'ฝังอัญมณีสำเร็จ!', c: gemItem.color, life: 1.8});
+  updateHud();
+}
+
 
 /* ── ช่องสวมใส่ชิ้นที่ ๔: มงกุฎ / ชฎา / หน้ากาก (Headgear) ── */
 const HEADGEAR_BASE = [
@@ -1524,8 +1676,10 @@ function genFloor(fl){
     if(floorR()<.12){map[(r.y+1)*W+r.x+3]=11;}
     // ศิลาจารึกวิญญาณโบราณ (12)
     if(floorR()<.10 && fl > 1){map[(r.y+2)*W+r.x+3]=12;}
+    // ตลาดมืดอสูร (13) สุ่มพบบนชั้น ๗, ๑๔ หรือชั้นอเวจี
+    if((fl === 7 || fl === 14 || (fl > 20 && floorR() < 0.18))){map[(r.y+1)*W+r.x+2]=13;}
     // กับดักซ่อนเร้น
-    if(floorR()<.35){
+    if(floorR() < (heatSettings.moreTraps ? 0.70 : 0.35)){
       const tx = r.x + 1 + Math.floor(floorR()*(r.w-2));
       const ty = r.y + 1 + Math.floor(floorR()*(r.h-2));
       if(map[ty*W+tx]===1 && !(tx===player.x && ty===player.y)){
@@ -1557,8 +1711,9 @@ function genFloor(fl){
     const r=rooms[rooms.length-2]||rooms[0];
     const qfoes=getFoePool(fl);
     const qt=qfoes[Math.floor(floorR()*qfoes.length)];
+    const priceMult = heatSettings.costlyShops ? 1.5 : 1.0;
     const stock=[
-      {t:'pot',name:'อมฤต',heal:14+fl*2,r:'common',lore:'น้ำอมฤตฟื้นฟูเลือด',price:18+fl},
+      {t:'pot',name:'อมฤต',heal:14+fl*2,r:'common',lore:'น้ำอมฤตฟื้นฟูเลือด',price:Math.floor((18+fl)*priceMult)},
       {t:'mana',name:'น้ำโสม',mana:12+fl*2,r:'common',lore:'น้ำสกัดจากโสมพันปี',price:16+fl},
       genPetEgg(), // ไข่สัตว์เลี้ยงมีขายในร้านแน่นอน
       genW(clamp(Math.floor(fl/4)+1, 1, 4)),
@@ -1683,7 +1838,8 @@ function genFloor(fl){
   computeFov();
 }
 function spawnFoe(base,x,y){
-  const hpBonus = Math.floor(floor * 1.3);
+  let hpBonus = Math.floor(floor * 1.3);
+  if(heatSettings.toughFoes) hpBonus = Math.floor(hpBonus * 1.35 + 6);
   const atkBonus = Math.floor(floor * 0.4);
   const gBase = (base.g && !isNaN(base.g)) ? base.g : 8;
   return {...base,x,y,awake:false,maxhp:base.hp+hpBonus,hp:base.hp+hpBonus,
@@ -1861,7 +2017,10 @@ function genScrollUpg(){
 
 function genGroundItem(){
   const r=floorR();
-  if(r<.10) return {t:'pot', name:'อมฤต', heal:12+floor*2, r:'common', lore:'น้ำอมฤตบริสุทธิ์ ฟื้นฟูพลังชีวิต'};
+  if(r<.07) return {t:'pot', name:'อมฤต', heal:12+floor*2, r:'common', lore:'น้ำอมฤตบริสุทธิ์ ฟื้นฟูพลังชีวิต'};
+  if(r<.14) return genRation(); // เสบียงอาหาร
+  if(r<.20) return genGem(); // อัญมณีนพเก้า
+  if(r<.26) return genPlayerTool(); // กับดักผู้เล่น
   if(r<.18) return {t:'mana', name:'น้ำโสม', mana:10+floor*2, r:'common', lore:'น้ำสกัดจากโสมพันปี ฟื้นฟูพลังมนตร์'};
   if(r<.38) return {t:'gold', amt:8+Math.floor(floorR()*(10+floor*3))};
   if(r<.48) return genTacticalScroll(); // คัมภีร์ยุทธวิธี
@@ -2072,6 +2231,69 @@ function brewElixir(elixirId, cx, cy){
   endTurn();
 }
 
+
+/* ── ๓. ระบบตลาดมืดอสูร (Black Market / Demon Smuggler) ── */
+function openBlackMarketModal(bx, by){
+  let ov = $('blackMarketOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'blackMarketOv';
+    ov.className = 'ov';
+    ov.style.zIndex = '370';
+    document.body.appendChild(ov);
+  }
+
+  const itemsForSale = [
+    { name: 'น้ำยาอมตะพญามาร', desc: 'ป้องกันดาเมจ ๑๐๐% นาน ๕ เทิร์น', costHp: 15, item: { t: 'elixir', elixirId: 'invuln', name: 'น้ำยาอมตะพญามาร', turns: 5, desc: 'อมตะไร้เทียมทาน ๕ เทิร์น', r: 'mythic', lore: 'โอสถโลหิตอสูร ป้องกันความเสียหายทุกชนิด' } },
+    { name: 'คัมภีร์ชำระคำสาป', desc: 'ล้างผลเสียอุปกรณ์ต้องสาปทิ้งอย่างถาวร', costHp: 10, item: { t: 'scroll_tac', scrollId: 'curse', name: 'คัมภีร์ชำระคำสาป', desc: 'ล้างผลเสียอุปกรณ์ต้องสาป', r: 'legendary', lore: 'ชำระไออสูร' } },
+    { name: 'มณีโมกษะ', desc: 'ชุบชีวิตฟื้นคืนชีพ ๑ ครั้งเมื่อเลือดหมด', costHp: 20, item: { t: 'relic', id: 'ankh', name: 'มณีโมกษะ', icon: '💎', r: 'mythic', desc: 'ชุบชีวิตฟื้นคืนชีพ ๑ ครั้ง', lore: 'มณีฉุดวิญญาณจากยมโลก' } },
+    { name: 'ขรรค์เพชรจุติ +๓', desc: 'อาวุธเทวะระดับ ๔ ตีบวก +๓ ทันที', costHp: 18, item: genW(4) }
+  ];
+
+  let html = '<div class="panel" style="max-width:440px;border-color:var(--red);box-shadow:0 0 28px rgba(229,72,46,.5);text-align:center">';
+  html += '<div class="deva" style="color:var(--red)">तस्कर</div>';
+  html += '<h2 style="font-family:Chakra Petch;color:var(--red);margin:2px 0 6px;font-size:22px">🏴 ตลาดมืดอสูร (Demon Smuggler)</h2>';
+  html += '<p style="font-size:13px;color:var(--ink);margin:0 0 12px">“ที่นี่ไม่รับเศษเหรียญทอง… เราต้องการเพียงโลหิตสดๆ จากร่างของเจ้าแลกกับของวิเศษ!”</p>';
+
+  html += '<div style="display:flex;flex-direction:column;gap:8px;text-align:left;margin-bottom:14px">';
+  itemsForSale.forEach((prod, idx) => {
+    html += '<div class="row" style="background:#1b060d;padding:8px;border:1px solid #5c1422">';
+    html += '<div><b style="color:#ff7a5c">' + prod.name + '</b><br><small class="dim">' + prod.desc + '</small></div>';
+    html += '<button class="mini-btn" style="background:#8f2438;color:#fff;border-color:#e5482e" ' + (player.hp > prod.costHp ? '' : 'disabled') + ' onclick="buyBlackMarketItem(' + idx + ',' + bx + ',' + by + ')">สังเวย ' + prod.costHp + ' HP</button>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  html += '<button class="btn ghost" id="btnCloseBlackMarket" style="width:100%">เดินผ่าน</button>';
+  html += '</div>';
+
+  ov.innerHTML = html;
+  show(ov);
+
+  window._bmProducts = itemsForSale;
+  $('btnCloseBlackMarket').onclick = () => hide(ov);
+}
+
+function buyBlackMarketItem(idx, bx, by){
+  const prod = window._bmProducts[idx];
+  if(!prod || player.hp <= prod.costHp) return;
+  player.hp -= prod.costHp;
+  player.sin = (player.sin || 0) + 1;
+  flash = 0.6; shake = 6; sfx.hurt();
+
+  if(player.inv.length < (player.bagMax || 10)){
+    player.inv.push(prod.item);
+  } else {
+    items.push({x: player.x, y: player.y, ...prod.item});
+  }
+
+  msg('🩸 เจ้าสละเลือด ' + prod.costHp + ' HP ซื้อ «' + prod.name + '» จากตลาดมืด! (+๑ บาป)', 'good');
+  sfx.level();
+  hide($('blackMarketOv'));
+  updateHud();
+  if(player.hp <= 0) die();
+}
+
 /* ── การกระทำของผู้เล่น ── */
 function canWalk(x,y){return x>=0&&y>=0&&x<W&&y<H&&map[y*W+x]!==0}
 function enemyAt(x,y){return enemies.find(e=>e.x===x&&e.y===y&&e.hp>0)}
@@ -2155,6 +2377,9 @@ function tryMove(dx,dy){
       show($('stairsOv'));
     }
   }else if(map[ny*W+nx]===3){show($('altarOv'));}
+  else if(map[ny*W+nx]===13){
+    openBlackMarketModal(nx, ny);
+  }
   else if(map[ny*W+nx]===11){
     openAlchemyModal(nx, ny);
   }
@@ -2262,6 +2487,28 @@ function attackFoe(e, dirX=0, dirY=0){
       e.stun = 1;
       slashColor = '#f5c542';
       floats.push({x:e.x, y:e.y-0.4, t:'มึนงง!', c:'#f5c542', life:1.2});
+    }
+  }
+
+  
+  // ผลกระทบจากอัญมณีที่ฝังในอาวุธ
+  if(wpn.gems && wpn.gems.length){
+    for(const gm of wpn.gems){
+      if(gm.gemId === 'gem_ruby'){
+        d += 5; e.burn = (e.burn || 0) + 3;
+        floats.push({x: e.x, y: e.y - 0.5, t: 'ทับทิมเพลิง +๕', c: '#ff3b30', life: 1});
+      } else if(gm.gemId === 'gem_emerald'){
+        d += 4; e.poison = (e.poison || 0) + 3;
+        floats.push({x: e.x, y: e.y - 0.5, t: 'มรกตพิษ +๔', c: '#34c759', life: 1});
+      } else if(gm.gemId === 'gem_sapphire'){
+        d += 4; e.stun = 1;
+        floats.push({x: e.x, y: e.y - 0.5, t: 'ไพลินเยือกแข็ง', c: '#007aff', life: 1});
+      } else if(gm.gemId === 'gem_moonstone'){
+        player.mp = Math.min(player.mmp, player.mp + 2);
+        floats.push({x: player.x, y: player.y, t: '+๒ MP', c: '#6fe0cd', life: 1});
+      } else if(gm.gemId === 'gem_diamond'){
+        d += 6;
+      }
     }
   }
 
@@ -2737,6 +2984,38 @@ function endTurn(){
     }
   }
 
+  
+  // ระบบลดพลังกาย (Hunger)
+  if(time % 8 === 0 && player.hunger > 0){
+    player.hunger--;
+  }
+  if(player.hunger <= 0){
+    if(time % 4 === 0){
+      player.hp -= 1;
+      floats.push({x: player.x, y: player.y, t: 'หิวโซ! -๑', c: '#ff8b1f', life: 0.8});
+      msg('⚠ เจ้าหิวโซจนหมดเรี่ยวแรง! -๑ HP (ควรกินเสบียงอาหาร)', 'warn');
+      if(player.hp <= 0){ die(); return; }
+    }
+  }
+
+  // ประมวลผลกับดักที่ผู้เล่นวาง
+  for(let ti = playerDeployedTraps.length - 1; ti >= 0; ti--){
+    const pt = playerDeployedTraps[ti];
+    pt.life--;
+    const foeOnTrap = enemyAt(pt.x, pt.y);
+    if(foeOnTrap){
+      if(pt.id === 'bear_trap'){
+        foeOnTrap.hp -= 16; foeOnTrap.stun = 3; foeOnTrap.flash = 6;
+        triggerSlash(pt.x, pt.y, '#d43d2a');
+        floats.push({x: pt.x, y: pt.y, t: 'กับดักหนาม -๑๖ ล็อคขา!', c: '#ff3b30', life: 1.5});
+        msg('⚙️ ' + foeOnTrap.name + ' เดินเหยียบกับดักหนามพับได้! โดนหนามแทง -๑๖ และล็อคขา!', 'good');
+        playerDeployedTraps.splice(ti, 1);
+        if(foeOnTrap.hp <= 0) killFoe(foeOnTrap);
+      }
+    }
+    if(pt.life <= 0) playerDeployedTraps.splice(ti, 1);
+  }
+
   computeFov();updateHud();saveGame();
 }
 
@@ -2828,7 +3107,34 @@ function useItem(i){
     if(oldArm&&oldArm.tier>0)player.inv.push(oldArm);
     msg('สวม «'+it.name+'» ป้องกัน+'+it.v);sfx.pick();
   }
-    else if(it.t==='head'){
+      else if(it.t==='gem'){
+    socketGemToEquip(it, i);
+    renderInv();
+    return;
+  }
+  else if(it.t==='ration'){
+    player.hunger = Math.min(player.maxHunger, player.hunger + it.hunger);
+    if(it.heal) player.hp = Math.min(player.mhp, player.hp + it.heal);
+    if(it.haste) player.buffHaste = (player.buffHaste || 0) + it.haste;
+    sfx.pick(); flash = 0.3;
+    msg('🍎 กิน «' + it.name + '» พลังกายเพิ่มเป็น ' + player.hunger + '%', 'good');
+    floats.push({x: player.x, y: player.y, t: '+' + it.hunger + ' พลังกาย', c: '#f5c542', life: 1.5});
+    player.inv.splice(i, 1);
+    updateHud();
+    endTurn();
+    return;
+  }
+  else if(it.t==='player_tool'){
+    // วางกับดักของผู้เล่นลงบนพื้น
+    playerDeployedTraps.push({ x: player.x, y: player.y, id: it.toolId, life: 8 });
+    msg('⚙️ วาง «' + it.name + '» ลงบนพื้นเรียบร้อย!', 'good');
+    sfx.pick();
+    player.inv.splice(i, 1);
+    updateHud();
+    endTurn();
+    return;
+  }
+  else if(it.t==='head'){
     const oldHead = player.head;
     player.head = it;
     player.inv.splice(i, 1);
@@ -3173,7 +3479,7 @@ function descend(){
 }
 
 /* ── ตาย / ชนะ / คะแนน ── */
-function score(){return floor*50+player.gold+player.lvl*30+player.punya*2+player.killsTotal*5}
+function score(){const base=floor*50+player.gold+player.lvl*30+player.punya*2+player.killsTotal*5;return Math.floor(base * getHeatMultiplier());}
 function hallGet(){try{return JSON.parse(localStorage.getItem(HALL_KEY))||[]}catch(e){return[]}}
 function hallAdd(sc, win=false){
   const h=hallGet();
@@ -3412,6 +3718,7 @@ function startRun(cls, forcedSeed = 0){
     arm:{name:'ผ้าฝ้าย',baseName:'ผ้าฝ้าย',v:0,tier:0,r:'common',lore:'ผ้าฝ้ายธรรมดาป้องกันอะไรแทบไม่ได้'},
     relic:null,
     head:null,
+    hunger:100,maxHunger:100,buffHaste:0,
     buffIronskin:0,buffInvis:0,buffCoating:0,summons:0,
     inv:[{t:'pot',name:'อมฤต',heal:14,r:'common',lore:'น้ำอมฤตฟื้นฟูเลือด'}, genScrollUpg()],
     talents:[],
@@ -3461,6 +3768,21 @@ function updateHud(){
     stEl.className = 'chip';
     stEl.style.display = 'none';
     $('hudR').appendChild(stEl);
+  }
+    let hgEl = $('hungerChip');
+  if(!hgEl){
+    hgEl = document.createElement('div');
+    hgEl.id = 'hungerChip';
+    hgEl.className = 'chip';
+    hgEl.style.display = 'none';
+    $('hudL').appendChild(hgEl);
+  }
+  if(player.hunger <= 25){
+    hgEl.style.display = 'block';
+    hgEl.style.color = '#ff8b1f';
+    hgEl.innerHTML = '🍖 ' + player.hunger + '% (หิวโซ)';
+  } else {
+    hgEl.style.display = 'none';
   }
   if(statusStr){
     stEl.style.display = 'block';
@@ -3552,6 +3874,12 @@ function drawTile(mx, my, sx, sy){
     const gl = 0.25 + 0.25 * Math.sin(time * 0.2 + mx);
     ctx.fillStyle = 'rgba(111,224,205,' + gl.toFixed(2) + ')';
     ctx.fillRect(px + 5, py + 4, 6, 8);
+  }
+  else if(t === 13){ // ตลาดมืดอสูร
+    ctx.drawImage(TILEC[13][0], px, py);
+    const flk = 0.35 + 0.3 * Math.sin(time * 0.28 + mx);
+    ctx.fillStyle = 'rgba(212,61,42,' + flk.toFixed(2) + ')';
+    ctx.fillRect(px + 6, py + 6, 4, 4);
   }
 }
 
@@ -3671,7 +3999,8 @@ function render(){
     const pScreenX = (player.x - camX) * T + 8;
     const pScreenY = (player.y - camY) * T + 8;
     const flicker = Math.sin(time * 0.16) * 3 + Math.cos(time * 0.35) * 2;
-    const torchGrad = ctx.createRadialGradient(pScreenX, pScreenY, 8, pScreenX, pScreenY, 88 + flicker);
+    const radDist = heatSettings.darkTorches ? 42 : 88;
+    torchGrad = ctx.createRadialGradient(pScreenX, pScreenY, 8, pScreenX, pScreenY, radDist + flicker);
     torchGrad.addColorStop(0, 'rgba(245, 197, 66, 0.12)'); // สีทองอบอุ่นรอบตัว
     torchGrad.addColorStop(0.35, 'rgba(255, 139, 31, 0.05)'); // สีส้มเรือง
     torchGrad.addColorStop(0.85, 'rgba(18, 5, 13, 0.08)');
@@ -3870,7 +4199,7 @@ function openStatusModal(){
   html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">🛡 ป้องกันรวม: <b class="teal">' + totalDef + '</b> <small class="dim">(' + player.def + '+' + (player.arm?player.arm.v:0) + ')</small></div>';
   html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">💨 หลบหลีก: <b style="color:#ffe9a3">' + totalDodge + '%</b></div>';
   html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">🎯 คริติคอล: <b style="color:#f5c542">' + totalCrit + '%</b></div>';
-  html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">✦ ปุญ: <b class="teal">' + player.punya + '</b> · ☠ บาป: <b class="red">' + (player.sin||0) + '</b></div>';
+  html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">🍖 พลังกาย: <b style="color:#f5c542">' + player.hunger + '%</b> · ✦ ปุญ: <b class="teal">' + player.punya + '</b> · ☠ บาป: <b class="red">' + (player.sin||0) + '</b></div>';
   html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">☠ สังหาร: <b class="red">' + player.killsTotal + ' ตน</b></div>';
   html += '</div>';
 
@@ -4430,6 +4759,16 @@ function setupInput(){
     btnDaily.innerHTML = '📅 วิถีแห่งกรรมประจำวัน (Daily Run)';
     $('titleMenu').insertBefore(btnDaily, $('btnKarma'));
   }
+    let btnHeat = $('btnHeat');
+  if(!btnHeat){
+    btnHeat = document.createElement('button');
+    btnHeat.id = 'btnHeat';
+    btnHeat.className = 'btn ghost';
+    btnHeat.style.color = '#ff8b1f';
+    btnHeat.innerHTML = '🔥 เพลิงกรรมท้าทาย (Heat)';
+    $('titleMenu').insertBefore(btnHeat, $('btnKarma'));
+  }
+  btnHeat.onclick = openHeatModal;
   btnDaily.onclick = () => {
     isDailyRun = true;
     currentSeed = getDailySeed();
