@@ -2257,8 +2257,8 @@ function genGroundItem(){
   if(r<.20) return genGem(); // อัญมณีนพเก้า
   if(r<.24) return genPlayerTool(); // กับดักผู้เล่น
   if(r<.29) return genOre(); // แร่ขุดศักดิ์สิทธิ์
-  if(r<.18) return {t:'mana', name:'น้ำโสม', mana:10+floor*2, r:'common', lore:'น้ำสกัดจากโสมพันปี ฟื้นฟูพลังมนตร์'};
-  if(r<.38) return {t:'gold', amt:8+Math.floor(floorR()*(10+floor*3))};
+  if(r<.34) return {t:'mana', name:'น้ำโสม', mana:10+floor*2, r:'common', lore:'น้ำสกัดจากโสมพันปี ฟื้นฟูพลังมนตร์'};
+  if(r<.42) return {t:'gold', amt:8+Math.floor(floorR()*(10+floor*3))};
   if(r<.48) return genTacticalScroll(); // คัมภีร์ยุทธวิธี
   if(r<.56) return genElixir(); // ยาวิเศษ
   if(r<.66){
@@ -3693,7 +3693,7 @@ function renderShop(n){
     b.onclick=()=>{
       player.gold-=it.price;sfx.buy();
       if(it.t==='gold'){player.gold+=it.amt;}
-      else if(player.inv.length>=10){msg('ถุงผ้าเต็ม!','warn');player.gold+=it.price;return;}
+      else if(player.inv.length >= (player.bagMax||10)){msg('ถุงผ้าเต็ม!','warn');player.gold+=it.price;return;}
       else player.inv.push({...it});
       msg('ซื้อ «'+it.name+'»');updateHud();renderShop(n);
     };
