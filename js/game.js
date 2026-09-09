@@ -856,6 +856,7 @@ const ACHIEVEMENTS = [
   { id: 'mage_master', t: 'จอมขมังเวท', d: 'สังหารศัตรูด้วยคาถาอาคมสะสมครบ ๑๐ ครั้ง', tier: 'silver', icon: '✹' },
   { id: 'relic_equip', t: 'เครื่องรางคู่กาย', d: 'สวมใส่เครื่องรางเทวะ ๑ ชิ้น', tier: 'silver', icon: '📿' },
   { id: 'upgrade_plus', t: 'ศัสตราคมกล้า', d: 'ตีบวกอาวุธด้วยคัมภีร์ประสิทธิ์ประสาท', tier: 'silver', icon: '📜' },
+  { id: 'quest_delivery', t: 'ผู้ส่งสาส์นศักดิ์สิทธิ์', d: 'ส่งมอบสาส์นลับพระเวทให้แก่ฤๅษีในชั้นลึกสำเร็จ', tier: 'gold', icon: '📜' },
   { id: 'talent_unlocked', t: 'บรรลุวิชา', d: 'สำเร็จวิชาพรสวรรค์เลเวล ๕', tier: 'silver', icon: '✨' },
 
   // ยาก (Gold)
@@ -1220,11 +1221,13 @@ function genFloor(fl){
     const qfoes=getFoePool(fl);
     const qt=qfoes[Math.floor(floorR()*qfoes.length)];
     const stock=[
-      {t:'pot',name:'อมฤต',heal:14+fl*2,price:18+fl},
-      {t:'mana',name:'น้ำโสม',mana:12+fl*2,price:16+fl},
-      genW(Math.min(5,1+((fl+1)>>2))),
-      genA(Math.min(5,1+(fl>>2))),
-      genScr(),
+      {t:'pot',name:'อมฤต',heal:14+fl*2,r:'common',lore:'น้ำอมฤตฟื้นฟูเลือด',price:18+fl},
+      {t:'mana',name:'น้ำโสม',mana:12+fl*2,r:'common',lore:'น้ำสกัดจากโสมพันปี',price:16+fl},
+      genPetEgg(), // ไข่สัตว์เลี้ยงมีขายในร้านแน่นอน
+      genW(clamp(Math.floor(fl/4)+1, 1, 4)),
+      genA(clamp(Math.floor(fl/4)+1, 1, 6)),
+      genScrollUpg(),
+      {...TOOL_HOOK}
     ];
     npcs.push({type:'merchant',x:r.cx,y:r.cy,sprite:'merchant',stock,
       q:{id:qt.id,name:qt.name,need:3+Math.floor(floorR()*3),got:0,reward:0,claimed:true}});
@@ -1273,6 +1276,16 @@ function genFloor(fl){
   if(player.cls === 'bibhek' || player.talents.some(t => t.id === 'bi_sight')){
     for(const tr of traps){ map[tr.y*W+tr.x] = 6; }
     msg('👁️ ญาณทิพย์แห่งพิเภกเบิกกว้าง — กับดักทั้งหมดถูกเปิดเผย!', 'good');
+  }
+  // ลูกนกเวหาบินส่องสำรวจห้องข้างหน้าล่วงหน้า ๑ ห้อง
+  if(player && player.pet && player.pet.type === 'bird' && rooms.length > 2){
+    const nextRoom = rooms[1];
+    for(let yy=nextRoom.y; yy<nextRoom.y+nextRoom.h; yy++){
+      for(let xx=nextRoom.x; xx<nextRoom.x+nextRoom.w; xx++){
+        seen[yy*W+xx] = 1;
+      }
+    }
+    msg('🦅 ลูกนกเวหาบินสำรวจ — เปิดเผยหมอกสงครามห้องเบื้องหน้าให้แล้ว!', 'good');
   }
   if(fl===1)msg('เจ้าก้าวเข้าสู่เงามืดของลงกา…');
   else {
@@ -2228,11 +2241,50 @@ function castMantra(key){
   if(used){player.mp-=reqMp;sfx.cast();hide($('mantraOv'));endTurn();}
 }
 function interact(n){
-  if(n.type==='merchant'){renderShop(n);show($('shopOv'));sfx.gold();}
+  if(n.type==='merchant'){
+    renderShop(n);show($('shopOv'));sfx.gold();
+  }
   else if(n.type==='hermit'){
-    if(!n.used){n.used=true;player.hp=player.mhp;player.mp=player.mmp;
-      msg('พระดาบสประสาทพร — ร่างกายฟื้นเต็ม!','good');sfx.level();updateHud();}
-    else msg('พระดาบสเข้าฌาน ไม่ตอบสนอง…');
+    // เควสต์ส่งสาส์นลับ: ตรวจสอบว่าผู้เล่นมีสาส์นมาส่งในชั้นลึกหรือไม่ (ชั้น ๑๓ ขึ้นไป)
+    const sIdx = player.inv.findIndex(it => it.t === 'quest_scroll');
+    if(sIdx >= 0 && floor >= 13){
+      player.inv.splice(sIdx, 1);
+      player.deliveryDone = true;
+      player.punya += 50;
+      const rewardRelic = genRelic();
+      if(player.inv.length < (player.bagMax||10)) player.inv.push(rewardRelic);
+      else items.push({x:player.x, y:player.y, ...rewardRelic});
+      msg('🪷 พระฤๅษีรับสาส์นลับด้วยความปีติ! มอบ «' + rewardRelic.name + '» และปุญบารมี +๕๐!', 'good');
+      sfx.level(); flash = 0.6;
+      unlockAch('quest_delivery');
+      updateHud();
+      return;
+    }
+
+    if(!n.used){
+      n.used = true;
+      player.hp = player.mhp; player.mp = player.mmp;
+      sfx.level(); updateHud();
+
+      // ในชั้นต้นๆ (ชั้น ๕ หรือ ๙) มอบสาส์นลับให้ผู้เล่นนำไปส่ง
+      if(floor <= 9 && !player.hasDeliveryScroll && !player.deliveryDone){
+        player.hasDeliveryScroll = true;
+        const qScroll = {
+          t: 'quest_scroll',
+          name: 'สาส์นลับพระเวท',
+          r: 'mythic',
+          lore: 'ม้วนสาส์นใบลานศักดิ์สิทธิ์จากพระดาบส ต้องนำไปส่งให้พระฤๅษีในชั้นลึก (ชั้น ๑๓ ขึ้นไป)',
+          price: 0
+        };
+        if(player.inv.length < (player.bagMax||10)) player.inv.push(qScroll);
+        else items.push({x:player.x, y:player.y, ...qScroll});
+        msg('📜 พระดาบสประสาทพรฟื้นเต็ม! และฝาก «สาส์นลับพระเวท» ให้ช่วยนำไปส่งมอบให้แก่ฤๅษีในชั้นลึก!', 'good');
+      } else {
+        msg('พระดาบสประสาทพร — ร่างกายฟื้นเต็ม!', 'good');
+      }
+    } else {
+      msg('พระดาบสเข้าฌาน ไม่ตอบสนอง…');
+    }
   }
 }
 function sellItem(i, n){
@@ -2574,7 +2626,7 @@ function startRun(cls){
     rerollCost:10,
     pendingTalents:[],
     mantras:[],floor:1,poison:0,burn:0,
-    facing:1,prevX:0,prevY:0,pet:null,usedCursedAltar:false};
+    facing:1,prevX:0,prevY:0,pet:null,usedCursedAltar:false,hasDeliveryScroll:false,deliveryDone:false};
   for(const s of C.mantras){if(!s.includes('@'))player.mantras.push(s);}
   rng=Math.random;time=0;endless=false;floats=[];logs=[];slashes=[];sparks=[];
   
