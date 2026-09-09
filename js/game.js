@@ -572,53 +572,6 @@ const TILEC=[];
 
 /* ── ตารางข้อมูล ── */
 
-/* ── ระบบแนะนำเบื้องต้นสำหรับผู้เล่นใหม่ (New Player Hints & Tooltips) ── */
-function showHint(id, text){
-  try {
-    if(localStorage.getItem('lanka_hint_' + id)) return;
-    localStorage.setItem('lanka_hint_' + id, '1');
-  } catch(e){}
-
-  let banner = $('hintBanner');
-  if(!banner){
-    banner = document.createElement('div');
-    banner.id = 'hintBanner';
-    banner.style.position = 'fixed';
-    banner.style.top = '14px';
-    banner.style.left = '50%';
-    banner.style.transform = 'translateX(-50%)';
-    banner.style.background = 'linear-gradient(135deg, #1d1222, #0d0611)';
-    banner.style.border = '2px solid var(--teal)';
-    banner.style.boxShadow = '0 0 20px rgba(46,196,166,.5), 0 4px 14px #000';
-    banner.style.padding = '8px 16px';
-    banner.style.borderRadius = '6px';
-    banner.style.zIndex = '550';
-    banner.style.maxWidth = '360px';
-    banner.style.width = '90%';
-    banner.style.display = 'flex';
-    banner.style.alignItems = 'center';
-    banner.style.gap = '10px';
-    banner.style.fontSize = '12.5px';
-    banner.style.color = '#fff';
-    banner.style.lineHeight = '1.45';
-    banner.style.transition = 'opacity .4s, transform .4s';
-    banner.style.cursor = 'pointer';
-    document.body.appendChild(banner);
-    banner.onclick = () => { banner.style.opacity = '0'; banner.style.transform = 'translateX(-50%) translateY(-20px)'; };
-  }
-
-  banner.innerHTML = '<span style="font-size:22px;flex-shrink:0">💡</span><div>' + text + '<br><small class="dim" style="font-size:10.5px">(แตะเพื่อปิดคำแนะนำ)</small></div>';
-  banner.style.opacity = '1';
-  banner.style.transform = 'translateX(-50%) translateY(0)';
-  sfx.pick();
-
-  setTimeout(() => {
-    banner.style.opacity = '0';
-    banner.style.transform = 'translateX(-50%) translateY(-20px)';
-  }, 7500);
-}
-
-
 /* ── ๕. ระบบฉายาแห่งกรรม (Dynamic Hero Titles & Epithets) ── */
 function checkHeroTitle(){
   if(player.killsTotal >= 35 && player.title !== '«เพชฌฆาตไร้ปรานี»'){
@@ -2017,9 +1970,6 @@ function genFloor(fl){
     }
   }
   fireTiles = [];
-  if(rooms.length > 1){
-    showHint('elements', 'ปฏิกิริยาธาตุ: แอ่งน้ำช่วยดับไฟและนำสายฟ้าช็อตศัตรู · กอเถาวัลย์ใช้ซุ่มโจมตีคริติคอล ๑๐๐%!');
-  }
   // สุ่มสภาพอากาศประจำชั้น (Omens)
   currentOmen = (floorR() < 0.25 && fl > 1) ? pick(OMENS) : null;
   if(currentOmen){
@@ -2047,10 +1997,7 @@ function genFloor(fl){
     }
   }
 
-  if(fl===1){
-    msg('เจ้าก้าวเข้าสู่เงามืดของลงกา…');
-    showHint('start', 'แตะบนกระเบื้องเพื่อเดินอัตโนมัติ หรือใช้ปุ่มลูกศร · แตะที่หลอดเลือดเพื่อดูหน้าต่างสเตตัสเต็ม');
-  }
+  if(fl===1)msg('เจ้าก้าวเข้าสู่เงามืดของลงกา…');
   else {
     const tList = fl > 20 ? ABYSS_TITLES : FLOOR_TITLES;
     msg('ชั้น '+thaiNum(fl)+' — '+tList[(fl-1)%tList.length]+(fl>20?' (อเวจี)':''));
@@ -2568,7 +2515,6 @@ function tryMove(dx,dy){
         return;
       } else {
         msg('🔍 มี «' + it.name + '» ซ่อนอยู่ในซอกกำแพง! (ต้องใช้หอกยาว, กระบอง หรือตะขอเกี่ยวออกมา)', 'warn');
-        showHint('wall_secret', 'ซอกกำแพงหินมีแสงทองวิบวับ! ถือหอกยาว/กระบองเดินชน หรือกดใช้ตะขอเกี่ยว สอยสมบัติออกมาได้');
         floats.push({ x: nx, y: ny, t: 'ซ่อนอยู่!', c: '#f5c542', life: 1.2 });
         return;
       }
@@ -3793,7 +3739,8 @@ function die(){
   } catch(e){}
 
   hallAdd(sc);
-  $('deadStats').innerHTML = buildRunSummaryCard(false, sc, earnedKarma);
+  $('deadStats').innerHTML='เจ้าเดินทางถึง <b>ชั้น '+thaiNum(floor)+'</b> · ระดับ '+thaiNum(player.lvl)+
+    ' · สังหาร '+player.killsTotal+' ตน<br>กิตติยศ <b class="gold">'+sc+'</b>';
   hallInto($('deadHall'));show($('deadOv'));
 }
 function enterEndless(){
@@ -3828,9 +3775,7 @@ function victory(){
   }
 
   // เล่นคัตซีนภาพฉากจบเต็มจอก่อนเปิดหน้าสถิติ
-  playEndingCinematic(isGoodEnd ? 'good' : 'evil', () => {
-    $('winStats').innerHTML += '<br>' + buildRunSummaryCard(true, sc, earnedKarma);
-  });
+  playEndingCinematic(isGoodEnd ? 'good' : 'evil');
   hallInto($('winHall'));
 
   // เพิ่มปุ่มทางเลือกดำดิ่งสู่อเวจี
@@ -3886,7 +3831,6 @@ function loadGame(){
 let currentTalentOptions = [];
 
 function triggerTalentChoice(){
-  showHint('talents', 'เลเวล ๕ ปลดล็อกวิชาพรสวรรค์! หากไม่ถูกใจ สามารถกดปุ่ม "สุ่มใหม่" ฟรี ๒ ครั้ง');
   const pool = CLASS_TALENTS[player.cls] || [];
   const available = pool.filter(t => !player.talents.some(pt => pt.id === t.id));
   if(!available.length) return; // ได้ครบหมดแล้ว
@@ -4758,68 +4702,6 @@ function playEndingCinematic(type, onFinish){
   };
 }
 
-
-/* ── ระบบใบสรุปผลการเดินทาง & ปุ่มแชร์ (Post-Run Summary Card & Share) ── */
-function buildRunSummaryCard(isWin, sc, earnedKarma){
-  const C = CLASSES[player.cls];
-  const wpnName = player.wpn ? player.wpn.name : 'หมัดเปล่า';
-  const armName = player.arm ? player.arm.name : 'ผ้าฝ้าย';
-  const headName = player.head ? player.head.name : 'ไม่มี';
-  const relicName = player.relic ? player.relic.name : 'ไม่มี';
-  const statusTitle = player.title || '«ผู้กล้าแห่งลงกา»';
-
-  let html = '<div style="background:#170918;border:2px solid var(--gold);padding:10px;margin-bottom:12px;border-radius:4px;text-align:left;box-shadow:0 0 16px rgba(245,197,66,.25)">';
-  html += '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed var(--line);padding-bottom:6px;margin-bottom:8px">';
-  html += '<div><b style="color:var(--gold);font-size:16px;font-family:Chakra Petch">' + C.name + ' ' + statusTitle + '</b><br><small class="teal">ระดับ ' + thaiNum(player.lvl) + ' · ถึงชั้น ' + thaiNum(floor) + (floor>20?' (อเวจี)':'') + '</small></div>';
-  html += '<div style="text-align:right"><span class="chip gold" style="font-size:12px">กิตติยศ ' + sc + '</span><br><small class="teal">+✦ ' + earnedKarma + ' บารมี</small></div>';
-  html += '</div>';
-
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px;margin-bottom:8px">';
-  html += '<div>⚔ <b>อาวุธ:</b> ' + wpnName + '</div>';
-  html += '<div>🛡 <b>เกราะ:</b> ' + armName + '</div>';
-  html += '<div>👑 <b>ชฎา:</b> ' + headName + '</div>';
-  html += '<div>📿 <b>เครื่องราง:</b> ' + relicName + '</div>';
-  html += '<div>✦ <b>ปุญ:</b> ' + player.punya + ' · ☠ <b>บาป:</b> ' + (player.sin||0) + '</div>';
-  html += '<div>☠ <b>สังหาร:</b> ' + player.killsTotal + ' ตน</div>';
-  html += '</div>';
-
-  html += '<div style="display:flex;justify-content:space-between;align-items:center;background:#0d040e;padding:6px 10px;border:1px solid var(--line);border-radius:3px">';
-  html += '<span style="color:var(--dim);font-size:11px">🌱 รหัส Seed: #' + currentSeed + '</span>';
-  html += '<button class="mini-btn" onclick="copyRunSummaryShare(' + isWin + ',' + sc + ')">📋 คัดลอกผลการเล่นเพื่อแชร์</button>';
-  html += '</div>';
-  html += '</div>';
-
-  return html;
-}
-
-function copyRunSummaryShare(isWin, sc){
-  const C = CLASSES[player.cls];
-  const wpnName = player.wpn ? player.wpn.name : 'หมัดเปล่า';
-  const armName = player.arm ? player.arm.name : 'ผ้าฝ้าย';
-  const statusTitle = player.title || '«ผู้กล้าแห่งลงกา»';
-  const resultHeader = isWin ? '✦ บรรลุโมกษะธรรมสำเร็จ! 🪷' : '☠ สิ้นชีพในเงามืดวิหารลงกา';
-
-  const shareText = 'ลงกา · วิถีแห่งกรรม 🪔\n' +
-    resultHeader + '\n' +
-    '👑 ' + C.name + ' ' + statusTitle + ' | จบที่ชั้น ' + thaiNum(floor) + ' (ระดับ ' + thaiNum(player.lvl) + ')\n' +
-    '⚔ อาวุธ: ' + wpnName + '\n' +
-    '🛡 เกราะ: ' + armName + '\n' +
-    '✦ กิตติยศ: ' + sc + ' | ปุญบารมี: ' + player.punya + ' | ยอดสังหาร: ' + player.killsTotal + ' ตน\n' +
-    '🌱 ลองเล่นแมพเดียวกัน: Seed #' + currentSeed + '\n' +
-    'https://solakung.github.io/Longka/';
-
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(shareText).then(() => {
-      msg('📋 คัดลอกสรุปผลการเล่นแล้ว! นำไปโพสต์อวดเพื่อนได้เลย', 'good');
-      sfx.gold();
-    }).catch(() => {
-      prompt('คัดลอกข้อความสรุปผลการเล่น:', shareText);
-    });
-  } else {
-    prompt('คัดลอกข้อความสรุปผลการเล่น:', shareText);
-  }
-}
-
 /* ── UI helpers ── */
 function show(el){el.classList.remove('hidden')}
 function hide(el){el.classList.add('hidden')}
@@ -4884,8 +4766,7 @@ function inspectItem(it){
 
   if(it.cursed){
     html += '<div style="background:#26050b;border:2px solid var(--red);padding:6px 8px;border-radius:4px;margin:6px 0;text-align:left">';
-    html += '<div style="color:var(--red);font-weight:700;font-size:
-13px">☠ อุปกรณ์ต้องสาป (Cursed Drawback)</div>';
+    html += '<div style="color:var(--red);font-weight:700;font-size:13px">☠ อุปกรณ์ต้องสาป (Cursed Drawback)</div>';
     html += '<div style="color:#ff8b8b;font-size:12px;margin-top:2px"><b>ข้อแลกเปลี่ยน:</b> ' + it.curseDesc + '</div>';
     html += '</div>';
   }
@@ -5079,8 +4960,17 @@ function setupInput(){
   /* ปุ่มเมนู / โอเวอร์เลย์ */
   $('btnNew').onclick=()=>{
     initAudio();
-    hide($('title'));
-    show($('classSel'));
+    const hasPlayed = localStorage.getItem('lanka_seen_intro');
+    if(!hasPlayed){
+      localStorage.setItem('lanka_seen_intro', '1');
+      playCinematicPrologue(() => {
+        hide($('title'));
+        show($('classSel'));
+      });
+    } else {
+      hide($('title'));
+      show($('classSel'));
+    }
   };
   $('btnContinue').onclick=()=>{
     initAudio();
@@ -5093,74 +4983,103 @@ function setupInput(){
     }
   };
   
-  // จัดระเบียบเมนูหน้าแรกให้เป็น Grid กะทัดรัด ไม่ล้นจอ และเห็นปุ่มครบ 100%
-  const tm = $('titleMenu');
-  if(tm){
-    tm.style.display = 'flex';
-    tm.style.flexDirection = 'column';
-    tm.style.gap = '6px';
-    tm.style.maxHeight = '85vh';
-    tm.style.overflowY = 'auto';
-    tm.style.padding = '4px';
-
-    // สร้าง Grid สำหรับรวมปุ่มฟังก์ชันเป็น 2 คอลัมน์
-    let grid = $('titleGrid');
-    if(!grid){
-      grid = document.createElement('div');
-      grid.id = 'titleGrid';
-      grid.style.display = 'grid';
-      grid.style.gridTemplateColumns = '1fr 1fr';
-      grid.style.gap = '6px';
-      grid.style.margin = '4px 0';
-      tm.insertBefore(grid, $('btnRecords'));
-    }
-
-    const makeGridBtn = (id, text, col, border, onClick) => {
-      let b = $(id);
-      if(!b){
-        b = document.createElement('button');
-        b.id = id;
-        b.className = 'btn ghost';
-        b.style.fontSize = '12px';
-        b.style.padding = '6px 4px';
-        b.style.margin = '0';
-        b.style.whiteSpace = 'nowrap';
-        b.style.overflow = 'hidden';
-        b.style.textOverflow = 'ellipsis';
-        if(col) b.style.color = col;
-        if(border) b.style.borderColor = border;
-        b.innerHTML = text;
-        grid.appendChild(b);
-      }
-      b.onclick = onClick;
-      return b;
-    };
-
-    makeGridBtn('btnDaily', '📅 ประจำวัน', '#ff8b1f', '#ff8b1f', () => {
-      isDailyRun = true; currentSeed = getDailySeed(); initAudio(); hide($('title')); show($('classSel'));
-    });
-    makeGridBtn('btnHeat', '🔥 เพลิงกรรม', '#ff8b1f', null, openHeatModal);
-    makeGridBtn('btnCustomSeed', '🌱 รหัส Seed', 'var(--teal)', null, openCustomSeedPrompt);
-    makeGridBtn('btnIntro', '🎬 ชมบทนำ', 'var(--gold)', null, () => playCinematicPrologue());
-    makeGridBtn('btnKarma', '🪷 หอบารมี', 'var(--teal)', 'var(--teal)', openKarmaModal);
-    makeGridBtn('btnAch', '🏆 เกียรติยศ', 'var(--gold)', 'var(--gold)', openAchModal);
-    makeGridBtn('btnCodex', '📖 สารานุกรม', 'var(--teal)', null, openCodexModal);
-    makeGridBtn('btnSet', '⚙️ ตั้งค่า', null, null, openSettingsModal);
-
-    // ย้ายปุ่มทำเนียบและวิธีเล่นมาเป็นคู่ล่าง
-    let botGrid = $('titleBotGrid');
-    if(!botGrid){
-      botGrid = document.createElement('div');
-      botGrid.id = 'titleBotGrid';
-      botGrid.style.display = 'grid';
-      botGrid.style.gridTemplateColumns = '1fr 1fr';
-      botGrid.style.gap = '6px';
-      tm.appendChild(botGrid);
-      const bRec = $('btnRecords'), bHelp = $('btnHelpT');
-      if(bRec) botGrid.appendChild(bRec);
-      if(bHelp) botGrid.appendChild(bHelp);
-    }
+  // เพิ่มปุ่มหอพระบารมีที่หน้าแรก
+  let btnKarma = $('btnKarma');
+  if(!btnKarma){
+    btnKarma = document.createElement('button');
+    btnKarma.id = 'btnKarma';
+    btnKarma.className = 'btn ghost';
+    btnKarma.style.color = 'var(--teal)';
+    btnKarma.style.borderColor = 'var(--teal)';
+    btnKarma.innerHTML = '🪷 หอพระบารมี (อัปเกรดถาวร)';
+    $('titleMenu').insertBefore(btnKarma, $('btnRecords'));
   }
+  btnKarma.onclick = openKarmaModal;
+
+  
+  // เพิ่มปุ่ม เกียรติยศ, สารานุกรม และตั้งค่า ที่หน้าแรก
+  let btnAch = $('btnAch');
+  if(!btnAch){
+    btnAch = document.createElement('button');
+    btnAch.id = 'btnAch';
+    btnAch.className = 'btn ghost';
+    btnAch.style.color = 'var(--gold)';
+    btnAch.innerHTML = '🏆 ทำเนียบเกียรติยศ (Achievements)';
+    
+  let btnDaily = $('btnDaily');
+  if(!btnDaily){
+    btnDaily = document.createElement('button');
+    btnDaily.id = 'btnDaily';
+    btnDaily.className = 'btn ghost';
+    btnDaily.style.color = '#ff8b1f';
+    btnDaily.style.borderColor = '#ff8b1f';
+    btnDaily.innerHTML = '📅 วิถีแห่งกรรมประจำวัน (Daily Run)';
+    $('titleMenu').insertBefore(btnDaily, $('btnKarma'));
+  }
+    let btnHeat = $('btnHeat');
+  if(!btnHeat){
+    btnHeat = document.createElement('button');
+    btnHeat.id = 'btnHeat';
+    btnHeat.className = 'btn ghost';
+    btnHeat.style.color = '#ff8b1f';
+    btnHeat.innerHTML = '🔥 เพลิงกรรมท้าทาย (Heat)';
+    $('titleMenu').insertBefore(btnHeat, $('btnKarma'));
+  }
+  btnHeat.onclick = openHeatModal;
+  btnDaily.onclick = () => {
+    isDailyRun = true;
+    currentSeed = getDailySeed();
+    initAudio();
+    hide($('title'));
+    show($('classSel'));
+  };
+
+  let btnCustomSeed = $('btnCustomSeed');
+  if(!btnCustomSeed){
+    btnCustomSeed = document.createElement('button');
+    btnCustomSeed.id = 'btnCustomSeed';
+    btnCustomSeed.className = 'btn ghost';
+    btnCustomSeed.style.fontSize = '13px';
+    btnCustomSeed.innerHTML = '🌱 กำหนดรหัส Seed ของเพื่อน';
+    $('titleMenu').insertBefore(btnCustomSeed, $('btnKarma'));
+  }
+  btnCustomSeed.onclick = openCustomSeedPrompt;
+
+  let btnIntro = $('btnIntro');
+  if(!btnIntro){
+    btnIntro = document.createElement('button');
+    btnIntro.id = 'btnIntro';
+    btnIntro.className = 'btn ghost';
+    btnIntro.style.fontSize = '13px';
+    btnIntro.innerHTML = '🎬 ชมบทนำเปิดเรื่อง (Prologue)';
+    $('titleMenu').insertBefore(btnIntro, $('btnRecords'));
+  }
+  btnIntro.onclick = () => playCinematicPrologue();
+
+  $('titleMenu').insertBefore(btnAch, $('btnRecords'));
+  }
+  btnAch.onclick = openAchModal;
+
+  let btnCodex = $('btnCodex');
+  if(!btnCodex){
+    btnCodex = document.createElement('button');
+    btnCodex.id = 'btnCodex';
+    btnCodex.className = 'btn ghost';
+    btnCodex.style.color = 'var(--teal)';
+    btnCodex.innerHTML = '📖 สารานุกรมลงกา (Codex)';
+    $('titleMenu').insertBefore(btnCodex, $('btnRecords'));
+  }
+  btnCodex.onclick = openCodexModal;
+
+  let btnSet = $('btnSet');
+  if(!btnSet){
+    btnSet = document.createElement('button');
+    btnSet.id = 'btnSet';
+    btnSet.className = 'btn ghost';
+    btnSet.innerHTML = '⚙️ ตั้งค่าเกม (Settings)';
+    $('titleMenu').appendChild(btnSet);
+  }
+  btnSet.onclick = openSettingsModal;
 
   $('btnRecords').onclick=()=>{renderRecords();hide($('titleMenu'));show($('recordsBox'));};
   $('btnRecordsBack').onclick=()=>{hide($('recordsBox'));show($('titleMenu'));};
