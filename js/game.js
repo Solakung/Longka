@@ -2086,7 +2086,7 @@ function attackFoe(e, dirX=0, dirY=0){
       }
     }
   }
- triggerHaptic(crit ? 'crit' : 'crit');
+  if(crit) triggerHaptic('crit');
 
   // กลไกมีดสั้น: มีโอกาส 45% ฟันเบิ้ล ๒ ครั้งติด (Double Strike)
   if(wpn.type === 'dagger' && e.hp > 0 && rng() < 0.45){
@@ -2205,7 +2205,7 @@ function checkLevel(){
       if(!s.includes('@'))continue;
       const [k,l]=s.split('@');
       if(player.lvl>=+l&&!player.mantras.includes(k)){
-        player.mantras.push(k);msg('แจ้งแจ้งอาคม «'+MANTRAS[k].n+'» แล้ว!','good');
+        player.mantras.push(k);msg('รู้แจ้งอาคม «'+MANTRAS[k].n+'» แล้ว!','good');
       }
     }
   }
@@ -2581,7 +2581,7 @@ function useItem(i){
     msg('✦ คัมภีร์ประสิทธิ์ประสาท! «' + player.wpn.name + '» พลังโจมตีเพิ่มขึ้นเป็น ' + player.wpn.v + ' อย่างถาวร!', 'good');
   }
   else if(it.t==='scr'){
-    if(player.mantras.includes(it.key)){player.punya+=5;msg('แจ้งแจ้งอยู่แล้ว — กรานเป็นปุญ +๕','good');}
+    if(player.mantras.includes(it.key)){player.punya+=5;msg('รู้แจ้งอยู่แล้ว — แปลงเป็นปุญ +๕','good');}
     else{player.mantras.push(it.key);msg('ศึกษา «'+MANTRAS[it.key].n+'» สำเร็จ!','good');sfx.cast();}
     player.inv.splice(i,1);
   }
@@ -2600,12 +2600,14 @@ function castMantra(key){
     const t=visF[0];
     const d=key==='agni'?6+player.lvl*2:12+player.lvl*3;
     t.hp-=d;t.flash=6;
+        if(key==='vajra' && isWater(t.x,t.y)) electrifyWater(t.x,t.y,d);
         if(isGrass(t.x, t.y)){
       igniteGrass(t.x, t.y);
     }
     triggerSlash(t.x,t.y,key==='agni'?'#ff8b1f':'#f5c542');
     floats.push({x:t.x,y:t.y,t:'-'+d,c:key==='agni'?'#ff8b1f':'#f5c542',life:1});
     msg((key==='agni'?'✹ เปลวเพลิง':'⌁ สายฟ้าพระอินทร์')+'สังหาร'+t.name+' -'+d);
+    if(key==='vajra' && isWater(t.x, t.y)) electrifyWater(t.x, t.y, d);
     if(t.hp<=0){
       player.spellKills = (player.spellKills || 0) + 1;
       if(player.spellKills >= 10) unlockAch('mage_master');
@@ -2735,7 +2737,7 @@ function renderShop(n){
     b.onclick=()=>{
       player.gold-=it.price;sfx.buy();
       if(it.t==='gold'){player.gold+=it.amt;}
-      else if(player.inv.length>=10){msg('ถุงผ้าเต็ม!','warn');player.gold+=it.price;return;}
+      else if(player.inv.length>=(player.bagMax||10)){msg('ถุงผ้าเต็ม!','warn');player.gold+=it.price;return;}
       else player.inv.push({...it});
       msg('ซื้อ «'+it.name+'»');updateHud();renderShop(n);
     };
@@ -2899,7 +2901,7 @@ function saveGame(){
       seen:Array.from(seen).join(''), // บันทึกช่องที่เคยเดิน
       player:{...player},
       enemies:enemies.map(e=>({id:e.id,x:e.x,y:e.y,hp:e.hp,awake:e.awake})),
-      npcs,items,kills,
+      npcs,items,kills,traps,
     }));
   }catch(e){}
 }
@@ -2911,7 +2913,7 @@ function loadGame(){
     map=new Uint8Array(W*H);seen=new Uint8Array(W*H);vis=new Uint8Array(W*H);
     for(let i=0;i<W*H;i++)map[i]=+s.map[i];
     if(s.seen){for(let i=0;i<W*H;i++)seen[i]=+s.seen[i];}
-    player=s.player;items=s.items||[];npcs=s.npcs||[];
+    player=s.player;items=s.items||[];npcs=s.npcs||[];traps=s.traps||[];
     enemies=s.enemies.map(sav=>{
       const base=sav.id.startsWith('boss_')?getBoss(+sav.id.split('_')[1])
         :FOES.find(f=>f.id===sav.id);
@@ -3210,15 +3212,7 @@ function render(){
     if(e.bumpX){ex+=e.bumpX;e.bumpX*=0.5;if(Math.abs(e.bumpX)<0.5)e.bumpX=0;}
     if(e.bumpY){ey+=e.bumpY;e.bumpY*=0.5;if(Math.abs(e.bumpY)<0.5)e.bumpY=0;}
 
-    if(e.elite){
-    msg('👑 ล้มจอม' + e.name + 'สำเร็จ! หีบสมบัติล้ำค่าหล่นลงพื้น!', 'good');
-    items.push({ x: e.x, y: e.y, ...genW(clamp(Math.floor(floor/4)+1, 1, 4)) });
-  }
   if(e.boss){
-    if(floor === 5) unlockAch('boss_khara');
-    if(floor === 10) unlockAch('boss_maricha');
-    if(floor === 15) unlockAch('boss_kumbha');
-    if(floor === 20) unlockAch('victory_moksha'); // รัศมีบอส
       ctx.fillStyle='rgba(212,61,42,'+(0.18+0.12*Math.sin(time*0.2)).toFixed(2)+')';
       ctx.fillRect(ex-2,ey-2,T+4,T+4);
     }
@@ -4134,8 +4128,5 @@ window.addEventListener('resize',fitCanvas);
 
 
 /* ── เริ่มระบบ ── */
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
-}
 buildClassCards();setupInput();refreshTitle();fitCanvas();
 requestAnimationFrame(loop);
