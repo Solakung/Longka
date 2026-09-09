@@ -516,6 +516,28 @@ const TILEC=[];
    g.fillStyle='#8f2438';g.fillRect(4,8,8,6);
    g.fillStyle='#ff5a4d';g.fillRect(7,3,2,5);
    TILEC[7]=[c];}
+  // กอเถาวัลย์/หญ้าโบราณ (8)
+  {const c=document.createElement('canvas');c.width=T;c.height=T;const g=c.getContext('2d');
+   g.fillStyle='#1c2b18';g.fillRect(0,0,T,T);
+   g.fillStyle='#326322';
+   for(let x=2;x<14;x+=4){g.fillRect(x,4,2,8);g.fillRect(x+1,2,2,4);}
+   g.fillStyle='#5cb33e';
+   for(let x=3;x<13;x+=4){g.fillRect(x,3,1,4);g.fillRect(x+1,5,1,3);}
+   TILEC[8]=[c];}
+  // แอ่งน้ำธรรมชาติ (9)
+  {const c=document.createElement('canvas');c.width=T;c.height=T;const g=c.getContext('2d');
+   g.fillStyle='#10232a';g.fillRect(0,0,T,T);
+   g.fillStyle='#1a4854';g.fillRect(2,2,12,12);
+   g.fillStyle='#3692a8';g.fillRect(4,4,8,8);
+   g.fillStyle='#8ae2f5';g.fillRect(6,6,3,2);
+   TILEC[9]=[c];}
+  // แท่นศิลาถวายคำสัตย์แห่งพระอินทร์ (10)
+  {const c=document.createElement('canvas');c.width=T;c.height=T;const g=c.getContext('2d');
+   g.fillStyle='#15091c';g.fillRect(0,0,T,T);
+   g.strokeStyle='#f5c542';g.strokeRect(2,2,12,12);
+   g.fillStyle='#41236d';g.fillRect(4,4,8,8);
+   g.fillStyle='#ffe9a3';g.fillRect(7,6,2,4);
+   TILEC[10]=[c];}
 })();
 
 /* ── ตารางข้อมูล ── */
@@ -856,6 +878,8 @@ const ACHIEVEMENTS = [
   { id: 'mage_master', t: 'จอมขมังเวท', d: 'สังหารศัตรูด้วยคาถาอาคมสะสมครบ ๑๐ ครั้ง', tier: 'silver', icon: '✹' },
   { id: 'relic_equip', t: 'เครื่องรางคู่กาย', d: 'สวมใส่เครื่องรางเทวะ ๑ ชิ้น', tier: 'silver', icon: '📿' },
   { id: 'upgrade_plus', t: 'ศัสตราคมกล้า', d: 'ตีบวกอาวุธด้วยคัมภีร์ประสิทธิ์ประสาท', tier: 'silver', icon: '📜' },
+    { id: 'karma_mercy', t: 'เมตตาธรรมค้ำจุนโลก', d: 'สละยาอมฤตช่วยเหลืออสูรที่บาดเจ็บ', tier: 'silver', icon: '🙏' },
+  { id: 'vow_master', t: 'ผู้ถือสัจจบารมี', d: 'ปฏิบัติตามคำสัตย์แห่งพระอินทร์จนสำเร็จครบถ้วน', tier: 'gold', icon: '📿' },
   { id: 'quest_delivery', t: 'ผู้ส่งสาส์นศักดิ์สิทธิ์', d: 'ส่งมอบสาส์นลับพระเวทให้แก่ฤๅษีในชั้นลึกสำเร็จ', tier: 'gold', icon: '📜' },
   { id: 'talent_unlocked', t: 'บรรลุวิชา', d: 'สำเร็จวิชาพรสวรรค์เลเวล ๕', tier: 'silver', icon: '✨' },
 
@@ -1155,6 +1179,251 @@ function openSettingsModal(){
   $('btnCloseSettings').onclick = () => hide(ov);
 }
 
+
+/* ── เสาหลักที่ ๑: ระบบธาตุและสิ่งแวดล้อม (Elemental Interactions) ── */
+let fireTiles = []; // รายการช่องที่ไฟกำลังลุกไหม้ {x, y, turns}
+
+function isWater(x, y){
+  const t = map[y * W + x];
+  return t === 5 || t === 9;
+}
+
+function isGrass(x, y){
+  return map[y * W + x] === 8;
+}
+
+// ระบบสายฟ้าช็อตทั่วผืนน้ำ (Water Electrification)
+function electrifyWater(startX, startY, sourceDmg = 12){
+  const visited = new Set();
+  const queue = [[startX, startY]];
+  const shockedTiles = [];
+
+  while(queue.length > 0){
+    const [cx, cy] = queue.shift();
+    const key = cy * W + cx;
+    if(visited.has(key)) continue;
+    visited.add(key);
+    shockedTiles.push([cx, cy]);
+
+    // ตรวจสอบศัตรูที่ยืนอยู่ในน้ำ
+    const foe = enemyAt(cx, cy);
+    if(foe){
+      const sDmg = Math.max(4, sourceDmg + R(4) - (foe.def >> 2));
+      foe.hp -= sDmg; foe.flash = 6; foe.stun = 1;
+      triggerSlash(cx, cy, '#f5c542');
+      floats.push({x: cx, y: cy, t: 'ช็อตสตั๊น -' + sDmg, c: '#f5c542', life: 1.4});
+      if(foe.hp <= 0) killFoe(foe);
+    }
+
+    // ตรวจสอบตัวผู้เล่นถ้ายืนอยู่ในน้ำ
+    if(player.x === cx && player.y === cy){
+      const pDmg = Math.max(2, Math.floor(sourceDmg * 0.4));
+      player.hp -= pDmg; flash = 0.5; shake = 6;
+      floats.push({x: cx, y: cy, t: 'โดนไฟช็อต -' + pDmg, c: '#f5c542', life: 1.2});
+      msg('⚡ ไฟฟ้าแล่นผ่านผืนน้ำช็อตโดนเจ้า! -' + pDmg + ' HP', 'warn');
+      if(player.hp <= 0) die();
+    }
+
+    // กระจายไปยังช่องน้ำรอบข้าง
+    const dirs = [[0,1],[0,-1],[1,0],[-1,0]];
+    for(const [dx, dy] of dirs){
+      const nx = cx + dx, ny = cy + dy;
+      if(nx >= 0 && ny >= 0 && nx < W && ny < H && isWater(nx, ny) && !visited.has(ny * W + nx)){
+        queue.push([nx, ny]);
+      }
+    }
+  }
+
+  // ประกายสายฟ้าแตกแขนงทั่วผิวน้ำ
+  for(const [sx, sy] of shockedTiles){
+    for(let i=0; i<4; i++){
+      sparks.push({
+        x: sx * T + 8, y: sy * T + 8,
+        vx: (Math.random() - 0.5) * 4, vy: (Math.random() - 0.5) * 4,
+        c: '#f5c542', life: 0.9
+      });
+    }
+  }
+  sfx.stairs();
+  msg('⚡ กระแสอัสนีบาตแล่นกระจายทั่วผืนน้ำ! ช็อตสตั๊นทุกชีวิตในน้ำ!', 'good');
+}
+
+// จุดไฟเผากอเถาวัลย์ (Ignite Grass into Fire Surface)
+function igniteGrass(gx, gy){
+  if(!isGrass(gx, gy)) return;
+  map[gy * W + gx] = 1; // เถาวัลย์ไหม้กลายเป็นพื้น
+  if(!fireTiles.some(f => f.x === gx && f.y === gy)){
+    fireTiles.push({ x: gx, y: gy, turns: 3 });
+    triggerSlash(gx, gy, '#ff8b1f');
+    for(let i=0; i<6; i++){
+      sparks.push({
+        x: gx * T + 8, y: gy * T + 8,
+        vx: (Math.random() - 0.5) * 3, vy: -Math.random() * 3,
+        c: '#ff8b1f', life: 1
+      });
+    }
+    msg('🔥 เปลวเพลิงลุกลามไหม้กอเถาวัลย์กลายเป็นทะเลเพลิง!', 'warn');
+  }
+}
+
+
+/* ── เสาหลักที่ ๒: ทางแยกแห่งกรรม (Moral & Karma Dilemmas) ── */
+function openDilemmaModal(n){
+  let ov = $('dilemmaOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'dilemmaOv';
+    ov.className = 'ov';
+    ov.style.zIndex = '350';
+    document.body.appendChild(ov);
+  }
+
+  const potCount = player.inv.filter(it => it.t === 'pot').length;
+
+  let html = '<div class="panel" style="max-width:420px;border-color:var(--teal);box-shadow:0 0 24px rgba(46,196,166,.4);text-align:center">';
+  html += '<div class="deva">दया</div>';
+  html += '<h2 style="font-family:Chakra Petch;color:var(--gold);margin:2px 0 6px;font-size:22px">ทางแยกแห่งกรรม: อสูรบาดเจ็บ</h2>';
+  html += '<div style="display:flex;justify-content:center;margin:8px 0"><canvas id="dilemmaSprite" width="48" height="48" style="image-rendering:pixelated;background:#1b0c19;border:2px solid var(--line)"></canvas></div>';
+  html += '<p style="font-size:13px;color:var(--ink);line-height:1.5;margin:0 0 12px;font-style:italic">“ได้โปรดเถิดผู้กล้า… ข้าสำนึกผิดแล้ว บาดเจ็บเจียนตาย หากท่านเมตตามอบยาอมฤต ๑ ขวดมารักษาข้า ข้าขอปฏิญาณว่าจะกลับมาตอบแทนบุญคุณท่านอย่างแน่นอน…”</p>';
+
+  html += '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">';
+  html += '<button class="btn" id="btnMercy" style="background:#158574;color:#fff;border-color:#2ec4a6"' + (potCount > 0 ? '' : ' disabled') + '>🙏 เมตตาช่วยเหลือ (เสียยาอมฤต ๑ ขวด, ปุญ +๓๕)' + (potCount > 0 ? '' : ' <small>[ไม่มียา]</small>') + '</button>';
+  html += '<button class="btn" id="btnSlaughter" style="background:#8f2438;color:#fff;border-color:#e5482e">⚔ สังหารเด็ดขาด (+๕๐ EXP, +๓๕ ◉, ได้แต้มบาป)</button>';
+  html += '<button class="btn ghost" id="btnLeaveDilemma">เดินผ่าน (ไม่ยุ่งเกี่ยว)</button>';
+  html += '</div></div>';
+
+  ov.innerHTML = html;
+  show(ov);
+
+  // วาดสไปรต์อสูรบาดเจ็บ
+  const scv = $('dilemmaSprite');
+  if(scv){
+    const sg = scv.getContext('2d');
+    sg.imageSmoothingEnabled = false;
+    const img = SPR['asura'];
+    if(img) sg.drawImage(img, 0, 0, img.width, img.height, 8, 8, 32, 32);
+  }
+
+  $('btnMercy').onclick = () => {
+    hide(ov);
+    const pIdx = player.inv.findIndex(it => it.t === 'pot');
+    if(pIdx >= 0) player.inv.splice(pIdx, 1);
+    player.punya += 35;
+    player.sparedAsura = true;
+    n.resolved = true;
+    n.used = true;
+    msg('✦ เจ้าสละยาอมฤตช่วยชีวิตอสูร! ปุญบารมีเพิ่มขึ้น +๓๕ อย่างยิ่งใหญ่', 'good');
+    floats.push({x: player.x, y: player.y, t: 'เมตตาบารมี +๓๕', c: '#2ec4a6', life: 2});
+    sfx.level(); flash = 0.5;
+    unlockAch('karma_mercy');
+    updateHud();
+    endTurn();
+  };
+
+  $('btnSlaughter').onclick = () => {
+    hide(ov);
+    n.resolved = true;
+    n.used = true;
+    player.xp += 50;
+    player.gold += 35;
+    player.sin = (player.sin || 0) + 1;
+    player.punya = Math.max(0, player.punya - 15);
+    msg('☠ เจ้าสังหารอสูรที่ยอมแพ้! ได้รับ +๕๐ EXP, +๓๕ ◉ แต่ดวงจิตแปดเปื้อนบาปกรรม (-๑๕ ปุญ)', 'warn');
+    floats.push({x: player.x, y: player.y, t: 'บาปกรรม (+๑ บาป)', c: '#d43d2a', life: 2});
+    sfx.hit(); shake = 6;
+    updateHud();
+    checkLevel();
+    endTurn();
+  };
+
+  $('btnLeaveDilemma').onclick = () => hide(ov);
+}
+
+function openVowModal(vx, vy){
+  let ov = $('vowOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'vowOv';
+    ov.className = 'ov';
+    ov.style.zIndex = '350';
+    document.body.appendChild(ov);
+  }
+
+  let html = '<div class="panel" style="max-width:420px;border-color:var(--gold);box-shadow:0 0 24px rgba(245,197,66,.45);text-align:center">';
+  html += '<div class="deva">सत्य</div>';
+  html += '<h2 style="font-family:Chakra Petch;color:var(--gold);margin:2px 0 6px;font-size:22px">🪷 ศิลาถวายคำสัตย์แห่งพระอินทร์</h2>';
+  html += '<p style="font-size:13px;color:var(--ink);margin:0 0 12px">พระอินทร์เสด็จลงมาทดสอบความแน่วแน่ ยินดีจะถือสัจจบารมีเพื่อแลกกับพรเทวะหรือไม่?</p>';
+
+  html += '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;text-align:left">';
+  html += '<button class="btn" id="btnVowBlade" style="font-size:13px;text-align:left;padding:8px 10px;background:#1e0c19;color:var(--ink);border-color:var(--gold)">' +
+    '<b class="gold">๑. สัจจะละเว้นมีดสั้น (๓ ชั้น)</b><br><small class="teal">พรที่ได้: ป้องกันถาวร +๔ และฟื้นมนตร์เต็ม (ห้ามใช้มีด/กริช)</small></button>';
+  html += '<button class="btn" id="btnVowFasting" style="font-size:13px;text-align:left;padding:8px 10px;background:#1e0c19;color:var(--ink);border-color:var(--gold)">' +
+    '<b class="gold">๒. สัจจะอดทนต่อเวทนา (๒ ชั้น)</b><br><small class="teal">พรที่ได้: พลังโจมตีถาวร +๕ (ห้ามดื่มยาอมฤต)</small></button>';
+  html += '<button class="btn ghost" id="btnLeaveVow" style="text-align:center">ไม่ขอผูกมัดคำสัตย์ (เดินผ่าน)</button>';
+  html += '</div></div>';
+
+  ov.innerHTML = html;
+  show(ov);
+
+  $('btnVowBlade').onclick = () => {
+    hide(ov);
+    map[vy * W + vx] = 4; // ศิลามอดดับ
+    player.def += 4;
+    player.mp = player.mmp;
+    player.vow = { type: 'no_dagger', endFloor: floor + 3, name: 'สัจจะละเว้นมีดสั้น' };
+    msg('📿 เจ้าถวายสัจจะละเว้นมีดสั้น ๓ ชั้น! พระอินทร์ประสาทพร: ป้องกัน +๔ ถาวร!', 'good');
+    sfx.level(); flash = 0.5;
+    updateHud();
+    endTurn();
+  };
+
+  $('btnVowFasting').onclick = () => {
+    hide(ov);
+    map[vy * W + vx] = 4;
+    player.atk += 5;
+    player.vow = { type: 'no_pot', endFloor: floor + 2, name: 'สัจจะอดทนต่อเวทนา' };
+    msg('📿 เจ้าถวายสัจจะอดทนต่อเวทนา ๒ ชั้น! สุริยเทพประสาทพร: โจมตี +๕ ถาวร!', 'good');
+    sfx.level(); flash = 0.5;
+    updateHud();
+    endTurn();
+  };
+
+  $('btnLeaveVow').onclick = () => hide(ov);
+}
+
+
+/* ── เสาหลักที่ ๓: ดันเจี้ยนประจำวัน & ระบบแชร์ Seed (Daily & Seeded Run) ── */
+let currentSeed = 0;
+let isDailyRun = false;
+
+function getDailySeed(){
+  const d = new Date().toISOString().slice(0, 10);
+  let h = 0;
+  for(let i=0; i<d.length; i++) h = (Math.imul(31, h) + d.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+function openCustomSeedPrompt(){
+  const input = prompt('กรอกรหัส Seed ดันเจี้ยนของเพื่อน (ตัวเลข):', '');
+  if(!input) return;
+  const sNum = parseInt(input.replace(/[^0-9]/g, ''));
+  if(isNaN(sNum) || sNum <= 0){
+    alert('รหัส Seed ไม่ถูกต้อง กรุณากรอกเป็นตัวเลข');
+    return;
+  }
+  currentSeed = sNum;
+  isDailyRun = false;
+  initAudio();
+  hide($('title'));
+  show($('classSel'));
+}
+
+function startDailyRun(cls){
+  currentSeed = getDailySeed();
+  isDailyRun = true;
+  startRun(cls, currentSeed);
+}
+
 /* ── สร้างดันเจี้ยน ── */
 function genFloor(fl){
   floor=fl;floorR=mulberry32((seed^(fl*2654435761))>>>0);
@@ -1238,6 +1507,16 @@ function genFloor(fl){
     const r=rooms[Math.floor(floorR()*rooms.length)];
     npcs.push({type:'hermit',x:r.cx,y:r.cy,sprite:'hermit',used:false});
   }
+  // ทางแยกแห่งกรรม: อสูรบาดเจ็บ (ชั้น ๔, ๘, ๑๒, ๑๖)
+  if(fl % 4 === 0 && fl <= 16){
+    const r = rooms[Math.floor(floorR()*rooms.length)];
+    npcs.push({type:'dilemma_asura', x:r.cx, y:r.cy, sprite:'asura', resolved:false, used:false});
+  }
+  // แท่นศิลาถวายคำสัตย์แห่งพระอินทร์ (ชั้น ๓, ๗, ๑๑)
+  if((fl === 3 || fl === 7 || fl === 11) && !player.vow){
+    const r = pick(rooms.slice(1));
+    map[(r.y+1)*W + r.x+2] = 10;
+  }
   const boss=getBoss(fl);
   const n=boss?5:Math.min(12,4+Math.floor(fl*0.9));
   for(let i=0;i<n;i++){
@@ -1287,6 +1566,43 @@ function genFloor(fl){
     }
     msg('🦅 ลูกนกเวหาบินสำรวจ — เปิดเผยหมอกสงครามห้องเบื้องหน้าให้แล้ว!', 'good');
   }
+    // สุ่มสร้างกอเถาวัลย์และแอ่งน้ำธรรมชาติ (เสาหลักที่ ๑)
+  for(const r of rooms.slice(1)){
+    // เถาวัลย์โบราณ
+    if(floorR() < 0.40){
+      const count = 3 + Math.floor(floorR() * 4);
+      for(let g=0; g<count; g++){
+        const gx = r.x + 1 + Math.floor(floorR() * (r.w - 2));
+        const gy = r.y + 1 + Math.floor(floorR() * (r.h - 2));
+        if(map[gy * W + gx] === 1) map[gy * W + gx] = 8;
+      }
+    }
+    // แอ่งน้ำธรรมชาติ (โดยเฉพาะถ้ำบาดาลนาคราช ชั้น ๖-๑๐)
+    if((floorR() < 0.25) || (fl >= 6 && fl <= 10 && floorR() < 0.55)){
+      const count = 2 + Math.floor(floorR() * 4);
+      for(let w=0; w<count; w++){
+        const wx = r.x + 1 + Math.floor(floorR() * (r.w - 2));
+        const wy = r.y + 1 + Math.floor(floorR() * (r.h - 2));
+        if(map[wy * W + wx] === 1) map[wy * W + wx] = 9;
+      }
+    }
+  }
+  fireTiles = [];
+
+  
+  // ✦ ผลตอบแทนแห่งกรรมดี: อสูรที่เคยช่วยชีวิตโผล่มาช่วยเปิดแผลบอส!
+  if(boss && player.sparedAsura && !player.asuraHelped){
+    player.asuraHelped = true;
+    const bFoe = enemies.find(e => e.boss);
+    if(bFoe){
+      bFoe.hp = Math.max(1, bFoe.hp - 35);
+      bFoe.flash = 6;
+      triggerSlash(bFoe.x, bFoe.y, '#2ec4a6');
+      shake = 8; sfx.level();
+      msg('✦ อสูรที่เจ้าเคยเมตตาช่วยเหลือไว้ ปรากฏกายตอบแทนคุณ! พุ่งเสียบเปิดแผลใส่ ' + bFoe.name + ' -๓๕ HP!', 'good');
+    }
+  }
+
   if(fl===1)msg('เจ้าก้าวเข้าสู่เงามืดของลงกา…');
   else {
     const tList = fl > 20 ? ABYSS_TITLES : FLOOR_TITLES;
@@ -1647,6 +1963,9 @@ function tryMove(dx,dy){
       show($('stairsOv'));
     }
   }else if(map[ny*W+nx]===3){show($('altarOv'));}
+  else if(map[ny*W+nx]===10){
+    openVowModal(nx, ny);
+  }
   else if(map[ny*W+nx]===7){
     openCursedAltarModal(nx, ny);
   }
@@ -1684,8 +2003,17 @@ function waitTurn(){
   endTurn();
 }
 function attackFoe(e, dirX=0, dirY=0){
+  // ตรวจสอบสัจจะละเว้นมีดสั้น
+  if(player.vow && player.vow.type === 'no_dagger' && player.wpn && player.wpn.type === 'dagger'){
+    player.hp -= 15; flash = 0.8; shake = 8; sfx.hurt();
+    msg('⚡ อัสนีบาตฟาดลงทัณฑ์ผู้ตระบัดสัตย์! เจ้าฝ่าฝืนสัจจะละเว้นมีดสั้น! -๑๕ HP', 'warn');
+    player.vow = null;
+    if(player.hp <= 0){ die(); return; }
+  }
   const wpn = player.wpn || {};
-  let critRate = 0.15;
+    // ซุ่มโจมตีจากกอเถาวัลย์: การันตีคริติคอล ๑๐๐%
+  const isStealthAmbush = isGrass(player.x, player.y);
+  let critRate = isStealthAmbush ? 1.0 : 0.15;
   if(wpn.type === 'dagger') critRate += 0.20; // มีดสั้นคริติคอลสูง
   if(wpn.affix === 'sharp') critRate += 0.15;
   if(player.relic && player.relic.id === 'diamond_ring') critRate += 0.15;
@@ -1712,7 +2040,7 @@ function attackFoe(e, dirX=0, dirY=0){
   // เอฟเฟกต์พิเศษของอาวุธ
   if(player.wpn && player.wpn.affix && player.arm && player.arm.affix) unlockAch('affix_full');
   if(wpn.affix === 'flame'){
-    e.burn = (e.burn || 0) + 3;
+    e.burn = (e.burn || 0) + 3; if(isGrass(e.x, e.y)) igniteGrass(e.x, e.y);
     slashColor = '#ff8b1f';
     floats.push({x:e.x, y:e.y-0.4, t:'เผาไหม้!', c:'#ff8b1f', life:1});
   } else if(wpn.affix === 'venom'){
@@ -1806,7 +2134,13 @@ function attackFoe(e, dirX=0, dirY=0){
     d *= 2;
     msg('🦅 พญาครุฑกรงเล็บสังหารนาคิน ดาเมจทวีคูณ!', 'good');
   }
-  if(e.hp <= 0) killFoe(e); else msg((crit?'✦ คมขรรค์ฟันจุดตาย! ':'')+'เจ้าฟัน'+e.name+' -'+d);
+  if(isStealthAmbush){
+    msg('🌿 ซุ่มโจมตีจากกอเถาวัลย์! คมขรรค์แทงจุดตายวิกฤต ๑๐๐%! -' + d, 'good');
+  } else if(e.hp <= 0){
+    killFoe(e);
+  } else {
+    msg((crit?'✦ คมขรรค์ฟันจุดตาย! ':'')+'เจ้าฟัน'+e.name+' -'+d);
+  }
 }
 function killFoe(e){
   // สลายร่างเป็นกลุ่มควันวิญญาณ ไม่ทิ้งซากศพเกะกะ
@@ -2050,6 +2384,58 @@ function endTurn(){
     }
   }
 
+  
+  // ประมวลผลทะเลเพลิงลุกลาม (Fire Surfaces & Propagation)
+  for(let fi = fireTiles.length - 1; fi >= 0; fi--){
+    const ft = fireTiles[fi];
+    ft.turns--;
+
+    // ถ้าตัวเรายืนอยู่บนไฟ
+    if(player.x === ft.x && player.y === ft.y){
+      player.hp -= 3;
+      player.burn = (player.burn || 0) + 2;
+      floats.push({x: player.x, y: player.y, t: '-๓ ไฟลวก', c: '#ff8b1f', life: 0.9});
+      if(player.hp <= 0){ die(); return; }
+    }
+
+    // ถ้าศัตรูยืนอยู่บนไฟ
+    const foeOnFire = enemyAt(ft.x, ft.y);
+    if(foeOnFire){
+      foeOnFire.hp -= 4; foeOnFire.flash = 4;
+      foeOnFire.burn = (foeOnFire.burn || 0) + 2;
+      floats.push({x: foeOnFire.x, y: foeOnFire.y, t: '-๔ ไฟลวก', c: '#ff8b1f', life: 0.9});
+      if(foeOnFire.hp <= 0) killFoe(foeOnFire);
+    }
+
+    // ไฟลามไปยังกอเถาวัลย์ช่องข้างเคียง
+    const dirs = [[0,1],[0,-1],[1,0],[-1,0]];
+    for(const [dx, dy] of dirs){
+      const nx = ft.x + dx, ny = ft.y + dy;
+      if(nx >= 0 && ny >= 0 && nx < W && ny < H && isGrass(nx, ny)){
+        igniteGrass(nx, ny);
+      }
+    }
+
+    if(ft.turns <= 0) fireTiles.splice(fi, 1);
+  }
+
+  // ปฏิกิริยาน้ำ + ไฟ: ถ้าติดไฟแล้วยืนอยู่ในน้ำ ไฟจะดับทันทีเกิดไอน้ำ
+  if(player.burn > 0 && isWater(player.x, player.y)){
+    player.burn = 0;
+    msg('💧 น้ำชำระล้างเปลวเพลิงมอดสนิท! เกิดกลุ่มไอน้ำฟุ้งกระจาย', 'good');
+    for(let i=0; i<6; i++){
+      sparks.push({x: player.x*T+8, y: player.y*T+8, vx:(Math.random()-0.5)*2, vy:-Math.random()*2, c:'#f4ecdc', life:1});
+    }
+  }
+  for(const e of enemies){
+    if(e.burn > 0 && isWater(e.x, e.y)){
+      e.burn = 0;
+      for(let i=0; i<4; i++){
+        sparks.push({x: e.x*T+8, y: e.y*T+8, vx:(Math.random()-0.5)*2, vy:-Math.random()*2, c:'#f4ecdc', life:0.8});
+      }
+    }
+  }
+
   computeFov();updateHud();saveGame();
 }
 
@@ -2110,6 +2496,13 @@ function useItem(i){
     hide($('invOv'));
     endTurn();
     return;
+  }
+  // ตรวจสอบสัจจะอดทนต่อเวทนา (ห้ามดื่มยา)
+  if(it.t==='pot' && player.vow && player.vow.type === 'no_pot'){
+    player.hp -= 12; flash = 0.6; shake = 6; sfx.hurt();
+    msg('⚡ เจ้าฝ่าฝืนสัจจะอดทนต่อเวทนา! มนต์พระอินทร์ลงทัณฑ์ผู้ตระบัดสัตย์!', 'warn');
+    player.vow = null;
+    if(player.hp <= 0){ die(); return; }
   }
   if(it.t==='pot'){player.hp=Math.min(player.mhp,player.hp+it.heal);
     msg('ดื่มอมฤต ฟื้นเลือด +'+it.heal,'good');sfx.pick();
@@ -2207,6 +2600,9 @@ function castMantra(key){
     const t=visF[0];
     const d=key==='agni'?6+player.lvl*2:12+player.lvl*3;
     t.hp-=d;t.flash=6;
+        if(isGrass(t.x, t.y)){
+      igniteGrass(t.x, t.y);
+    }
     triggerSlash(t.x,t.y,key==='agni'?'#ff8b1f':'#f5c542');
     floats.push({x:t.x,y:t.y,t:'-'+d,c:key==='agni'?'#ff8b1f':'#f5c542',life:1});
     msg((key==='agni'?'✹ เปลวเพลิง':'⌁ สายฟ้าพระอินทร์')+'สังหาร'+t.name+' -'+d);
@@ -2237,10 +2633,20 @@ function castMantra(key){
       }
     }
     msg('❋ พายุวายุพัดกระหน่ำ'+(hitAny?'!':' — แต่ไม่มีใครอยู่ในรัศมี'));
+        // คาถาวายุพัดกระจาย: ดับไฟบนตัวผู้เล่นทันที
+    if(player.burn > 0){
+      player.burn = 0;
+      msg('❋ ลมพายุวายุพัดดับเปลวเพลิงบนร่างเจ้ามอดสนิท!', 'good');
+    }
   }
   if(used){player.mp-=reqMp;sfx.cast();hide($('mantraOv'));endTurn();}
 }
 function interact(n){
+  if(n.type==='dilemma_asura'){
+    if(!n.resolved) openDilemmaModal(n);
+    else msg('อสูรนอนนิ่งสงบ… การตัดสินใจได้สิ้นสุดลงแล้ว');
+    return;
+  }
   if(n.type==='merchant'){
     renderShop(n);show($('shopOv'));sfx.gold();
   }
@@ -2376,6 +2782,14 @@ function pray(free){
   updateHud();endTurn();
 }
 function descend(){
+  // ตรวจสอบความสำเร็จแห่งคำสัตย์ปฏิญาณ
+  if(player.vow && (floor + 1) >= player.vow.endFloor){
+    player.punya += 30;
+    msg('📿 เจ้าถือ «' + player.vow.name + '» ครบถ้วนตามสัจจะ! ปุญบารมีเพิ่มขึ้น +๓๐ อย่างยิ่งใหญ่!', 'good');
+    sfx.level(); flash = 0.6;
+    unlockAch('vow_master');
+    player.vow = null;
+  }
   unlockAch('first_step');
   if(floor+1 >= 25) unlockAch('abyss_conqueror');
   if(floor+1 >= 30) unlockAch('abyss_deep');
@@ -2447,15 +2861,17 @@ function victory(){
   saveKarma(k);
 
   hallAdd(sc,true);
-  if(player.punya >= 80 && !player.usedCursedAltar){
-    // ฉากจบที่ ๑: โมกษะธรรมะ (Good Ending)
+    const isGoodEnd = player.punya >= 80 && !player.usedCursedAltar;
+  if(isGoodEnd){
     $('winStats').innerHTML='<span class="teal" style="font-weight:700">✦ ฉากจบ: โมกษะธรรมะ (หลุดพ้นบริสุทธิ์)</span><br>'+
       'ทศกัณฐ์ล่มสลาย แสงธรรมสาดส่องทั่วเกาะลงกา<br>ดวงจิตของเจ้าหลุดพ้นจากวัฏสงสารอย่างแท้จริง!<br>กิตติยศ <b class="gold">'+sc+'</b>';
   } else {
-    // ฉากจบที่ ๒: กลียุคจ้าวมาร (Cursed Asura Ending)
     $('winStats').innerHTML='<span class="red" style="font-weight:700">☠ ฉากจบ: กลียุคจ้าวมาร (ผู้สืบทอดบัลลังก์อสูร)</span><br>'+
-      'เจ้าสังหารทศกัณฐ์แต่ใจถูกครอบงำด้วยไออสูร… กลืนกินดวงใจทศกัณฐ์<br>และสวมมงกุฎ ๑๐ หน้า กลายเป็นจ้าวมารตนใหม่ครองลงกา!<br>กิตติยศ <b class="gold">'+sc+'</b>';
+      'เจ้าสังหารทศกัณฐ์แต่ใจถูกครอบงำด้วยไออสูร… กลืนกินดวงใจทศกัณฐ์<br>และสวมมงกุฎ ๑๐ หน้า กลายเป็นจ้าวมารตนใหม่ผู้ครองลงกา!<br>กิตติยศ <b class="gold">'+sc+'</b>';
   }
+
+  // เล่นคัตซีนภาพฉากจบเต็มจอก่อนเปิดหน้าสถิติ
+  playEndingCinematic(isGoodEnd ? 'good' : 'evil');
   hallInto($('winHall'));
 
   // เพิ่มปุ่มทางเลือกดำดิ่งสู่อเวจี
@@ -2611,8 +3027,9 @@ function renderTalentModal(){
 }
 
 /* ── สร้างตัวละคร / เริ่มเกม ── */
-function startRun(cls){
-  seed=(Date.now()^(Math.random()*1e9))>>>0;
+function startRun(cls, forcedSeed = 0){
+  seed = forcedSeed ? forcedSeed : ((Date.now()^(Math.random()*1e9))>>>0);
+  currentSeed = seed;
   rng=mulberry32(seed);
   const C=CLASSES[cls];
   player={x:0,y:0,cls,sprite:C.sprite,hp:C.hp,mhp:C.hp,mp:C.mp,mmp:C.mp,
@@ -2626,7 +3043,8 @@ function startRun(cls){
     rerollCost:10,
     pendingTalents:[],
     mantras:[],floor:1,poison:0,burn:0,
-    facing:1,prevX:0,prevY:0,pet:null,usedCursedAltar:false,hasDeliveryScroll:false,deliveryDone:false};
+    facing:1,prevX:0,prevY:0,pet:null,usedCursedAltar:false,hasDeliveryScroll:false,deliveryDone:false,
+    sparedAsura:false,asuraHelped:false,sin:0,vow:null};
   for(const s of C.mantras){if(!s.includes('@'))player.mantras.push(s);}
   rng=Math.random;time=0;endless=false;floats=[];logs=[];slashes=[];sparks=[];
   
@@ -2731,6 +3149,21 @@ function drawTile(mx, my, sx, sy){
     const flm = 0.4 + 0.3 * Math.sin(time * 0.3 + mx);
     ctx.fillStyle = 'rgba(212,61,42,' + flm.toFixed(2) + ')';
     ctx.fillRect(px + 6, py + 2, 4, 6);
+  }
+  else if(t === 8){ // กอเถาวัลย์/หญ้า
+    ctx.drawImage(TILEC[8][0], px, py);
+  }
+  else if(t === 9){ // แอ่งน้ำธรรมชาติ
+    ctx.drawImage(TILEC[9][0], px, py);
+    const rip = 0.20 + 0.12 * Math.sin(time * 0.25 + mx);
+    ctx.fillStyle = 'rgba(138,226,245,' + rip.toFixed(2) + ')';
+    ctx.fillRect(px + 4, py + 4, 8, 8);
+  }
+  else if(t === 10){ // ศิลาถวายคำสัตย์แห่งพระอินทร์
+    ctx.drawImage(TILEC[10][0], px, py);
+    const gl = 0.35 + 0.35 * Math.sin(time * 0.25 + mx);
+    ctx.fillStyle = 'rgba(245, 197, 66, ' + gl.toFixed(2) + ')';
+    ctx.fillRect(px + 4, py + 4, 8, 8);
   }
 }
 
@@ -2936,6 +3369,20 @@ function render(){
     ctx.fillText(bossSplash.name, cv.width / 2, 124);
   }
 
+  
+  // วาดเปลวเพลิงที่กำลังลุกไหม้บนพื้น (Fire Surfaces)
+  for(const ft of fireTiles){
+    if(!seen[ft.y * W + ft.x]) continue;
+    const fsx = (ft.x - camX) * T, fsy = (ft.y - camY) * T;
+    const flk = Math.sin(time * 0.4 + ft.x) * 2;
+    ctx.fillStyle = 'rgba(255, 139, 31, 0.45)';
+    ctx.fillRect(fsx, fsy, T, T);
+    ctx.fillStyle = '#ff8b1f';
+    ctx.fillRect(fsx + 4, fsy + 3 + flk, 8, 8);
+    ctx.fillStyle = '#ffe9a3';
+    ctx.fillRect(fsx + 6, fsy + 5 + flk, 4, 4);
+  }
+
   drawMinimap(camX,camY);
 }
 
@@ -2978,6 +3425,19 @@ let lastT=0;
 function loop(t){time=Math.floor(t/50);render();requestAnimationFrame(loop)}
 
 
+
+function copySeedToClipboard(){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(String(currentSeed)).then(() => {
+      msg('📋 คัดลอกรหัส Seed #' + currentSeed + ' แล้ว! ส่งให้เพื่อนเล่นแมพเดียวกันได้เลย', 'good');
+    }).catch(() => {
+      prompt('คัดลอกรหัส Seed ดันเจี้ยนนี้:', String(currentSeed));
+    });
+  } else {
+    prompt('คัดลอกรหัส Seed ดันเจี้ยนนี้:', String(currentSeed));
+  }
+}
+
 function openStatusModal(){
   let ov = $('statusOv');
   if(!ov){
@@ -3014,7 +3474,10 @@ function openStatusModal(){
   html += '<div><h2 style="font-family:Chakra Petch;color:var(--gold);margin:0;font-size:20px">' + C.name + '</h2>';
   html += '<small class="teal" style="font-size:12px">ระดับ ' + thaiNum(player.lvl) + ' · ประสบการณ์ ' + player.xp + '/' + xpNeed(player.lvl) + '</small></div>';
   html += '</div>';
+  html += '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">';
   html += '<div class="chip gold" style="font-size:11px">◉ ' + player.gold + '</div>';
+  html += '<div style="font-size:10px;color:var(--teal);cursor:pointer" onclick="copySeedToClipboard()">🌱 Seed #' + currentSeed + ' 📋</div>';
+  html += '</div>';
   html += '</div>';
 
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;margin-bottom:12px">';
@@ -3024,7 +3487,7 @@ function openStatusModal(){
   html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">🛡 ป้องกันรวม: <b class="teal">' + totalDef + '</b> <small class="dim">(' + player.def + '+' + (player.arm?player.arm.v:0) + ')</small></div>';
   html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">💨 หลบหลีก: <b style="color:#ffe9a3">' + totalDodge + '%</b></div>';
   html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">🎯 คริติคอล: <b style="color:#f5c542">' + totalCrit + '%</b></div>';
-  html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">✦ ปุญบารมี: <b class="teal">' + player.punya + '</b></div>';
+  html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">✦ ปุญ: <b class="teal">' + player.punya + '</b> · ☠ บาป: <b class="red">' + (player.sin||0) + '</b></div>';
   html += '<div style="background:#1c0a18;padding:6px 8px;border:1px solid var(--line)">☠ สังหาร: <b class="red">' + player.killsTotal + ' ตน</b></div>';
   html += '</div>';
 
@@ -3082,6 +3545,199 @@ function openStatusModal(){
   }
 
   $('btnCloseStatus').onclick = () => hide(ov);
+}
+
+
+/* ── เสาหลักที่ ๔: คัตซีนพิกเซลอาร์ตเปิด-ปิดเรื่อง (Cinematic Pixel Storytelling) ── */
+let cineTimer = null;
+
+function openCinematicModal(){
+  let ov = $('cineOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'cineOv';
+    ov.className = 'ov';
+    ov.style.zIndex = '600';
+    document.body.appendChild(ov);
+  }
+  return ov;
+}
+
+function playCinematicPrologue(onComplete = null){
+  const ov = openCinematicModal();
+  let slide = 0;
+
+  const slides = [
+    {
+      title: 'บทที่ ๑ : มหาสมุทรเกาะลงกา',
+      text: '“กองทัพธรรมยกพลข้ามมหาสมุทร… ก้อนศิลาทอดข้ามมหานทีสู่เกาะลงกา แดนแห่งพญามาร”',
+      draw: (g, w, h) => {
+        // ท้องฟ้าราตรี & ทะเล
+        g.fillStyle = '#06020c'; g.fillRect(0, 0, w, h);
+        g.fillStyle = '#0f1830'; g.fillRect(0, h * 0.5, w, h * 0.5);
+        // ดวงจันทร์เต็มดวง
+        g.fillStyle = '#ffe9a3'; g.beginPath(); g.arc(w * 0.8, h * 0.25, 20, 0, 7); g.fill();
+        // ดาวประกาย
+        g.fillStyle = '#ffffff';
+        for(let i=0; i<25; i++) g.fillRect((i*47)%w, (i*29)%(h*0.45), 1.5, 1.5);
+        // ถนนหินข้ามสมุทร
+        g.fillStyle = '#4a2d18'; g.fillRect(0, h * 0.65, w, 18);
+        g.fillStyle = '#6b4634'; g.fillRect(0, h * 0.65, w, 4);
+        // เงาร่างกองทัพวานร
+        g.fillStyle = '#f5c542';
+        for(let x=20; x<w-20; x+=35){
+          g.fillRect(x, h * 0.58, 8, 12); // ตัว
+          g.fillRect(x+2, h * 0.54, 4, 4);  // หัว
+          g.fillRect(x-2, h * 0.60, 2, 8);  // หาง
+        }
+      }
+    },
+    {
+      title: 'บทที่ ๒ : ทวาราวิหารอสูร',
+      text: '“เบื้องล่างมหานครอันเรืองรอง คือวิหารใต้พิภพ ๒๐ ชั้น สถานที่สถิตแห่งจิตมารและสังสารวัฏ”',
+      draw: (g, w, h) => {
+        // ประตูวิหารหินยักษ์
+        g.fillStyle = '#0d040a'; g.fillRect(0, 0, w, h);
+        g.fillStyle = '#2c1524'; g.fillRect(w * 0.2, h * 0.15, w * 0.6, h * 0.85);
+        g.strokeStyle = '#f5c542'; g.lineWidth = 3; g.strokeRect(w * 0.2, h * 0.15, w * 0.6, h * 0.85);
+        // หน้ากากยักษ์สลักบนประตู
+        g.fillStyle = '#e5482e';
+        g.fillRect(w * 0.38, h * 0.35, 10, 6); g.fillRect(w * 0.58, h * 0.35, 10, 6); // ตาแดง
+        g.fillStyle = '#f4ecdc';
+        g.fillRect(w * 0.42, h * 0.48, 6, 12); g.fillRect(w * 0.54, h * 0.48, 6, 12); // เขี้ยวขาว
+        // คบเพลิงซ้ายขวา
+        g.fillStyle = '#ff8b1f';
+        g.fillRect(w * 0.12, h * 0.45, 6, 10); g.fillRect(w * 0.82, h * 0.45, 6, 10);
+        g.fillStyle = '#ffe9a3';
+        g.fillRect(w * 0.13, h * 0.47, 4, 6); g.fillRect(w * 0.83, h * 0.47, 4, 6);
+      }
+    },
+    {
+      title: 'บทที่ ๓ : ก้าวลงสู่เงามืด',
+      text: '“เจ้าก้าวลงสู่เงามืด… เพื่อสยบทศกัณฐ์ ตัดกิเลสมาร และบรรลุโมกษะธรรม”',
+      draw: (g, w, h) => {
+        // บันไดเวียนลึกสู่ความมืด
+        g.fillStyle = '#060208'; g.fillRect(0, 0, w, h);
+        for(let step=0; step<8; step++){
+          const sy = h * 0.4 + step * 14;
+          const sx = w * 0.3 - step * 10;
+          g.fillStyle = '#3d2418'; g.fillRect(sx, sy, w * 0.6, 10);
+          g.fillStyle = '#54372a'; g.fillRect(sx, sy, w * 0.6, 3);
+        }
+        // เงาร่างผู้กล้าถืออาวุธเรืองแสงสีทอง
+        g.fillStyle = '#f5c542';
+        g.fillRect(w * 0.45, h * 0.28, 12, 18);
+        g.fillRect(w * 0.47, h * 0.20, 8, 8); // หัว
+        // คมดาบเปล่งประกาย
+        g.strokeStyle = '#2ec4a6'; g.lineWidth = 2.5;
+        g.beginPath(); g.moveTo(w * 0.55, h * 0.35); g.lineTo(w * 0.65, h * 0.18); g.stroke();
+      }
+    }
+  ];
+
+  function renderSlide(){
+    const s = slides[slide];
+    let html = '<div class="panel" style="max-width:460px;padding:12px;border-color:var(--gold);box-shadow:0 0 30px rgba(0,0,0,.9);text-align:center">';
+    html += '<canvas id="cineCanvas" width="320" height="180" style="image-rendering:pixelated;width:100%;border:2px solid var(--line);background:#000"></canvas>';
+    html += '<h3 style="font-family:Chakra Petch;color:var(--gold);margin:8px 0 4px;font-size:16px">' + s.title + '</h3>';
+    html += '<p style="color:var(--ink);font-size:13px;line-height:1.5;margin:4px 0 12px;font-style:italic;min-height:40px">' + s.text + '</p>';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center">';
+    html += '<button class="btn ghost" id="btnSkipCine" style="font-size:12px;padding:6px 14px">ข้าม</button>';
+    html += '<button class="btn" id="btnNextCine" style="font-size:13px;padding:8px 20px">' + (slide === slides.length - 1 ? 'เริ่มผจญภัย ▶' : 'ถัดไป ▶') + '</button>';
+    html += '</div></div>';
+
+    ov.innerHTML = html;
+    show(ov);
+
+    const c = $('cineCanvas');
+    if(c){
+      const g = c.getContext('2d');
+      g.imageSmoothingEnabled = false;
+      s.draw(g, 320, 180);
+    }
+
+    $('btnSkipCine').onclick = () => { hide(ov); if(onComplete) onComplete(); };
+    $('btnNextCine').onclick = () => {
+      if(slide < slides.length - 1){
+        slide++;
+        renderSlide();
+      } else {
+        hide(ov);
+        if(onComplete) onComplete();
+      }
+    };
+  }
+
+  renderSlide();
+}
+
+function playEndingCinematic(type, onFinish){
+  const ov = openCinematicModal();
+
+  let html = '<div class="panel" style="max-width:480px;padding:14px;border-color:' + (type==='good'?'var(--teal)':'var(--red)') + ';box-shadow:0 0 34px rgba(0,0,0,.95);text-align:center">';
+  html += '<canvas id="cineEndCanvas" width="320" height="200" style="image-rendering:pixelated;width:100%;border:2px solid var(--line);background:#000"></canvas>';
+
+  if(type === 'good'){
+    html += '<h2 style="font-family:Chakra Petch;color:var(--teal);margin:8px 0 4px;font-size:20px">✦ มหาโมกษะ — แดนทิพย์นิรันดร์</h2>';
+    html += '<p style="color:var(--ink);font-size:13px;line-height:1.55;margin:4px 0 14px;font-style:italic">“ทศกัณฐ์ล่มสลาย เปลวเพลิงมารมอดดับ… แสงธรรมสาดส่องทั่วเกาะลงกา ดวงจิตของเจ้าหลุดพ้นจากสังสารวัฏ เข้าสู่โมกษะอันเป็นบรมสุข”</p>';
+  } else {
+    html += '<h2 style="font-family:Chakra Petch;color:var(--red);margin:8px 0 4px;font-size:20px">☠ กลียุคจ้าวมาร — ผู้สืบทอดบัลลังก์ลงกา</h2>';
+    html += '<p style="color:var(--ink);font-size:13px;line-height:1.55;margin:4px 0 14px;font-style:italic">“ผู้ปราบมัจจุราช บัดนี้กลายเป็นมัจจุราชเสียเอง… เจ้ากลืนกินดวงใจทศกัณฐ์ สวมมงกุฎ ๑๐ หน้า สถาปนาตนเป็นจ้าวมารตนใหม่ผู้ครองเกาะลงกา!”</p>';
+  }
+
+  html += '<button class="btn" id="btnEndComplete" style="width:100%">สู่ทำเนียบวีรชน ▶</button>';
+  html += '</div>';
+
+  ov.innerHTML = html;
+  show(ov);
+
+  const c = $('cineEndCanvas');
+  if(c){
+    const g = c.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    const w = 320, h = 200;
+
+    if(type === 'good'){
+      // ภาพฉากจบโมกษะ: แสงธรรมสีทองสาดส่องลงมาจากฟ้า ดอกบัวทิพย์ ดวงจิตสีขาวลอยขึ้น
+      g.fillStyle = '#0a1a24'; g.fillRect(0, 0, w, h);
+      // ลำแสงสุวรรณ
+      for(let i=0; i<7; i++){
+        g.fillStyle = 'rgba(245, 197, 66, 0.15)';
+        g.beginPath(); g.moveTo(w*0.5, 0); g.lineTo(w*0.1 + i*45, h); g.lineTo(w*0.2 + i*45, h); g.fill();
+      }
+      // ดอกบัวทองคำ
+      g.fillStyle = '#2ec4a6'; g.beginPath(); g.arc(w*0.5, h*0.75, 24, 0, 7); g.fill();
+      g.fillStyle = '#f5c542'; g.beginPath(); g.arc(w*0.5, h*0.75, 14, 0, 7); g.fill();
+      // เงาร่างบริสุทธิ์สีขาวเปล่งรัศมี
+      g.fillStyle = '#ffffff';
+      g.fillRect(w*0.48, h*0.42, 12, 22);
+      g.fillRect(w*0.49, h*0.32, 10, 10);
+      g.fillStyle = '#f5c542'; g.fillRect(w*0.47, h*0.30, 14, 3); // รัศมี
+    } else {
+      // ภาพฉากจบจ้าวมาร: บัลลังก์อสูรสีดำเพลิง มงกุฎ ๑๐ หน้า ตาแดงก่ำ
+      g.fillStyle = '#1c050a'; g.fillRect(0, 0, w, h);
+      // เปลวเพลิงมารลุกท่วม
+      for(let f=0; f<10; f++){
+        g.fillStyle = 'rgba(212, 61, 42, 0.25)';
+        g.beginPath(); g.moveTo(f*35, h); g.lineTo(f*35+18, h*0.35); g.lineTo(f*35+35, h); g.fill();
+      }
+      // บัลลังก์ทองทมิฬ
+      g.fillStyle = '#7a4a22'; g.fillRect(w*0.3, h*0.45, w*0.4, h*0.55);
+      g.fillStyle = '#4a1523'; g.fillRect(w*0.35, h*0.35, w*0.3, h*0.65);
+      // พญายักษ์ ๑๐ หน้าสวมมงกุฎ
+      g.fillStyle = '#14080f'; g.fillRect(w*0.44, h*0.42, 38, 48); // ตัว
+      g.fillStyle = '#f5c542';
+      for(let hd=0; hd<5; hd++) g.fillRect(w*0.40 + hd*9, h*0.30, 7, 12); // หน้าเรียง
+      // ดวงตาสีแดงเพลิง
+      g.fillStyle = '#ff2200';
+      for(let hd=0; hd<5; hd++) { g.fillRect(w*0.41 + hd*9, h*0.35, 2, 2); g.fillRect(w*0.44 + hd*9, h*0.35, 2, 2); }
+    }
+  }
+
+  $('btnEndComplete').onclick = () => {
+    hide(ov);
+    if(onFinish) onFinish();
+  };
 }
 
 /* ── UI helpers ── */
@@ -3183,6 +3839,7 @@ function renderInv(){
   if(player.wpn && player.wpn.afDesc) equipHtml += '<div style="color:' + (player.wpn.afColor||'#ff8b1f') + '">✦ อาวุธ: ' + player.wpn.afDesc + '</div>';
   if(player.arm && player.arm.afDesc) equipHtml += '<div style="color:' + (player.arm.afColor||'#2ec4a6') + '">✦ เกราะ: ' + player.arm.afDesc + '</div>';
   if(player.relic) equipHtml += '<div style="color:#f5c542">' + (player.relic.icon||'📿') + ' <b>เครื่องราง: ' + player.relic.name + '</b> — ' + player.relic.desc + '</div>';
+  if(player.vow) equipHtml += '<div style="color:#ffe9a3;background:#24190c;padding:4px 6px;margin-top:4px;border:1px dashed var(--gold)">📿 <b>ถือสัจจะ: ' + player.vow.name + '</b> (ถึงชั้น ' + thaiNum(player.vow.endFloor) + ')</div>';
   else equipHtml += '<div class="dim" style="font-size:12px">📿 เครื่องราง: ยังไม่ได้สวมใส่</div>';
   equipHtml += '</div>';
 
@@ -3313,7 +3970,20 @@ function setupInput(){
     else if(e.key==='Escape')hideAll();
   });
   /* ปุ่มเมนู / โอเวอร์เลย์ */
-  $('btnNew').onclick=()=>{initAudio();hide($('title'));show($('classSel'));};
+  $('btnNew').onclick=()=>{
+    initAudio();
+    const hasPlayed = localStorage.getItem('lanka_seen_intro');
+    if(!hasPlayed){
+      localStorage.setItem('lanka_seen_intro', '1');
+      playCinematicPrologue(() => {
+        hide($('title'));
+        show($('classSel'));
+      });
+    } else {
+      hide($('title'));
+      show($('classSel'));
+    }
+  };
   $('btnContinue').onclick=()=>{
     initAudio();
     if(loadGame()){
@@ -3347,7 +4017,48 @@ function setupInput(){
     btnAch.className = 'btn ghost';
     btnAch.style.color = 'var(--gold)';
     btnAch.innerHTML = '🏆 ทำเนียบเกียรติยศ (Achievements)';
-    $('titleMenu').insertBefore(btnAch, $('btnRecords'));
+    
+  let btnDaily = $('btnDaily');
+  if(!btnDaily){
+    btnDaily = document.createElement('button');
+    btnDaily.id = 'btnDaily';
+    btnDaily.className = 'btn ghost';
+    btnDaily.style.color = '#ff8b1f';
+    btnDaily.style.borderColor = '#ff8b1f';
+    btnDaily.innerHTML = '📅 วิถีแห่งกรรมประจำวัน (Daily Run)';
+    $('titleMenu').insertBefore(btnDaily, $('btnKarma'));
+  }
+  btnDaily.onclick = () => {
+    isDailyRun = true;
+    currentSeed = getDailySeed();
+    initAudio();
+    hide($('title'));
+    show($('classSel'));
+  };
+
+  let btnCustomSeed = $('btnCustomSeed');
+  if(!btnCustomSeed){
+    btnCustomSeed = document.createElement('button');
+    btnCustomSeed.id = 'btnCustomSeed';
+    btnCustomSeed.className = 'btn ghost';
+    btnCustomSeed.style.fontSize = '13px';
+    btnCustomSeed.innerHTML = '🌱 กำหนดรหัส Seed ของเพื่อน';
+    $('titleMenu').insertBefore(btnCustomSeed, $('btnKarma'));
+  }
+  btnCustomSeed.onclick = openCustomSeedPrompt;
+
+  let btnIntro = $('btnIntro');
+  if(!btnIntro){
+    btnIntro = document.createElement('button');
+    btnIntro.id = 'btnIntro';
+    btnIntro.className = 'btn ghost';
+    btnIntro.style.fontSize = '13px';
+    btnIntro.innerHTML = '🎬 ชมบทนำเปิดเรื่อง (Prologue)';
+    $('titleMenu').insertBefore(btnIntro, $('btnRecords'));
+  }
+  btnIntro.onclick = () => playCinematicPrologue();
+
+  $('titleMenu').insertBefore(btnAch, $('btnRecords'));
   }
   btnAch.onclick = openAchModal;
 
