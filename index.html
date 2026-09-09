@@ -179,7 +179,7 @@
 (function() {
   if (!('serviceWorker' in navigator)) return;
 
-  navigator.serviceWorker.register('/sw.js?v=__BUILD_VERSION__', {
+  navigator.serviceWorker.register('sw.js', {
     updateViaCache: 'none'
   }).then(function(reg) {
     
