@@ -8,7 +8,7 @@
 'use strict';
 /* ── พื้นฐาน ── */
 const $=id=>document.getElementById(id);
-const W=42,H=32,VW=20,VH=15,T=16,FINAL=20,SAVE_KEY='lanka_save_v1',HALL_KEY='lanka_hall_v1',KARMA_KEY='lanka_karma_v1',SKEL_KEY='lanka_skeleton_v1';
+const W=42,H=32,VW=20,VH=15,T=16,FINAL=20,SAVE_KEY='lanka_save_v1',HALL_KEY='lanka_hall_v1',KARMA_KEY='lanka_karma_v1',SKEL_KEY='lanka_skeleton_v1',ACH_KEY='lanka_ach_v1',CODEX_KEY='lanka_codex_v1',SETTINGS_KEY='lanka_settings_v1';
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
   t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 let rng=Math.random, floorR=Math.random;
@@ -795,6 +795,320 @@ function buyKarmaUp(key, cost){
   openKarmaModal();
 }
 
+
+/* ── ระบบเหรียญตราความสำเร็จ (Achievements) ── */
+const ACHIEVEMENTS = [
+  // ง่าย (Bronze)
+  { id: 'first_step', t: 'ก้าวแรกสู่ลงกา', d: 'พิชิตผ่านชั้น ๑ สำเร็จ', tier: 'bronze', icon: '👣' },
+  { id: 'hook_secret', t: 'ผู้สอยความลับ', d: 'สอยสมบัติออกจากซอกกำแพงสำเร็จ ๑ ครั้ง', tier: 'bronze', icon: '🪝' },
+  { id: 'first_blood', t: 'โลหิตแรก', d: 'สังหารมอนสเตอร์ตัวแรกในวิหาร', tier: 'bronze', icon: '🗡️' },
+  { id: 'rest_peace', t: 'สำรวมจิต', d: 'สำรวมลมปราณพักผ่อนฟื้นฟูมานา', tier: 'bronze', icon: '🧘' },
+  { id: 'gold_pocket', t: 'เหรียญแรกเริ่ม', d: 'สะสมเหรียญทองครบ ๑๐๐ ◉', tier: 'bronze', icon: '💰' },
+
+  // ปานกลาง (Silver)
+  { id: 'boss_khara', t: 'ทัพหน้าแตกพ่าย', d: 'ปราบพญาขรที่ชั้น ๕ สำเร็จ', tier: 'silver', icon: '👹' },
+  { id: 'boss_maricha', t: 'มารจำแลงสิ้นท่า', d: 'ปราบมารีศที่ชั้น ๑๐ สำเร็จ', tier: 'silver', icon: '🦌' },
+  { id: 'mage_master', t: 'จอมขมังเวท', d: 'สังหารศัตรูด้วยคาถาอาคมสะสมครบ ๑๐ ครั้ง', tier: 'silver', icon: '✹' },
+  { id: 'relic_equip', t: 'เครื่องรางคู่กาย', d: 'สวมใส่เครื่องรางเทวะ ๑ ชิ้น', tier: 'silver', icon: '📿' },
+  { id: 'upgrade_plus', t: 'ศัสตราคมกล้า', d: 'ตีบวกอาวุธด้วยคัมภีร์ประสิทธิ์ประสาท', tier: 'silver', icon: '📜' },
+  { id: 'talent_unlocked', t: 'บรรลุวิชา', d: 'สำเร็จวิชาพรสวรรค์เลเวล ๕', tier: 'silver', icon: '✨' },
+
+  // ยาก (Gold)
+  { id: 'boss_kumbha', t: 'ยักษ์หลับลืมตา', d: 'ปราบกุมภกรรณที่ชั้น ๑๕ สำเร็จ', tier: 'gold', icon: '🗿' },
+  { id: 'victory_moksha', t: 'ผู้บรรลุโมกษะ', d: 'ปราบทศกัณฐ์ชั้น ๒๐ และหลุดพ้นจากสังสารวัฏ', tier: 'gold', icon: '🪷' },
+  { id: 'revive_ankh', t: 'ปาฏิหาริย์คืนชีพ', d: 'ฟื้นคืนชีพจากความตายด้วยมณีโมกษะ', tier: 'gold', icon: '💎' },
+  { id: 'slayer_50', t: 'นักล่าอสูร', d: 'สังหารศัตรูสะสมครบ ๕๐ ตนในการเล่นรอบเดียว', tier: 'gold', icon: '⚔️' },
+  { id: 'affix_full', t: 'พลังแฝงคู่บุญ', d: 'สวมใส่อาวุธและเกราะที่มีพลังแฝงพร้อมกัน', tier: 'gold', icon: '🛡️' },
+
+  // ขั้นเทพ / อเวจี (Platinum / Mythic)
+  { id: 'abyss_conqueror', t: 'ผู้เหยียบย่ำอเวจี', d: 'ก้าวลงสู่ชั้น ๒๕ ในโหมดอเวจีไม่สิ้นสุด', tier: 'platinum', icon: '☠️' },
+  { id: 'abyss_deep', t: 'ผู้ไร้ที่สิ้นสุด', d: 'พิชิตลึกถึงชั้น ๓๐ ในโหมดอเวจี', tier: 'platinum', icon: '👑' },
+  { id: 'slayer_100', t: 'สังหารมารนับร้อย', d: 'สังหารศัตรูสะสมครบ ๑๐๐ ตนในการเล่นรอบเดียว', tier: 'platinum', icon: '🔥' },
+  { id: 'rich_man', t: 'คลังทองอสูร', d: 'สะสมเหรียญทองครบ ๕๐๐ ◉ ในการเล่นรอบเดียว', tier: 'platinum', icon: '🏆' }
+];
+
+const TIER_COLORS = {
+  bronze: '#cd7f32',
+  silver: '#c0c0c0',
+  gold: '#f5c542',
+  platinum: '#2ec4a6'
+};
+
+function getAchData(){
+  try { return JSON.parse(localStorage.getItem(ACH_KEY)) || {}; } catch(e){ return {}; }
+}
+
+function unlockAch(id){
+  const achs = getAchData();
+  if(achs[id]) return; // ปลดล็อกไปแล้ว
+  const item = ACHIEVEMENTS.find(a => a.id === id);
+  if(!item) return;
+  achs[id] = Date.now();
+  try { localStorage.setItem(ACH_KEY, JSON.stringify(achs)); } catch(e){}
+
+  // แจ้งเตือนแบนเนอร์สีทองเด้งขึ้นมาบนจอ
+  showAchBanner(item);
+  triggerHaptic('level');
+}
+
+function showAchBanner(a){
+  let banner = $('achBanner');
+  if(!banner){
+    banner = document.createElement('div');
+    banner.id = 'achBanner';
+    banner.style.position = 'fixed';
+    banner.style.top = '12px';
+    banner.style.left = '50%';
+    banner.style.transform = 'translateX(-50%)';
+    banner.style.background = 'linear-gradient(135deg, #2a1220, #140810)';
+    banner.style.border = '2px solid var(--gold)';
+    banner.style.boxShadow = '0 0 20px rgba(245,197,66,.5), 0 4px 12px #000';
+    banner.style.padding = '8px 16px';
+    banner.style.borderRadius = '4px';
+    banner.style.zIndex = '500';
+    banner.style.display = 'flex';
+    banner.style.alignItems = 'center';
+    banner.style.gap = '10px';
+    banner.style.transition = 'opacity .5s, transform .5s';
+    banner.style.pointerEvents = 'none';
+    document.body.appendChild(banner);
+  }
+
+  banner.innerHTML = '<span style="font-size:24px">' + a.icon + '</span>' +
+    '<div style="text-align:left"><div style="font-size:10.5px;color:var(--gold);font-weight:700;letter-spacing:1px">🏆 ปลดล็อกความสำเร็จ!</div>' +
+    '<div style="font-family:Chakra Petch;color:#fff;font-size:14px;font-weight:700">' + a.t + '</div>' +
+    '<div style="font-size:11px;color:var(--dim)">' + a.d + '</div></div>';
+
+  banner.style.opacity = '1';
+  banner.style.transform = 'translateX(-50%) translateY(0)';
+  sfx.level();
+
+  setTimeout(() => {
+    banner.style.opacity = '0';
+    banner.style.transform = 'translateX(-50%) translateY(-20px)';
+  }, 4500);
+}
+
+function openAchModal(){
+  let ov = $('achOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'achOv';
+    ov.className = 'ov';
+    ov.style.zIndex = '360';
+    document.body.appendChild(ov);
+  }
+
+  const userAchs = getAchData();
+  const unlockedCount = Object.keys(userAchs).length;
+  const pct = Math.floor((unlockedCount / ACHIEVEMENTS.length) * 100);
+
+  let html = '<div class="panel" style="max-width:440px;border-color:var(--gold);box-shadow:0 0 24px rgba(245,197,66,.4);text-align:center">';
+  html += '<div class="deva">सिद्धि</div>';
+  html += '<h2 style="font-family:Chakra Petch;color:var(--gold);margin:2px 0 4px;font-size:22px">🏆 ทำเนียบเกียรติยศ (Achievements)</h2>';
+  html += '<p class="dim" style="font-size:12.5px;margin:0 0 8px">ปลดล็อกแล้ว <b>' + unlockedCount + '/' + ACHIEVEMENTS.length + '</b> ตรา (' + pct + '%)</p>';
+  html += '<div style="width:100%;height:8px;background:#150914;border:1px solid var(--line);margin-bottom:14px;border-radius:4px;overflow:hidden"><div style="height:100%;background:linear-gradient(90deg,var(--teal),var(--gold));width:' + pct + '%"></div></div>';
+
+  html += '<div style="display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow-y:auto;text-align:left;padding-right:4px;margin-bottom:12px">';
+  ACHIEVEMENTS.forEach(a => {
+    const isUnlocked = !!userAchs[a.id];
+    const col = TIER_COLORS[a.tier] || '#fff';
+    html += '<div class="row" style="background:#1b0c19;padding:6px 10px;border:1px solid ' + (isUnlocked ? col : '#3d1b28') + ';opacity:' + (isUnlocked ? '1' : '0.5') + '">';
+    html += '<div style="display:flex;align-items:center;gap:10px">';
+    html += '<span style="font-size:22px;filter:' + (isUnlocked ? 'none' : 'grayscale(1)') + '">' + a.icon + '</span>';
+    html += '<div><b style="color:' + (isUnlocked ? col : 'var(--dim)') + ';font-size:13.5px;font-family:Chakra Petch">' + (isUnlocked ? a.t : '???') + '</b>';
+    html += '<div style="font-size:11.5px;color:var(--dim)">' + a.d + '</div></div>';
+    html += '</div>';
+    html += isUnlocked ? '<span style="color:' + col + ';font-size:11px;font-weight:700">✓ สำเร็จ</span>' : '<span class="dim" style="font-size:11px">🔒</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  html += '<button class="btn ghost" id="btnCloseAch" style="width:100%">ปิด</button>';
+  html += '</div>';
+
+  ov.innerHTML = html;
+  show(ov);
+  $('btnCloseAch').onclick = () => hide(ov);
+}
+
+/* ── ระบบสารานุกรมลงกา (Lanka Codex & Bestiary) ── */
+function getCodexData(){
+  try {
+    return JSON.parse(localStorage.getItem(CODEX_KEY)) || { foes: {}, items: {} };
+  } catch(e){ return { foes: {}, items: {} }; }
+}
+
+function discoverFoe(foeId){
+  const cd = getCodexData();
+  cd.foes[foeId] = (cd.foes[foeId] || 0) + 1;
+  try { localStorage.setItem(CODEX_KEY, JSON.stringify(cd)); } catch(e){}
+}
+
+function discoverItem(name){
+  const cd = getCodexData();
+  cd.items[name] = true;
+  try { localStorage.setItem(CODEX_KEY, JSON.stringify(cd)); } catch(e){}
+}
+
+const BESTIARY_DATA = [
+  { id: 'preta', name: 'เปรต', s: 'preta', desc: 'วิญญาณบาปทนทุกข์ ลำตัวโปร่งแสง มีไอหมอกลอยละล่อง เดินเงียบกริบในเงามืด', tip: 'เลือดน้อยแต่โจมตีไว อย่าปล่อยให้รุม' },
+  { id: 'asura', name: 'อสุรกาย', s: 'asura', desc: 'มารอสูรสีแดงเพลิง เขี้ยวโง้ง ลำตัวหนาแน่นบึกบึน ดวงตาดุร้ายกระหายเลือด', tip: 'พลังโจมตีสูง ควรล่อเข้าซอกแคบหรือใช้หอกยาวแทง' },
+  { id: 'naga', name: 'นาคพิษ', s: 'naga', desc: 'พญางูใหญ่สีมรกต แผ่พังพานสง่างาม พ่นควันพิษร้ายแรงได้จากระยะ ๕ ช่อง', tip: 'อันตรายระยะไกล! ใช้อาวุธขว้างปาสังหาร หรือถือสังวาลย์นาคราช' },
+  { id: 'rakshasa', name: 'รากษส', s: 'rakshasa', desc: 'ยักษ์อสูรสีม่วงทมิฬ สวมหน้ากากเขี้ยวขาวโง้ง เกราะกระดูกแข็งแกร่ง', tip: 'พลังป้องกันสูงมาก ใช้อาวุธมีดคริติคอลหรือกระบองเจาะเกราะ' },
+  { id: 'yaksha', name: 'ยักษ์ทวารบาล', s: 'yaksha', desc: 'ยักษ์ใหญ่สีเขียวมรกต ผู้พิทักษ์ประตูวิหาร ถือกระบองเหล็กยักษ์คู่กาย', tip: 'ทนทาน เลือดเยอะ ดาเมจทุบสะเทือน อย่าปะทะแลกหมัดตรงๆ' },
+  { id: 'boss_5', name: 'พญาขร (บอสชั้น ๕)', s: 'rakshasa', desc: 'นายทัพหน้าแห่งลงกา น้องชายทศกัณฐ์ ผู้มีฤทธาฟาดฟันศัตรูไม่หวั่นเกรง', tip: 'ระวังการจู่โจมคริติคอล พยายามใช้คาถาอมฤตหล่อเลี้ยงเลือด' },
+  { id: 'boss_10', name: 'มารีศ (บอสชั้น ๑๐)', s: 'asura', desc: 'อสูรผู้เชี่ยวชาญการจำแลงแปลงกายเป็นกวางทอง ล่อลวงผู้กล้าสู่ความตาย', tip: 'เคลื่อนไหวว่องไว ควรใช้คาถาวายุหรือกระบองหนักทุบกระเด็น' },
+  { id: 'boss_15', name: 'กุมภกรรณ (บอสชั้น ๑๕)', s: 'yaksha', desc: 'พญายักษ์ผู้ถือหอกโมกขศักดิ์ ยามตื่นจากบรรทมจะมีพละกำลังมหาศาลดุจภูผา', tip: 'เกราะหนาและโจมตีระยะ ๒ ช่อง ให้ใช้คาถาวัชระสายฟ้าโจมตีทะลวงเกราะ' },
+  { id: 'boss_20', name: 'ทศกัณฐ์ (บอสใหญ่ชั้น ๒๐)', s: 'boss', desc: 'พญายักษ์ ๑๐ หน้า ๒๐ กร จ้าวแห่งกรุงลงกา ผู้ครอบครองฤทธาไร้เทียมทาน', tip: 'บอสใหญ่สุดแกร่ง ต้องเตรียมยาอมฤต อาวุธตีบวก และเครื่องรางมณีโมกษะให้พร้อม!' }
+];
+
+function openCodexModal(){
+  let ov = $('codexOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'codexOv';
+    ov.className = 'ov';
+    ov.style.zIndex = '360';
+    document.body.appendChild(ov);
+  }
+
+  const cd = getCodexData();
+
+  let html = '<div class="panel" style="max-width:440px;border-color:var(--teal);box-shadow:0 0 24px rgba(46,196,166,.35);text-align:center">';
+  html += '<div class="deva">शास्त्र</div>';
+  html += '<h2 style="font-family:Chakra Petch;color:var(--teal);margin:2px 0 4px;font-size:22px">📖 สารานุกรมอสูรและศาสตราวุธ</h2>';
+  html += '<p class="dim" style="font-size:12.5px;margin:0 0 12px">บันทึกข้อมูลอสูรและของวิเศษที่ค้นพบในวิหารลงกา</p>';
+
+  html += '<div style="display:flex;flex-direction:column;gap:8px;max-height:55vh;overflow-y:auto;text-align:left;padding-right:4px;margin-bottom:12px">';
+  BESTIARY_DATA.forEach(m => {
+    const kills = cd.foes[m.id] || (cd.foes[m.id.replace('boss_','')] || 0);
+    const seen = kills > 0 || (floor >= 5 && m.id === 'preta');
+
+    html += '<div class="row" style="background:#140a16;padding:8px;border:1px solid var(--line);align-items:flex-start">';
+    html += '<div style="display:flex;gap:10px">';
+    html += '<canvas id="codex_' + m.id + '" width="36" height="36" style="image-rendering:pixelated;background:#1b0e1d;border:2px solid var(--line);flex-shrink:0"></canvas>';
+    html += '<div>';
+    html += '<b style="color:' + (seen ? 'var(--gold)' : 'var(--dim)') + ';font-size:14px;font-family:Chakra Petch">' + (seen ? m.name : '??? (ยังไม่เคยพบเจอ)') + '</b>';
+    if(seen){
+      html += '<div style="font-size:11.5px;color:var(--ink);margin:3px 0">' + m.desc + '</div>';
+      html += '<div style="font-size:11px;color:var(--teal)">💡 <b>จุดแก้ทาง:</b> ' + m.tip + '</div>';
+      html += '<div class="dim" style="font-size:10.5px;margin-top:2px">ยอดสังหารสะสม: ' + thaiNum(kills) + ' ตน</div>';
+    } else {
+      html += '<div class="dim" style="font-size:11px;margin-top:4px">เดินทางลึกเข้าไปในวิหารเพื่อค้นพบอสูรตนนี้…</div>';
+    }
+    html += '</div></div></div>';
+  });
+  html += '</div>';
+
+  html += '<button class="btn ghost" id="btnCloseCodex" style="width:100%">ปิด</button>';
+  html += '</div>';
+
+  ov.innerHTML = html;
+  show(ov);
+
+  // วาดสไปรต์ในสารานุกรม
+  BESTIARY_DATA.forEach(m => {
+    const scv = $('codex_' + m.id);
+    if(scv){
+      const sg = scv.getContext('2d');
+      sg.imageSmoothingEnabled = false;
+      const kills = cd.foes[m.id] || (cd.foes[m.id.replace('boss_','')] || 0);
+      const seen = kills > 0 || (floor >= 5 && m.id === 'preta');
+      const img = SPR[m.s];
+      if(img){
+        if(!seen) sg.filter = 'brightness(0)';
+        sg.drawImage(img, 0, 0, img.width, img.height, 2, 2, 32, 32);
+      }
+    }
+  });
+
+  $('btnCloseCodex').onclick = () => hide(ov);
+}
+
+/* ── ระบบตั้งค่า (Settings & Haptics) ── */
+function getSettings(){
+  try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || { sfx: true, bgm: true, haptic: true, crt: true }; }
+  catch(e){ return { sfx: true, bgm: true, haptic: true, crt: true }; }
+}
+
+function saveSettings(s){
+  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); } catch(e){}
+}
+
+function triggerHaptic(type){
+  const st = getSettings();
+  if(!st.haptic || !navigator.vibrate) return;
+  try {
+    if(type === 'crit') navigator.vibrate(45);
+    else if(type === 'hurt') navigator.vibrate([60, 30, 60]);
+    else if(type === 'trap') navigator.vibrate(85);
+    else if(type === 'level') navigator.vibrate([40, 40, 90]);
+  } catch(e){}
+}
+
+function openSettingsModal(){
+  let ov = $('settingsOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'settingsOv';
+    ov.className = 'ov';
+    ov.style.zIndex = '370';
+    document.body.appendChild(ov);
+  }
+
+  const st = getSettings();
+
+  let html = '<div class="panel" style="max-width:380px;border-color:var(--gold);text-align:center">';
+  html += '<h2 style="font-family:Chakra Petch;color:var(--gold);margin:2px 0 10px;font-size:22px">⚙️ ตั้งค่าเกม (Settings)</h2>';
+
+  html += '<div style="display:flex;flex-direction:column;gap:8px;text-align:left;margin-bottom:14px;font-size:13.5px">';
+  
+  html += '<div class="row"><span>🔊 เสียงเอฟเฟกต์ (SFX)</span>';
+  html += '<button class="mini-btn" id="togSfx">' + (soundOn ? 'เปิด' : 'ปิด') + '</button></div>';
+
+  html += '<div class="row"><span>🎶 ดนตรีบรรยากาศ (BGM)</span>';
+  html += '<button class="mini-btn" id="togBgm">' + (st.bgm ? 'เปิด' : 'ปิด') + '</button></div>';
+
+  html += '<div class="row"><span>📳 สั่นตอบสนอง (Haptics)</span>';
+  html += '<button class="mini-btn" id="togHap">' + (st.haptic ? 'เปิด' : 'ปิด') + '</button></div>';
+
+  html += '<div class="row"><span>📺 เส้นสแกนเรโทร CRT</span>';
+  html += '<button class="mini-btn" id="togCrt">' + (st.crt ? 'เปิด' : 'ปิด') + '</button></div>';
+
+  html += '</div>';
+
+  html += '<button class="btn" id="btnCloseSettings" style="width:100%">เสร็จสิ้น</button>';
+  html += '</div>';
+
+  ov.innerHTML = html;
+  show(ov);
+
+  $('togSfx').onclick = () => { toggleSound(); $('togSfx').textContent = soundOn ? 'เปิด' : 'ปิด'; };
+  $('togBgm').onclick = () => {
+    st.bgm = !st.bgm; saveSettings(st);
+    $('togBgm').textContent = st.bgm ? 'เปิด' : 'ปิด';
+    if(droneNodes) droneNodes.g.gain.value = st.bgm ? 0.028 : 0;
+  };
+  $('togHap').onclick = () => {
+    st.haptic = !st.haptic; saveSettings(st);
+    $('togHap').textContent = st.haptic ? 'เปิด' : 'ปิด';
+    if(st.haptic) triggerHaptic('crit');
+  };
+  $('togCrt').onclick = () => {
+    st.crt = !st.crt; saveSettings(st);
+    $('togCrt').textContent = st.crt ? 'เปิด' : 'ปิด';
+    const appEl = $('app');
+    if(appEl){
+      // Toggle scanline overlay
+      if(st.crt) appEl.classList.remove('no-crt');
+      else appEl.classList.add('no-crt');
+    }
+  };
+
+  $('btnCloseSettings').onclick = () => hide(ov);
+}
+
 /* ── สร้างดันเจี้ยน ── */
 function genFloor(fl){
   floor=fl;floorR=mulberry32((seed^(fl*2654435761))>>>0);
@@ -1103,7 +1417,7 @@ function triggerTrap(tr){
     player.poison = 0; player.burn = 0;
     flash = 0.8; sfx.level();
     floats.push({x:player.x, y:player.y, t:'✦ ชุบชีวิต!', c:'#f5c542', life:2});
-    msg('💎 มณีโมกษะเปล่งประกายเจิดจ้าแล้วแตกสลาย — วิญญาณของเจ้าหวนคืนชีพ!', 'good');
+    msg('💎 มณีโมกษะเปล่งประกายเจิดจ้าแล้วแตกสลาย — วิญญาณของเจ้าหวนคืนชีพ!', 'good'); unlockAch('revive_ankh');
     updateHud();
     return;
   }
@@ -1132,8 +1446,7 @@ function tryMove(dx,dy){
         items.splice(wallItemIdx, 1);
         items.push({ x: player.x, y: player.y, ...it });
         triggerSlash(nx, ny, '#f5c542');
-        sfx.pick();
-        shake = 4;
+        sfx.pick(); shake = 4; unlockAch('hook_secret');
         if(hasSpear){
           msg('🔱 เจ้าใช้ปลาย «' + player.wpn.name + '» สอยเกี่ยว «' + it.name + '» ออกมาจากซอกกำแพง!', 'good');
         } else if(hasMace){
@@ -1211,6 +1524,7 @@ function tryMove(dx,dy){
 }
 function waitTurn(){
   if(state!=='play')return;
+  unlockAch('rest_peace');
   player.mp=Math.min(player.mmp,player.mp+1);
   if(player.talents.some(t => t.id === 'r_rest')){
     player.hp = Math.min(player.mhp, player.hp + 3);
@@ -1246,6 +1560,7 @@ function attackFoe(e, dirX=0, dirY=0){
   }
 
   // เอฟเฟกต์พิเศษของอาวุธ
+  if(player.wpn && player.wpn.affix && player.arm && player.arm.affix) unlockAch('affix_full');
   if(wpn.affix === 'flame'){
     e.burn = (e.burn || 0) + 3;
     slashColor = '#ff8b1f';
@@ -1269,7 +1584,7 @@ function attackFoe(e, dirX=0, dirY=0){
 
   triggerSlash(e.x, e.y, slashColor);
   floats.push({x:e.x, y:e.y, t:'-'+d, c:crit?'#f5c542':'#ffffff', life:1});
-  shake = crit ? 8 : 4; sfx.hit();
+  shake = crit ? 8 : 4; sfx.hit(); triggerHaptic(crit ? 'crit' : 'crit');
 
   // กลไกมีดสั้น: มีโอกาส 45% ฟันเบิ้ล ๒ ครั้งติด (Double Strike)
   if(wpn.type === 'dagger' && e.hp > 0 && rng() < 0.45){
@@ -1321,7 +1636,11 @@ function attackFoe(e, dirX=0, dirY=0){
 }
 function killFoe(e){
   floats.push({x:e.x,y:e.y,t:'✝',c:'#ff8b1f',life:1});
-  player.xp+=e.xp;player.killsTotal++;kills[e.id]=(kills[e.id]||0)+1;
+  player.xp+=e.xp;player.killsTotal++;
+  unlockAch('first_blood');
+  if(player.killsTotal >= 50) unlockAch('slayer_50');
+  if(player.killsTotal >= 100) unlockAch('slayer_100');
+  discoverFoe(e.id);kills[e.id]=(kills[e.id]||0)+1;
   const g = (e.g && !isNaN(e.g)) ? e.g + R(Math.max(1, e.g)) : 8;
   if(player.relic && player.relic.id === 'diamond_ring') g = Math.floor(g * 1.5);
   player.gold = (!isNaN(player.gold) ? player.gold : 0) + g;
@@ -1340,6 +1659,10 @@ function killFoe(e){
 
   enemies=enemies.filter(o=>o!==e);
   if(e.boss){
+    if(floor === 5) unlockAch('boss_khara');
+    if(floor === 10) unlockAch('boss_maricha');
+    if(floor === 15) unlockAch('boss_kumbha');
+    if(floor === 20) unlockAch('victory_moksha');
     if(floor===FINAL && !endless){victory();return;}
     stairs.locked=false;sfx.stairs();
     msg('ผนึกบันไดสลายแล้ว! ทางลงเปิดออก…','good');
@@ -1406,7 +1729,7 @@ function hurtPlayer(d,src,attacker=null){
     d -= absorb;
     floats.push({x:player.x, y:player.y, t:'ม่านมนตร์ -' + absorb + ' MP', c:'#6fe0cd', life:1});
   }
-  player.hp -= d; flash = .4; shake = 6; sfx.hurt();
+  player.hp -= d; flash = .4; shake = 6; sfx.hurt(); triggerHaptic('hurt');
   triggerSlash(player.x, player.y, '#e5482e');
   floats.push({x:player.x, y:player.y, t:'-'+d, c:'#ff5a4d', life:1});
   msg(src+'ทำร้ายเจ้า -'+d, 'warn');
@@ -1429,7 +1752,7 @@ function hurtPlayer(d,src,attacker=null){
     player.poison = 0; player.burn = 0;
     flash = 0.8; sfx.level();
     floats.push({x:player.x, y:player.y, t:'✦ ชุบชีวิต!', c:'#f5c542', life:2});
-    msg('💎 มณีโมกษะเปล่งประกายเจิดจ้าแล้วแตกสลาย — วิญญาณของเจ้าหวนคืนชีพ!', 'good');
+    msg('💎 มณีโมกษะเปล่งประกายเจิดจ้าแล้วแตกสลาย — วิญญาณของเจ้าหวนคืนชีพ!', 'good'); unlockAch('revive_ankh');
     updateHud();
     return;
   }
@@ -1542,7 +1865,7 @@ function pickup(gi){
   }
   if(it.t==='gold'){player.gold+=it.amt;msg('เก็บเหรียญกษาปณ์ +'+it.amt);sfx.gold();return;}
   if(player.inv.length>=10){msg('ถุงผ้าเต็ม! ของถูกทิ้งไว้…','warn');items.push(it);return;}
-  player.inv.push(it);sfx.pick();
+  player.inv.push(it);sfx.pick(); discoverItem(it.baseName || it.name);
   msg('เก็บ «'+it.name+'»'+statTxt(it));
 }
 function statTxt(it){
@@ -1603,7 +1926,7 @@ function useItem(i){
   }
   else if(it.t==='relic'){
     const oldRelic = player.relic;
-    player.relic = it;
+    player.relic = it; unlockAch('relic_equip');
     player.inv.splice(i, 1);
     if(oldRelic) player.inv.push(oldRelic);
     msg('สวมใส่เครื่องราง «' + it.name + '» ' + it.desc, 'good');
@@ -1643,7 +1966,7 @@ function useItem(i){
     player.wpn.name = player.wpn.baseName + ' +' + thaiNum(player.wpn.plus) + (player.wpn.afName ? ' [' + player.wpn.afName + ']' : '');
     player.inv.splice(i, 1);
     sfx.level(); flash = 0.5;
-    floats.push({x:player.x, y:player.y, t:'อัปเกรด +๑!', c:'#f5c542', life:1.6});
+    floats.push({x:player.x, y:player.y, t:'อัปเกรด +๑!', c:'#f5c542', life:1.6}); unlockAch('upgrade_plus');
     msg('✦ คัมภีร์ประสิทธิ์ประสาท! «' + player.wpn.name + '» พลังโจมตีเพิ่มขึ้นเป็น ' + player.wpn.v + ' อย่างถาวร!', 'good');
   }
   else if(it.t==='scr'){
@@ -1670,6 +1993,8 @@ function castMantra(key){
     floats.push({x:t.x,y:t.y,t:'-'+d,c:key==='agni'?'#ff8b1f':'#f5c542',life:1});
     msg((key==='agni'?'✹ เปลวเพลิง':'⌁ สายฟ้าพระอินทร์')+'สังหาร'+t.name+' -'+d);
     if(t.hp<=0){
+      player.spellKills = (player.spellKills || 0) + 1;
+      if(player.spellKills >= 10) unlockAch('mage_master');
       if(player.talents.some(tal => tal.id === 'b_drain')){
         player.mp = Math.min(player.mmp, player.mp + 5);
         floats.push({x:player.x, y:player.y, t:'+๕ MP', c:'#6fe0cd', life:1});
@@ -1794,6 +2119,9 @@ function pray(free){
   updateHud();endTurn();
 }
 function descend(){
+  unlockAch('first_step');
+  if(floor+1 >= 25) unlockAch('abyss_conqueror');
+  if(floor+1 >= 30) unlockAch('abyss_deep');
   hide($('stairsOv'));sfx.stairs();
   if(floor>=FINAL && !endless){victory();return;}
   genFloor(floor+1);updateHud();saveGame();
@@ -2061,6 +2389,8 @@ function updateHud(){
   $('lvChip').textContent='LV.'+player.lvl;
   $('floorChip').textContent='ชั้น '+thaiNum(floor);
   if(isNaN(player.gold)) player.gold = 0; $('goldChip').textContent='◉ '+player.gold;
+  if(player.gold >= 100) unlockAch('gold_pocket');
+  if(player.gold >= 500) unlockAch('rich_man');
   $('punyaChip').textContent='✦ '+player.punya;
   let statusStr = '';
   if(player.poison > 0) statusStr += ' <span style="color:#43b05c">☠พิษ(' + player.poison + ')</span>';
@@ -2166,7 +2496,11 @@ function render(){
     if(e.bumpX){ex+=e.bumpX;e.bumpX*=0.5;if(Math.abs(e.bumpX)<0.5)e.bumpX=0;}
     if(e.bumpY){ey+=e.bumpY;e.bumpY*=0.5;if(Math.abs(e.bumpY)<0.5)e.bumpY=0;}
 
-    if(e.boss){ // รัศมีบอส
+    if(e.boss){
+    if(floor === 5) unlockAch('boss_khara');
+    if(floor === 10) unlockAch('boss_maricha');
+    if(floor === 15) unlockAch('boss_kumbha');
+    if(floor === 20) unlockAch('victory_moksha'); // รัศมีบอส
       ctx.fillStyle='rgba(212,61,42,'+(0.18+0.12*Math.sin(time*0.2)).toFixed(2)+')';
       ctx.fillRect(ex-2,ey-2,T+4,T+4);
     }
@@ -2609,6 +2943,7 @@ function setupInput(){
   $('hudL').style.cursor='pointer';
   $('hudR').style.cursor='pointer';
   $('btnHelp').onclick=()=>show($('helpOv'));
+  $('btnSnd').oncontextmenu=(e)=>{e.preventDefault();openSettingsModal();};
   $('btnHelpT').onclick=()=>show($('helpOv'));
   $('btnHelpClose').onclick=()=>hide($('helpOv'));
   $('btnSnd').onclick=()=>{initAudio();toggleSound();};
@@ -2653,6 +2988,40 @@ function setupInput(){
     $('titleMenu').insertBefore(btnKarma, $('btnRecords'));
   }
   btnKarma.onclick = openKarmaModal;
+
+  
+  // เพิ่มปุ่ม เกียรติยศ, สารานุกรม และตั้งค่า ที่หน้าแรก
+  let btnAch = $('btnAch');
+  if(!btnAch){
+    btnAch = document.createElement('button');
+    btnAch.id = 'btnAch';
+    btnAch.className = 'btn ghost';
+    btnAch.style.color = 'var(--gold)';
+    btnAch.innerHTML = '🏆 ทำเนียบเกียรติยศ (Achievements)';
+    $('titleMenu').insertBefore(btnAch, $('btnRecords'));
+  }
+  btnAch.onclick = openAchModal;
+
+  let btnCodex = $('btnCodex');
+  if(!btnCodex){
+    btnCodex = document.createElement('button');
+    btnCodex.id = 'btnCodex';
+    btnCodex.className = 'btn ghost';
+    btnCodex.style.color = 'var(--teal)';
+    btnCodex.innerHTML = '📖 สารานุกรมลงกา (Codex)';
+    $('titleMenu').insertBefore(btnCodex, $('btnRecords'));
+  }
+  btnCodex.onclick = openCodexModal;
+
+  let btnSet = $('btnSet');
+  if(!btnSet){
+    btnSet = document.createElement('button');
+    btnSet.id = 'btnSet';
+    btnSet.className = 'btn ghost';
+    btnSet.innerHTML = '⚙️ ตั้งค่าเกม (Settings)';
+    $('titleMenu').appendChild(btnSet);
+  }
+  btnSet.onclick = openSettingsModal;
 
   $('btnRecords').onclick=()=>{renderRecords();hide($('titleMenu'));show($('recordsBox'));};
   $('btnRecordsBack').onclick=()=>{hide($('recordsBox'));show($('titleMenu'));};
