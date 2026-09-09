@@ -15,6 +15,71 @@
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Chakra+Petch:wght@500;700&family=Sarabun:wght@400;600&family=Noto+Sans+Devanagari:wght@600&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="css/style.css?v=__BUILD_VERSION__">
+
+<style>
+  /* ยึดส่วนหัวไว้บนสุด ไม่ให้เลื่อน */
+  #title{
+    display:flex; flex-direction:column; align-items:center;
+    justify-content:flex-start;
+    padding:4vh 16px 2vh;
+    overflow:hidden;
+  }
+  #title .titleHeader{
+    flex-shrink:0;          /* ไม่ให้ส่วนหัวถูกย่อ/เลื่อน */
+    text-align:center;
+    width:100%;
+    margin-bottom:8px;
+  }
+  #title .titleHeader .deva{margin-bottom:4px}
+  #title .titleHeader .logo{margin:4px 0}
+  #title .titleHeader .tagline{margin:6px 0 10px}
+
+  #title .menuScroll{
+    flex:1;
+    width:100%;
+    overflow-y:auto;
+    overflow-x:hidden;
+    max-height:62vh;
+    display:flex;
+    justify-content:center;
+    padding:6px 4px;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  /* ปุ่มทั้งหมดใน menu: grid 2 คอลัมน์ */
+  #titleMenu{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    width:min(92vw,420px);
+  }
+  #titleMenu .btn{
+    width:100%;
+    margin:0;
+    box-sizing:border-box;
+    padding:12px 8px;
+    font-size:14px;
+  }
+  /* ปุ่มหลัก 2 อัน ให้อยู่เต็มแถว */
+  #titleMenu #btnNew,
+  #titleMenu #btnContinue{
+    grid-column:1 / -1;
+    font-size:16px;
+    padding:14px;
+  }
+
+  /* ฟุตเตอร์ล็อกไว้ล่าง ไม่เลื่อนไปกับเมนู */
+  #title .foot{
+    flex-shrink:0;
+    margin-top:8px;
+    opacity:.7;
+  }
+
+  /* ซ่อน scrollbar ให้ดูคลีน (ไม่บังคับ) */
+  .menuScroll::-webkit-scrollbar{width:6px}
+  .menuScroll::-webkit-scrollbar-track{background:transparent}
+  .menuScroll::-webkit-scrollbar-thumb{background:#5a2a44; border-radius:3px}
+</style>
 </head>
 <body>
 <div id="app">
@@ -58,15 +123,25 @@
 
 <!-- ══ OVERLAYS ══ -->
 <div class="ov" id="title">
-  <div class="deva">लंका</div>
-  <h1 class="logo">ลงกา</h1>
-  <p class="tagline">วิถีแห่งกรรม · โร้กไลก์ ๑๖ บิต · บุกวิหารอสูร ๒๐ ชั้น เพื่อปราบทศกัณฐ์</p>
-  <div class="menu" id="titleMenu">
-    <button class="btn" id="btnNew">▶ เริ่มเดินทาง</button>
-    <button class="btn ghost hidden" id="btnContinue">⟳ เดินทางต่อ</button>
-    <button class="btn ghost" id="btnRecords">✦ ทำเนียบวีรชน</button>
-    <button class="btn ghost" id="btnHelpT">? วิธีเล่น</button>
+  <!-- ░ ส่วนหัว: ยึดไว้บน ไม่เลื่อน ░ -->
+  <div class="titleHeader">
+    <div class="deva">लंका</div>
+    <h1 class="logo">ลงกา</h1>
+    <p class="tagline">วิถีแห่งกรรม · โร้กไลก์ ๑๖ บิต · บุกวิหารอสูร ๒๐ ชั้น เพื่อปราบทศกัณฐ์</p>
   </div>
+
+  <!-- ░ ส่วนเมนู: เลื่อนได้เมื่อสูงเกิน ░ -->
+  <div class="menuScroll">
+    <div class="menu" id="titleMenu">
+      <button class="btn" id="btnNew">▶ เริ่มเดินทาง</button>
+      <button class="btn ghost hidden" id="btnContinue">⟳ เดินทางต่อ</button>
+      <button class="btn ghost" id="btnRecords">✦ ทำเนียบวีรชน</button>
+      <button class="btn ghost" id="btnHelpT">? วิธีเล่น</button>
+      <!-- ปุ่มอื่นที่ JS สร้างเพิ่มเข้ามาจะอยู่ตรงนี้ทั้งหมด -->
+    </div>
+  </div>
+
+  <!-- ░ recordsBox (ยังคงของเดิม) ░ -->
   <div id="recordsBox" class="panel hidden"><h3>ทำเนียบวีรชน</h3><ol id="recordsList"></ol>
     <button class="btn ghost" id="btnRecordsBack">← กลับ</button></div>
   <p class="foot">ออฟไลน์ 100% · บันทึกอัตโนมัติในเครื่อง</p>
@@ -168,28 +243,21 @@
 (function() {
   if (!('serviceWorker' in navigator)) return;
 
-  // ⬇️ ใส่ ?v=__BUILD_VERSION__ เพื่อบังคับโหลด sw.js ตัวใหม่เสมอ
   navigator.serviceWorker.register('/sw.js?v=__BUILD_VERSION__', {
     updateViaCache: 'none'
   }).then(function(reg) {
     
-    // ตรวจว่ามี sw.js ตัวใหม่กว่าในเซิร์ฟเวอร์ไหม
     reg.addEventListener('updatefound', function() {
       var newWorker = reg.installing;
       if (!newWorker) return;
 
       newWorker.addEventListener('statechange', function() {
-        // เมื่อ sw ใหม่ติดตั้งเสร็จแล้ว และมี sw เก่ายังควบคุมหน้าอยู่
         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
           console.log('🎮 พบเวอร์ชั่นใหม่!');
-          
-          // แสดง toast แจ้งเตือนผู้ใช้
           var toast = document.getElementById('updateToast');
           if (toast) {
             toast.style.opacity = '1';
             toast.style.transform = 'translateX(-50%) translateY(0)';
-            
-            // ซ่อนอัตโนมัติหลัง 10 วินาที
             setTimeout(function() {
               toast.style.opacity = '0';
               toast.style.transform = 'translateX(-50%) translateY(100px)';
@@ -199,7 +267,6 @@
       });
     });
 
-    // ⚡ ตรวจหา update ทุกครั้งที่เปิดเว็บ (ไม่ใช่แค่ครั้งแรก)
     if (document.readyState === 'complete') {
       reg.update();
     } else {
