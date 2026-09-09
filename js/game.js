@@ -2053,6 +2053,7 @@ function attackFoe(e, dirX=0, dirY=0){
     slashColor = '#d43d2a';
     floats.push({x:player.x, y:player.y, t:'+' + drain + ' HP', c:'#d43d2a', life:1});
   } else if(wpn.affix === 'thunder'){
+    if(isWater(e.x, e.y)) electrifyWater(e.x, e.y, d);
     if(rng() < 0.25){
       e.stun = 1;
       slashColor = '#f5c542';
@@ -2086,7 +2087,7 @@ function attackFoe(e, dirX=0, dirY=0){
       }
     }
   }
-  if(crit) triggerHaptic('crit');
+ if(crit) triggerHaptic('crit');
 
   // กลไกมีดสั้น: มีโอกาส 45% ฟันเบิ้ล ๒ ครั้งติด (Double Strike)
   if(wpn.type === 'dagger' && e.hp > 0 && rng() < 0.45){
@@ -2458,7 +2459,7 @@ function pickup(gi){
     return;
   }
   if(it.t==='gold'){player.gold+=it.amt;msg('เก็บเหรียญกษาปณ์ +'+it.amt);sfx.gold();return;}
-  if(player.inv.length>=10){msg('ถุงผ้าเต็ม! ของถูกทิ้งไว้…','warn');items.push(it);return;}
+  if(player.inv.length >= (player.bagMax || 10)){msg('ถุงผ้าเต็ม! ของถูกทิ้งไว้…','warn');items.push(it);return;}
   player.inv.push(it);sfx.pick(); discoverItem(it.baseName || it.name);
   msg('เก็บ «'+it.name+'»'+statTxt(it));
 }
@@ -2600,14 +2601,13 @@ function castMantra(key){
     const t=visF[0];
     const d=key==='agni'?6+player.lvl*2:12+player.lvl*3;
     t.hp-=d;t.flash=6;
-        if(key==='vajra' && isWater(t.x,t.y)) electrifyWater(t.x,t.y,d);
         if(isGrass(t.x, t.y)){
       igniteGrass(t.x, t.y);
     }
     triggerSlash(t.x,t.y,key==='agni'?'#ff8b1f':'#f5c542');
     floats.push({x:t.x,y:t.y,t:'-'+d,c:key==='agni'?'#ff8b1f':'#f5c542',life:1});
     msg((key==='agni'?'✹ เปลวเพลิง':'⌁ สายฟ้าพระอินทร์')+'สังหาร'+t.name+' -'+d);
-    if(key==='vajra' && isWater(t.x, t.y)) electrifyWater(t.x, t.y, d);
+    if(key === 'vajra' && isWater(t.x, t.y)) electrifyWater(t.x, t.y, d);
     if(t.hp<=0){
       player.spellKills = (player.spellKills || 0) + 1;
       if(player.spellKills >= 10) unlockAch('mage_master');
@@ -2737,7 +2737,7 @@ function renderShop(n){
     b.onclick=()=>{
       player.gold-=it.price;sfx.buy();
       if(it.t==='gold'){player.gold+=it.amt;}
-      else if(player.inv.length>=(player.bagMax||10)){msg('ถุงผ้าเต็ม!','warn');player.gold+=it.price;return;}
+      else if(player.inv.length>=10){msg('ถุงผ้าเต็ม!','warn');player.gold+=it.price;return;}
       else player.inv.push({...it});
       msg('ซื้อ «'+it.name+'»');updateHud();renderShop(n);
     };
@@ -2901,7 +2901,7 @@ function saveGame(){
       seen:Array.from(seen).join(''), // บันทึกช่องที่เคยเดิน
       player:{...player},
       enemies:enemies.map(e=>({id:e.id,x:e.x,y:e.y,hp:e.hp,awake:e.awake})),
-      npcs,items,kills,traps,
+      npcs,items,kills,traps,fireTiles,
     }));
   }catch(e){}
 }
@@ -2913,7 +2913,7 @@ function loadGame(){
     map=new Uint8Array(W*H);seen=new Uint8Array(W*H);vis=new Uint8Array(W*H);
     for(let i=0;i<W*H;i++)map[i]=+s.map[i];
     if(s.seen){for(let i=0;i<W*H;i++)seen[i]=+s.seen[i];}
-    player=s.player;items=s.items||[];npcs=s.npcs||[];traps=s.traps||[];
+    player=s.player;items=s.items||[];npcs=s.npcs||[];traps=s.traps||[];fireTiles=s.fireTiles||[];
     enemies=s.enemies.map(sav=>{
       const base=sav.id.startsWith('boss_')?getBoss(+sav.id.split('_')[1])
         :FOES.find(f=>f.id===sav.id);
@@ -3212,7 +3212,7 @@ function render(){
     if(e.bumpX){ex+=e.bumpX;e.bumpX*=0.5;if(Math.abs(e.bumpX)<0.5)e.bumpX=0;}
     if(e.bumpY){ey+=e.bumpY;e.bumpY*=0.5;if(Math.abs(e.bumpY)<0.5)e.bumpY=0;}
 
-  if(e.boss){
+    if(e.boss){
       ctx.fillStyle='rgba(212,61,42,'+(0.18+0.12*Math.sin(time*0.2)).toFixed(2)+')';
       ctx.fillRect(ex-2,ey-2,T+4,T+4);
     }
