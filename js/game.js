@@ -42,9 +42,31 @@ function playBgmNote(){
   o.start(); o.stop(AC.currentTime + 0.4);
   bgmStep++;
 }
+
+let bossDrumStep = 0;
+function playBossBattleBeat(){
+  if(!AC || !soundOn || state !== 'play') return;
+  const hasAliveBoss = enemies.some(e => e.boss && e.hp > 0);
+  if(!hasAliveBoss) return;
+
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.type = 'sawtooth';
+  const drumFreq = (bossDrumStep % 2 === 0) ? 80 : 120;
+  o.frequency.setValueAtTime(drumFreq, AC.currentTime);
+  o.frequency.exponentialRampToValueAtTime(30, AC.currentTime + 0.12);
+  g.gain.setValueAtTime(0.045, AC.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.14);
+  o.connect(g); g.connect(AC.destination);
+  o.start(); o.stop(AC.currentTime + 0.15);
+  bossDrumStep++;
+}
+
 function startBgm(){
   if(bgmTimer) clearInterval(bgmTimer);
-  bgmTimer = setInterval(playBgmNote, 320);
+  bgmTimer = setInterval(() => {
+    playBgmNote();
+    playBossBattleBeat();
+  }, 300);
 }
 
 function startDrone(){ // เสียงพื้นแทนปูรา
@@ -580,21 +602,302 @@ const TILEC=[];
    g.fillStyle='#ffffff';g.fillRect(5,5,3,3);g.fillRect(8,8,3,3); // ลูกเต๋าขาวคู่
    g.fillStyle='#000000';g.fillRect(6,6,1,1);g.fillRect(9,9,1,1);
    TILEC[14]=[c];}
+  // โลงศิลาโบราณ (15)
+  {const c=document.createElement('canvas');c.width=T;c.height=T;const g=c.getContext('2d');
+   g.fillStyle='#1c1622';g.fillRect(0,0,T,T);
+   g.strokeStyle='#7a5a8a';g.strokeRect(2,3,12,10);
+   g.fillStyle='#362442';g.fillRect(4,4,8,8);
+   g.fillStyle='#f5c542';g.fillRect(6,5,4,2); // ยอดทอง
+   g.fillStyle='#f4ecdc';g.fillRect(7,8,2,2); // หัวกะโหลกสลัก
+   TILEC[15]=[c];}
 })();
 
 /* ── ตารางข้อมูล ── */
 
-/* ── ๕. โหมดลานประลองยุทธ์ท้าความเร็ว (Trial Arena / Boss Rush Mode) ── */
+/* ── ระบบภารกิจท้าทายประจำชั้น (Floor Bounties & Feats) ── */
+let currentFloorBounty = null;
+
+function genFloorBounty(fl){
+  const types = [
+    { id: 'no_hurt', t: 'ผ่านชั้นนี้โดยไม่เสียเลือดแม้แต่หยดเดียว', check: () => !player.tookDamageThisFloor, punya: 25, gold: 30 },
+    { id: 'kill_foes', t: 'สังหารมอนสเตอร์ในชั้นนี้อย่างน้อย ๓ ตน', check: () => (player.floorKills || 0) >= 3, punya: 20, gold: 25 },
+    { id: 'use_fire', t: 'ใช้อาคมหรือไฟสังหารศัตรูสำเร็จ', check: () => !!player.usedFireKillThisFloor, punya: 20, gold: 25 }
+  ];
+  currentFloorBounty = pick(types);
+  player.tookDamageThisFloor = false;
+  player.floorKills = 0;
+  player.usedFireKillThisFloor = false;
+  msg('📜 ภารกิจประจำชั้น: ' + currentFloorBounty.t + ' (รางวัล +ปุญ และทองคำ)', 'warn');
+}
+
+function checkFloorBountyComplete(){
+  if(!currentFloorBounty) return;
+  if(currentFloorBounty.check()){
+    player.punya += currentFloorBounty.punya;
+    player.gold += currentFloorBounty.gold;
+    sfx.level(); flash = 0.5;
+    msg('🏆 ภารกิจประจำชั้นสำเร็จ! «' + currentFloorBounty.t + '» รับ +◉' + currentFloorBounty.gold + ' และปุญบารมี +' + currentFloorBounty.punya + '!', 'good');
+    floats.push({x: player.x, y: player.y, t: 'ภารกิจสำเร็จ!', c: '#f5c542', life: 2});
+    currentFloorBounty = null;
+    updateHud();
+  }
+}
+
+
+/* ── ระบบสัตว์เลี้ยงพัฒนาร่าง (Pet Evolution) ── */
+function gainPetXp(amount = 1){
+  if(!player.pet) return;
+  player.pet.xp = (player.pet.xp || 0) + amount;
+  player.pet.lvl = player.pet.lvl || 1;
+
+  // สะสม XP ครบ 15 แต้ม พัฒนาร่างสู่ร่าง 2
+  if(player.pet.lvl === 1 && player.pet.xp >= 15){
+    player.pet.lvl = 2;
+    flash = 0.8; sfx.level();
+    const oldName = player.pet.name;
+
+    if(player.pet.type === 'monkey'){
+      player.pet.name = 'พญาวานรทองคำ';
+      player.pet.desc = 'เก็บทองอัตโนมัติ + ช่วยฟาดศัตรูสตั๊น และล้วงขโมยของ!';
+      player.pet.s = 'vanara';
+    } else if(player.pet.type === 'bird'){
+      player.pet.name = 'พญาการเวกเพลิง';
+      player.pet.desc = 'ส่องหมอกสงคราม + บินทิ้งระเบิดไฟเผาศัตรูรอบตัว!';
+      player.pet.s = 'garuda';
+    } else if(player.pet.type === 'naga'){
+      player.pet.name = 'พญานาคราช ๓ เศียร';
+      player.pet.desc = 'พ่นควันพิษ ๓ ทิศทางพร้อมกันรอบตัว!';
+      player.pet.s = 'naga';
+    }
+
+    msg('🌟 ปาฏิหาริย์! «' + oldName + '» สั่งสมบารมีพัฒนาร่างเป็น «' + player.pet.name + '»!', 'good');
+    floats.push({x: player.x, y: player.y, t: 'สัตว์เลี้ยงพัฒนาร่าง!', c: '#f5c542', life: 2.5});
+    updateHud();
+  }
+}
+
+
+/* ── ระบบชุดเซ็ตคู่บารมี (Set Bonuses) ── */
+const SET_DEFINITIONS = {
+  rama: {
+    name: 'เซ็ตพระรามมหาจักรพรรดิ',
+    color: '#f5c542',
+    icon: '🏹',
+    items: ['ธนูพระราม', 'ศรพรหมมาสตร์', 'เกราะสุริยะเทวะ', 'ชฎาทองคำอโยธยา', 'มงกุฎชัยพิชัยพรหมมาสตร์'],
+    bonus2: 'คริติคอล +๒๕% และความรุนแรงคริติคอล +๕๐%',
+    bonus3: 'การโจมตีจะยิงคลื่นแสงสุวรรณทะลวงศัตรูทั้งแถว!'
+  },
+  naga: {
+    name: 'เซ็ตนาคราชบาดาล',
+    color: '#2ec4a6',
+    icon: '🐍',
+    items: ['ตรีศูล', 'แส้นาคราช', 'เกราะเกล็ดนาค', 'สังวาลย์นาคราช'],
+    bonus2: 'ต้านทานพิษ ๑๐๐% และเปลี่ยนดาเมจพิษเป็นเกราะซับเลือด',
+    bonus3: 'ก้าวเดินทิ้งรอยน้ำพิษบนพื้น มอนสเตอร์เหยียบติดพิษรุนแรง!'
+  },
+  hanuman: {
+    name: 'เซ็ตพญาวานรชาญสมร',
+    color: '#ffe9a3',
+    icon: '🐒',
+    items: ['กรงเล็บหนุมาน', 'กรงเล็บวานร', 'หน้ากากวานรเผือก', 'กำไลพญาวานร'],
+    bonus2: 'อัตราการหลบหลีกถาวร +๒๕%',
+    bonus3: 'เมื่อหลบหลีกสำเร็จ จะแยกร่างเงาวานรออกมาช่วยฟันฟรี ๑ ครั้ง!'
+  }
+};
+
+function getActiveSetBonuses(){
+  const equippedNames = [];
+  if(player.wpn) equippedNames.push(player.wpn.baseName || player.wpn.name);
+  if(player.arm) equippedNames.push(player.arm.baseName || player.arm.name);
+  if(player.head) equippedNames.push(player.head.baseName || player.head.name);
+  if(player.relic) equippedNames.push(player.relic.name);
+
+  const active = [];
+  for(const setKey in SET_DEFINITIONS){
+    const s = SET_DEFINITIONS[setKey];
+    let matches = 0;
+    for(const iname of equippedNames){
+      if(s.items.some(target => iname.includes(target) || target.includes(iname))){
+        matches++;
+      }
+    }
+    if(matches >= 2){
+      active.push({ ...s, key: setKey, count: matches });
+    }
+  }
+  return active;
+}
+
+
+/* ── ๕. ลานประลองยุทธ์ทศเศียร (Colosseum Trial Arena - Wave Based) ── */
 let isBossRushMode = false;
-let bossRushWave = 1;
+let arenaWave = 1;
+let arenaMaxWaves = 8;
 
 function startBossRushMode(cls){
   isBossRushMode = true;
-  bossRushWave = 1;
+  arenaWave = 1;
   initAudio();
-  startRun(cls, 999999);
-  floor = 5;
-  msg('⚔ ก้าวเข้าสู่ลานประลองยุทธ์ทศเศียร! พิชิตบอสทีละระลอก!', 'warn');
+  startRun(cls, 888888);
+  genArenaWave(1);
+}
+
+function genArenaWave(waveNum){
+  arenaWave = waveNum;
+  floor = waveNum * 2 + 3;
+  state = 'play';
+
+  // สร้างแผนที่ลานประลองทรงสี่เหลี่ยมจัตุรัสโอ่อ่า (กว้าง ๒๔ × สูง ๑๘ ช่อง)
+  map = new Uint8Array(W*H); seen = new Uint8Array(W*H); vis = new Uint8Array(W*H);
+  enemies = []; items = []; traps = []; npcs = []; slashes = []; sparks = []; fireTiles = [];
+
+  const cx = 20, cy = 15, halfW = 10, halfH = 7;
+  for(let y=0; y<H; y++){
+    for(let x=0; x<W; x++){
+      if(x >= cx - halfW && x <= cx + halfW && y >= cy - halfH && y <= cy + halfH){
+        map[y*W+x] = 1; // พื้นลานประลอง
+      } else {
+        map[y*W+x] = 0; // กำแพงล้อมรอบ
+      }
+    }
+  }
+
+  // วางเสาหินประดับ ๔ มุมลานประลอง
+  map[(cy - 4)*W + (cx - 6)] = 0;
+  map[(cy - 4)*W + (cx + 6)] = 0;
+  map[(cy + 4)*W + (cx - 6)] = 0;
+  map[(cy + 4)*W + (cx + 6)] = 0;
+
+  player.x = cx; player.y = cy; player.prevX = cx; player.prevY = cy;
+  seen.fill(1); // ลานประลองเปิดแผนที่ให้เห็นทั้งหมด
+
+  // สุ่มเกิดกองทัพศัตรูตามเวฟ
+  if(waveNum === 1){
+    msg('⚔ [เวฟ ๑/' + arenaMaxWaves + '] กองทัพเปรตและอสุรกายรุมล้อมลานประลอง!', 'warn');
+    spawnArenaFoe('preta', cx - 7, cy - 4); spawnArenaFoe('preta', cx + 7, cy - 4);
+    spawnArenaFoe('asura', cx - 7, cy + 4); spawnArenaFoe('asura', cx + 7, cy + 4);
+  } else if(waveNum === 2){
+    msg('⚔ [เวฟ ๒/' + arenaMaxWaves + '] ฝูงนาคพิษและจอมทัพอสุรกายบุก!', 'warn');
+    spawnArenaFoe('naga', cx - 8, cy); spawnArenaFoe('naga', cx + 8, cy);
+    const cap = spawnArenaFoe('asura', cx, cy - 5); cap.elite = true; cap.name = 'จอมอสุรกายคลั่ง'; cap.maxhp *= 1.5; cap.hp = cap.maxhp;
+  } else if(waveNum === 3){
+    msg('☠ [เวฟ ๓/' + arenaMaxWaves + '] บอสใหญ่: พญาขร นายทัพหน้าแห่งลงกา!', 'warn');
+    sfx.boss(); bossSplash = { name: 'พญาขร', title: 'นายทัพหน้าแห่งลงกา', time: 80 };
+    spawnArenaBoss(5, cx, cy - 5);
+    spawnArenaFoe('preta', cx - 6, cy); spawnArenaFoe('preta', cx + 6, cy);
+  } else if(waveNum === 4){
+    msg('⚔ [เวฟ ๔/' + arenaMaxWaves + '] กองทัพรากษสหน้ากากม่วงและยักษ์ทวารบาล!', 'warn');
+    spawnArenaFoe('rakshasa', cx - 6, cy - 4); spawnArenaFoe('rakshasa', cx + 6, cy - 4);
+    spawnArenaFoe('yaksha', cx, cy + 5);
+  } else if(waveNum === 5){
+    msg('☠ [เวฟ ๕/' + arenaMaxWaves + '] บอสใหญ่: มารีศ อสูรจำแลงกวางทอง!', 'warn');
+    sfx.boss(); bossSplash = { name: 'มารีศ', title: 'อสูรจำแลงกวางทอง', time: 80 };
+    spawnArenaBoss(10, cx, cy - 5);
+    spawnArenaFoe('naga', cx - 7, cy + 3); spawnArenaFoe('naga', cx + 7, cy + 3);
+  } else if(waveNum === 6){
+    msg('⚔ [เวฟ ๖/' + arenaMaxWaves + '] จอมทัพรากษสและยักษ์ทวารบาลคลั่ง!', 'warn');
+    const e1 = spawnArenaFoe('rakshasa', cx - 6, cy - 4); e1.elite = true; e1.maxhp *= 1.5; e1.hp = e1.maxhp;
+    const e2 = spawnArenaFoe('yaksha', cx + 6, cy - 4); e2.elite = true; e2.maxhp *= 1.5; e2.hp = e2.maxhp;
+    spawnArenaFoe('asura', cx, cy + 5);
+  } else if(waveNum === 7){
+    msg('☠ [เวฟ ๗/' + arenaMaxWaves + '] บอสใหญ่: กุมภกรรณ พญายักษ์หอกโมกขศักดิ์!', 'warn');
+    sfx.boss(); bossSplash = { name: 'กุมภกรรณ', title: 'พญายักษ์หอกโมกขศักดิ์', time: 80 };
+    spawnArenaBoss(15, cx, cy - 5);
+  } else if(waveNum === 8){
+    msg('☠ [เวฟ ๘/' + arenaMaxWaves + '] มหาบอสสูงสุด: ทศกัณฐ์ พญายักษ์ ๑๐ หน้า ๒๐ กร!', 'warn');
+    sfx.boss(); bossSplash = { name: 'ทศกัณฐ์', title: 'จ้าวแห่งกรุงลงกา', time: 90 };
+    spawnArenaBoss(20, cx, cy - 5);
+  }
+
+  computeFov();
+  updateHud();
+}
+
+function spawnArenaFoe(foeId, x, y){
+  const base = FOES.find(f => f.id === foeId) || FOES[0];
+  const foe = spawnFoe(base, x, y);
+  foe.awake = true;
+  enemies.push(foe);
+  return foe;
+}
+
+function spawnArenaBoss(bossFloor, x, y){
+  const b = getBoss(bossFloor);
+  const boss = spawnFoe({ ...b, id: 'boss_' + bossFloor, boss: true, awake: true }, x, y);
+  boss.awake = true;
+  enemies.push(boss);
+  return boss;
+}
+
+function checkArenaWaveCompletion(){
+  if(!isBossRushMode) return;
+  const aliveFoes = enemies.filter(e => e.hp > 0);
+  if(aliveFoes.length === 0){
+    sfx.level(); flash = 0.6;
+    if(arenaWave >= arenaMaxWaves){
+      victory();
+      return;
+    }
+    openArenaIntermissionModal();
+  }
+}
+
+function openArenaIntermissionModal(){
+  let ov = $('arenaIntermissionOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'arenaIntermissionOv';
+    ov.className = 'ov';
+    ov.style.zIndex = '400';
+    document.body.appendChild(ov);
+  }
+
+  // ฟื้นฟูเลือดและมานา ๕๐% ระหว่างพักเวฟ
+  player.hp = Math.min(player.mhp, player.hp + Math.floor(player.mhp * 0.5));
+  player.mp = Math.min(player.mmp, player.mp + Math.floor(player.mmp * 0.5));
+  const waveRewardGold = 40 + arenaWave * 20;
+  player.gold += waveRewardGold;
+  player.punya += 15;
+
+  let html = '<div class="panel" style="max-width:440px;border-color:var(--gold);box-shadow:0 0 32px rgba(245,197,66,.5);text-align:center">';
+  html += '<div class="deva">विजय</div>';
+  html += '<h2 style="font-family:Chakra Petch;color:var(--gold);margin:2px 0 4px;font-size:24px">✦ พิชิตเวฟที่ ' + thaiNum(arenaWave) + ' สำเร็จ!</h2>';
+  html += '<p style="font-size:13px;color:var(--ink);margin:0 0 10px">ฟื้นฟูเลือด/มนตร์ +๕๐% · รับรางวัล ◉' + waveRewardGold + ' และปุญบารมี +๑๕</p>';
+
+  html += '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">';
+  html += '<button class="btn" id="btnArenaShop" style="background:#158574;border-color:#2ec4a6">🛒 เปิดร้านค้าวาณิช & ตีบวกอาวุธ</button>';
+  html += '<button class="btn" id="btnNextWave" style="background:#8f2438;border-color:#e5482e;font-size:15px;padding:10px">⚔️ ลุยต่อเวฟที่ ' + thaiNum(arenaWave + 1) + ' ▶</button>';
+  html += '</div></div>';
+
+  ov.innerHTML = html;
+  show(ov);
+  updateHud();
+
+  $('btnArenaShop').onclick = () => {
+    hide(ov);
+    const dummyMerchant = {
+      type: 'merchant',
+      stock: [
+        {t:'pot', name:'อมฤต', heal:20+arenaWave*4, price:20+arenaWave*3},
+        {t:'mana', name:'น้ำโสม', mana:18+arenaWave*3, price:18+arenaWave*3},
+        genRation(),
+        genW(clamp(Math.floor(arenaWave/2)+1, 2, 5)),
+        genA(clamp(Math.floor(arenaWave/2)+1, 2, 6)),
+        genScrollUpg()
+      ]
+    };
+    renderShop(dummyMerchant);
+    show($('shopOv'));
+    $('btnShopClose').onclick = () => {
+      hide($('shopOv'));
+      show(ov);
+    };
+  };
+
+  $('btnNextWave').onclick = () => {
+    hide(ov);
+    genArenaWave(arenaWave + 1);
+  };
 }
 
 
@@ -2171,6 +2474,7 @@ function startDailyRun(cls){
 
 /* ── สร้างดันเจี้ยน ── */
 function genFloor(fl){
+  if(!isBossRushMode) genFloorBounty(fl);
   floor=fl;floorR=mulberry32((seed^(fl*2654435761))>>>0);
   map=new Uint8Array(W*H);seen=new Uint8Array(W*H);vis=new Uint8Array(W*H);
   enemies=[];npcs=[];items=[];kills={};slashes=[];sparks=[];
@@ -2349,6 +2653,11 @@ function genFloor(fl){
     }
   }
   fireTiles = [];
+  // โลงศิลาโบราณ (สุ่มพบบนชั้น ๔, ๘, ๑๒, ๑๖ หรือ ๒๐% ต่อชั้น)
+  if((fl % 4 === 0 || floorR() < 0.20) && !isBossRushMode){
+    const r = pick(rooms.slice(1));
+    map[(r.y+2)*W + r.x+2] = 15;
+  }
   if(rooms.length > 1){
     showHint('elements', 'ปฏิกิริยาธาตุ: แอ่งน้ำช่วยดับไฟและนำสายฟ้าช็อตศัตรู · กอเถาวัลย์ใช้ซุ่มโจมตีคริติคอล ๑๐๐%!');
   }
@@ -2390,6 +2699,11 @@ function genFloor(fl){
   if(boss){
     msg('☠ นายทัพ '+boss.name+' ครองชั้นนี้!','warn');sfx.boss();
     bossSplash = { name: boss.name, title: boss.title || 'พญามารแห่งวิหารลงกา', time: 90 };
+  }
+    // โลงศิลาโบราณ (สุ่มพบบนชั้น ๔, ๘, ๑๒, ๑๖ หรือ ๒๐% ต่อชั้น)
+  if((fl % 4 === 0 || floorR() < 0.20) && !isBossRushMode){
+    const r = pick(rooms.slice(1));
+    map[(r.y+2)*W + r.x+2] = 15;
   }
   computeFov();
 }
@@ -2851,6 +3165,37 @@ function buyBlackMarketItem(idx, bx, by){
   if(player.hp <= 0) die();
 }
 
+
+/* ── ระบบโลงศิลาโบราณ (Sarcophagus Opening) ── */
+function openSarcophagus(sx, sy){
+  map[sy * W + sx] = 1; // เปิดแล้วกลายเป็นพื้น
+  sfx.boss(); shake = 6; flash = 0.5;
+
+  if(rng() < 0.50){
+    // ลุ้นโชค: สมบัติโบราณ
+    const rw = genW(clamp(Math.floor(floor/4)+1, 2, 5));
+    const goldAmt = 35 + R(40);
+    player.gold += goldAmt;
+    if(player.inv.length < (player.bagMax||10)) player.inv.push(rw);
+    else items.push({x: player.x, y: player.y, ...rw});
+    msg('⚰️ เจ้าเปิดโลงศิลาโบราณสำเร็จ! พบ «' + rw.name + '» และเหรียญทอง +◉' + goldAmt + '!', 'good');
+    floats.push({x: player.x, y: player.y, t: 'สมบัติโบราณ!', c: '#f5c542', life: 2});
+    sfx.level();
+  } else {
+    // ลุ้นภัย: ปลุกวิญญาณนักรบโบราณ
+    const phantomFoe = {
+      id: 'phantom', name: 'วิญญาณนักรบลงกา', sprite: 'rakshasa',
+      maxhp: 30 + floor * 2, hp: 30 + floor * 2, atk: 9 + Math.floor(floor*0.3), def: 3,
+      xp: 40 + floor * 3, g: 30, awake: true, flash: 6
+    };
+    enemies.push(spawnFoe(phantomFoe, sx, sy));
+    msg('⚰️ ไออาถรรพ์พวยพุ่ง! «วิญญาณนักรบลงกา» ลุกขึ้นมาจากโลงศิลาเข้าจู่โจม!', 'warn');
+    floats.push({x: sx, y: sy, t: 'ผุดขึ้นจากโลง!', c: '#8d55c9', life: 2});
+  }
+  updateHud();
+  endTurn();
+}
+
 /* ── การกระทำของผู้เล่น ── */
 function canWalk(x,y){return x>=0&&y>=0&&x<W&&y<H&&map[y*W+x]!==0}
 function enemyAt(x,y){return enemies.find(e=>e.x===x&&e.y===y&&e.hp>0)}
@@ -2935,6 +3280,10 @@ function tryMove(dx,dy){
       show($('stairsOv'));
     }
   }else if(map[ny*W+nx]===3){show($('altarOv'));}
+  else if(map[ny*W+nx]===15){
+    openSarcophagus(nx, ny);
+    return;
+  }
   else if(map[ny*W+nx]===14){
     openGamblingModal(nx, ny);
   }
@@ -3213,6 +3562,9 @@ function killFoe(e){
     });
   }
   player.xp+=e.xp;player.killsTotal++;
+  player.floorKills = (player.floorKills || 0) + 1;
+  gainPetXp(1);
+  if(e.burn > 0) player.usedFireKillThisFloor = true;
   if(player.awakenGauge < player.maxAwaken){ player.awakenGauge = Math.min(player.maxAwaken, player.awakenGauge + 8); }
   checkHeroTitle();
     if(player.relic && player.relic.id === 'heart_ravana'){
@@ -3241,6 +3593,7 @@ function killFoe(e){
   }
 
   enemies=enemies.filter(o=>o!==e);
+  if(isBossRushMode) checkArenaWaveCompletion();
   if(e.elite){
     msg('👑 ล้มจอม' + e.name + 'สำเร็จ! หีบสมบัติล้ำค่าหล่นลงพื้น!', 'good');
     items.push({ x: e.x, y: e.y, ...genW(clamp(Math.floor(floor/4)+1, 1, 4)) });
@@ -3318,6 +3671,7 @@ function hurtPlayer(d,src,attacker=null){
     floats.push({x:player.x, y:player.y, t:'ม่านมนตร์ -' + absorb + ' MP', c:'#6fe0cd', life:1});
   }
   player.hp -= d; flash = .4; shake = 6; sfx.hurt();
+  player.tookDamageThisFloor = true;
     // คำสาปธำมรงค์คนโลภ: ทำเหรียญทองหล่นตามดาเมจที่โดนตี
   if(player.relic && player.relic.id === 'ring_greed' && player.gold > 0){
     const lostG = Math.min(player.gold, d * 2);
@@ -4138,6 +4492,7 @@ function pray(free){
   updateHud();endTurn();
 }
 function descend(){
+  checkFloorBountyComplete();
   // ตรวจสอบความสำเร็จแห่งคำสัตย์ปฏิญาณ
   if(player.vow && (floor + 1) >= player.vow.endFloor){
     player.punya += 30;
@@ -4576,6 +4931,12 @@ function drawTile(mx, my, sx, sy){
     const flk = 0.25 + 0.25 * Math.sin(time * 0.2 + mx);
     ctx.fillStyle = 'rgba(245,197,66,' + flk.toFixed(2) + ')';
     ctx.fillRect(px + 4, py + 4, 8, 8);
+  }
+  else if(t === 15){ // โลงศิลาโบราณ
+    ctx.drawImage(TILEC[15][0], px, py);
+    const flk = 0.2 + 0.2 * Math.sin(time * 0.25 + mx);
+    ctx.fillStyle = 'rgba(141,85,201,' + flk.toFixed(2) + ')';
+    ctx.fillRect(px + 6, py + 5, 4, 6);
   }
 }
 
