@@ -830,7 +830,7 @@ function spawnArenaBoss(bossFloor, x, y){
 }
 
 function checkArenaWaveCompletion(){
-  if(!isBossRushMode) return;
+  if(!isBossRushMode || state !== 'play') return;
   const aliveFoes = enemies.filter(e => e.hp > 0);
   if(aliveFoes.length === 0){
     sfx.level(); flash = 0.6;
@@ -2521,7 +2521,9 @@ function genFloor(fl){
       }
     }
   }
-  const nItems=5+Math.floor(floorR()*4);
+  let nItems = 5 + Math.floor(floorR() * 3);
+  if(fl === 1) nItems = 2 + Math.floor(floorR() * 2); // ชั้น ๑ ของไม่เกลื่อน (๒-๓ ชิ้น)
+  else if(fl <= 4) nItems = 3 + Math.floor(floorR() * 3);
   for(let i=0;i<nItems;i++){
     const r=rooms[1+Math.floor(floorR()*(rooms.length-1))];
     const x=r.x+Math.floor(floorR()*r.w),y=r.y+Math.floor(floorR()*r.h);
@@ -2531,7 +2533,8 @@ function genFloor(fl){
   }
 
   // 🪨 สุ่มสร้าง "สมบัติซ่อนในซอกกำแพง" (Secret Wall Treasures) ๑-๒ จุดต่อชั้น
-  for(let s=0; s<2; s++){
+  const wallMax = (fl === 1) ? 1 : 2;
+  for(let s=0; s<wallMax; s++){
     const r = pick(rooms.slice(1));
     const wx = floorR() < 0.5 ? r.x : r.x + r.w - 1;
     const wy = r.y + 1 + Math.floor(floorR()*(r.h - 2));
@@ -3439,7 +3442,8 @@ function attackFoe(e, dirX=0, dirY=0){
     sfx.boss(); shake = 9; flash = 0.6;
     if(floor === 5){
       msg('☠ พญาขรคำรามก้องวิหาร! สรรพกำลังเปรตผุดขึ้นจากธรณี!', 'warn');
-      for(let s=0; s<2; s++){
+      const wallMax = (fl === 1) ? 1 : 2;
+  for(let s=0; s<wallMax; s++){
         const ptx = e.x + (s===0?1:-1), pty = e.y;
         if(canWalk(ptx, pty) && !enemyAt(ptx, pty)) enemies.push(spawnFoe(FOES[0], ptx, pty));
       }
@@ -4629,7 +4633,7 @@ function loadGame(){
         :FOES.find(f=>f.id===sav.id);
       return{...base,id:sav.id,x:sav.x,y:sav.y,hp:sav.hp,maxhp:base.hp+floor,awake:sav.awake,flash:0,bumpX:0,bumpY:0};
     }).filter(e=>e.id);
-    state='play';computeFov();updateHud();setControlsHint();
+    state='play';isBossRushMode=false;window._selectBossRush=false;computeFov();updateHud();setControlsHint();
     msg('จิตของเจ้ากลับสู่ร่างเดิม… เดินทางต่อ!');
     return true;
   }catch(e){return false;}
@@ -4741,6 +4745,8 @@ function renderTalentModal(){
 
 /* ── สร้างตัวละคร / เริ่มเกม ── */
 function startRun(cls, forcedSeed = 0){
+  isBossRushMode = false;
+  window._selectBossRush = false;
   seed = forcedSeed ? forcedSeed : ((Date.now()^(Math.random()*1e9))>>>0);
   currentSeed = seed;
   rng=mulberry32(seed);
@@ -4828,6 +4834,18 @@ function updateHud(){
     hgEl.innerHTML = '🍖 ' + player.hunger + '% (หิวโซ)';
   } else {
     hgEl.style.display = 'none';
+  }
+    let btnStatusHud = $('btnStatusHud');
+  if(!btnStatusHud){
+    btnStatusHud = document.createElement('div');
+    btnStatusHud.id = 'btnStatusHud';
+    btnStatusHud.className = 'chip';
+    btnStatusHud.style.cursor = 'pointer';
+    btnStatusHud.style.color = 'var(--gold)';
+    btnStatusHud.style.borderColor = 'var(--gold)';
+    btnStatusHud.innerHTML = '👤 สเตตัส';
+    btnStatusHud.onclick = () => { if(state === 'play') openStatusModal(); };
+    $('hudR').insertBefore(btnStatusHud, $('floorChip'));
   }
   if(statusStr){
     stEl.style.display = 'block';
@@ -5606,7 +5624,7 @@ function inspectItem(it){
     box = document.createElement('div');
     box.id = 'inspectBox';
     box.className = 'ov';
-    box.style.zIndex = '250';
+    box.style.zIndex = '700';
     document.body.appendChild(box);
   }
 
@@ -5701,7 +5719,7 @@ function renderInv(){
   // ๑. แผงแสดงอุปกรณ์สวมใส่ ๔ ชิ้นส่วน (Head, Weapon, Armor, Relic)
   let equipHtml = '<div style="background:#130612;border:2px solid var(--gold);padding:8px;border-radius:4px;margin-bottom:10px;box-shadow:0 0 14px rgba(245,197,66,.25)">';
   equipHtml += '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed var(--line);padding-bottom:4px;margin-bottom:6px">';
-  equipHtml += '<span style="color:var(--gold);font-weight:700;font-size:13px">🛡️ อุปกรณ์สวมใส่ (๔ ช่อง)</span>';
+  equipHtml += '<div style="display:flex;align-items:center;gap:6px"><span style="color:var(--gold);font-weight:700;font-size:13px">🛡️ อุปกรณ์สวมใส่ (๔ ช่อง)</span><button class="mini-btn" style="padding:2px 6px;font-size:10px;background:#241220;border-color:var(--gold);color:var(--gold)" onclick="openStatusModal()">👤 ดูสเตตัส</button></div>';
   equipHtml += '<span style="font-size:11px;color:var(--teal)">🍖 กาย: ' + player.hunger + '% · ✦ ปุญ: ' + player.punya + '</span>';
   equipHtml += '</div>';
 
@@ -5982,6 +6000,8 @@ function setupInput(){
   /* ปุ่มเมนู / โอเวอร์เลย์ */
   $('btnNew').onclick=()=>{
     initAudio();
+    window._selectBossRush = false;
+    isBossRushMode = false;
     hide($('title'));
     show($('classSel'));
   };
@@ -6072,7 +6092,12 @@ function setupInput(){
 
   $('btnRecords').onclick=()=>{renderRecords();hide($('titleMenu'));show($('recordsBox'));};
   $('btnRecordsBack').onclick=()=>{hide($('recordsBox'));show($('titleMenu'));};
-  $('btnBackTitle').onclick=()=>{hide($('classSel'));show($('title'));};
+  $('btnBackTitle').onclick=()=>{
+    window._selectBossRush = false;
+    isBossRushMode = false;
+    hide($('classSel'));
+    show($('title'));
+  };
   $('btnInvClose').onclick=()=>hide($('invOv'));
   $('btnMantraClose').onclick=()=>hide($('mantraOv'));
   $('btnShopClose').onclick=()=>{hide($('shopOv'));endTurn();};
