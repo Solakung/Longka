@@ -1101,6 +1101,12 @@ $('btnArenaShop').onclick = () => {
     };
   };
 
+  $('btnNextWave').onclick = () => {
+    hide(ov);
+    genArenaWave(arenaWave + 1);
+  };
+}
+
 /* ── ๔. ระบบสัตว์ขี่เทวะพาหนะ (Sacred Steeds & Mount Stance) ── */
 const MOUNT_ITEMS = [
   { id: 'horse', name: 'ขลุ่ยเรียกม้าอุปการ', icon: '🐎', turns: 16, desc: 'ขึ้นขี่ม้าอัศวเมธ เดินไว x๒ และพุ่งชนศัตรู +๖ ดาเมจ ๑๖ เทิร์น', lore: 'ขลุ่ยทองเหลืองเป่าเรียกม้าวิเศษแห่งพระราม พุ่งทะยานรวดเร็วตัดผ่านสมรภูมิ' },
