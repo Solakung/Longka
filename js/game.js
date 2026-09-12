@@ -1129,15 +1129,93 @@ function genMountItem(){
 }
 
 
-/* ── ๓. หีบสังสารวัฏข้ามชาติ (Past Life Reliquary - ฝาก ๑ ชิ้น & จ่ายปุญแลก) ── */
+/* ── ๓. หีบสังสารวัฏข้ามชาติ (Past Life Reliquary - แสดงของทั้งหมดจากชาติก่อน & ใช้ปุญมหาศาลเบิก ๑ ชิ้น) ── */
 const STASH_KEY = 'lanka_stash_v1';
 
-function getStashItem(){
-  try { return JSON.parse(localStorage.getItem(STASH_KEY)) || null; } catch(e){ return null; }
+function getStashData(){
+  try {
+    const raw = localStorage.getItem(STASH_KEY);
+    if(!raw) return { items: [] };
+    const parsed = JSON.parse(raw);
+    if(Array.isArray(parsed)) return { items: parsed };
+    if(parsed && Array.isArray(parsed.items)) return parsed;
+    if(parsed && parsed.name) return { items: [parsed] };
+    return { items: [] };
+  } catch(e){ return { items: [] }; }
 }
 
-function saveStashItem(item){
-  try { localStorage.setItem(STASH_KEY, JSON.stringify(item)); } catch(e){}
+function saveStashData(data){
+  try { localStorage.setItem(STASH_KEY, JSON.stringify(data)); } catch(e){}
+}
+
+function saveRunItemsToStash(){
+  if(!player) return;
+  try {
+    const list = [];
+    if(player.wpn && player.wpn.tier > 0){
+      list.push({ ...player.wpn, fromFloor: floor, slotType: 'อาวุธ' });
+    }
+    if(player.arm && player.arm.tier > 0){
+      list.push({ ...player.arm, fromFloor: floor, slotType: 'ชุดเกราะ' });
+    }
+    if(player.head){
+      list.push({ ...player.head, fromFloor: floor, slotType: 'ชฎา/มงกุฎ' });
+    }
+    if(player.relic){
+      list.push({ ...player.relic, fromFloor: floor, slotType: 'เครื่องราง' });
+    }
+    if(player.inv && player.inv.length){
+      for(const it of player.inv){
+        if(it && (it.t === 'wpn' || it.t === 'arm' || it.t === 'head' || it.t === 'relic' || it.t === 'gem' || it.t === 'scroll_tac' || it.t === 'elixir' || it.t === 'mount' || it.t === 'ore')){
+          const sType = it.t === 'wpn' ? 'อาวุธ' : (it.t === 'arm' ? 'ชุดเกราะ' : (it.t === 'head' ? 'ชฎา/มงกุฎ' : (it.t === 'relic' ? 'เครื่องราง' : 'ของวิเศษ')));
+          list.push({ ...it, fromFloor: floor, slotType: sType });
+        }
+      }
+    }
+    if(list.length > 0){
+      const stashRecord = {
+        items: list,
+        fromFloor: floor,
+        fromClass: CLASSES[player.cls] ? CLASSES[player.cls].name : 'ผู้กล้า',
+        timestamp: Date.now()
+      };
+      saveStashData(stashRecord);
+    }
+  } catch(e){}
+}
+
+function calculateStashCost(it){
+  const fl = it.fromFloor || 1;
+  const t = it.tier || 1;
+  const plus = it.plus || 0;
+
+  // ฐานแต้มปุญตามระดับชั้นเทียร์
+  let cost = 50;
+  if(t === 2) cost = 90;
+  else if(t === 3) cost = 150;
+  else if(t === 4) cost = 240;
+  else if(t >= 5) cost = 350;
+
+  // ยิ่งของมาจากชั้นลึก ยิ่งใช้แต้มบุญมหาศาล (+๑๒ ปุญ ต่อชั้นความลึกที่พบ!)
+  cost += fl * 12;
+
+  // อาวุธตีบวก (+๕๐ ปุญ ต่อระดับบวก!)
+  cost += plus * 50;
+
+  // ของระดับตำนาน / เทวะ
+  if(it.r === 'legendary') cost += 60;
+  else if(it.r === 'mythic') cost += 120;
+
+  // มีพลังแฝงพิเศษ
+  if(it.affix) cost += 40;
+
+  // มีอัญมณีฝังอยู่ (+๕๐ ปุญ ต่อเม็ด)
+  if(it.gems && it.gems.length) cost += it.gems.length * 50;
+
+  // อุปกรณ์ต้องสาปมหาพลัง (+๘๐ ปุญ)
+  if(it.cursed) cost += 80;
+
+  return cost;
 }
 
 function openStashModal(){
@@ -1150,66 +1228,99 @@ function openStashModal(){
     document.body.appendChild(ov);
   }
 
-  const stored = getStashItem();
-  const reclaimCost = 30;
+  const stashData = getStashData();
+  const itemsList = stashData.items || [];
+  const curPunya = player ? player.punya : 0;
+  const hasClaimed = player ? !!player.stashClaimed : false;
 
-  let html = '<div class="panel" style="max-width:420px;border-color:var(--gold);box-shadow:0 0 26px rgba(245,197,66,.4);text-align:center">';
+  let html = '<div class="panel" style="max-width:440px;border-color:var(--gold);box-shadow:0 0 28px rgba(245,197,66,.45);text-align:center">';
   html += '<div class="deva">संस्कार</div>';
-  html += '<h2 style="font-family:Chakra Petch;color:var(--gold);margin:2px 0 6px;font-size:22px">🪷 หีบสังสารวัฏข้ามชาติ</h2>';
-  html += '<p style="font-size:12.5px;color:var(--ink);margin:0 0 12px">ฝากของวิเศษ ๑ ชิ้นข้ามภพชาติสู่การเดินทางครั้งถัดไป (แลกคืนด้วยแต้มปุญ)</p>';
+  html += '<h2 style="font-family:Chakra Petch;color:var(--gold);margin:2px 0 4px;font-size:22px">🪷 หีบสังสารวัฏข้ามชาติ</h2>';
+  html += '<p style="font-size:12px;color:var(--ink);margin:0 0 10px">รวบรวมของวิเศษทั้งหมดจากชาติก่อน สละแต้มปุญมหาศาลเพื่อเบิกมาใช้ <b class="gold">(จำกัด ๑ ชิ้นต่อภพชาตินี้)</b></p>';
 
-  if(stored){
-    html += '<div style="background:#1a0c1a;border:2px solid var(--gold);padding:10px;border-radius:4px;margin-bottom:14px;text-align:left">';
-    html += '<div style="color:var(--gold);font-weight:700">📦 ของวิเศษที่ฝากไว้จากชาติก่อน:</div>';
-    html += '<b style="color:' + (RARITY_COLORS[stored.r]||'#fff') + ';font-size:15px">' + stored.name + '</b>';
-    html += '<div style="font-size:12px;color:var(--teal)">' + statTxt(stored) + '</div>';
-    html += '<div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center">';
-    html += '<span class="teal" style="font-size:12px">ค่าปลดผนึก: <b>๓๐ ปุญ</b> (มี ' + player.punya + ')</span>';
-    html += '<button class="mini-btn" ' + (player.punya >= reclaimCost ? '' : 'disabled') + ' onclick="reclaimStashItem()">แลกคืนสู่ถุงผ้า</button>';
-    html += '</div></div>';
+  if(player){
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;background:#180b18;padding:6px 12px;border:1px solid var(--line);border-radius:4px;margin-bottom:10px">';
+    html += '<span class="teal" style="font-size:12.5px">✦ ปุญบารมีปัจจุบัน: <b>' + curPunya + '</b></span>';
+    if(hasClaimed){
+      html += '<span style="color:#ff8b1f;font-size:11px;font-weight:700">✓ เบิกครบ ๑ ชิ้นแล้ว</span>';
+    } else {
+      html += '<span class="gold" style="font-size:11px">พร้อมเบิก ๑ ชิ้น</span>';
+    }
+    html += '</div>';
+  }
+
+  if(itemsList.length === 0){
+    html += '<div class="row dim" style="justify-content:center;padding:16px;margin-bottom:12px">ยังไม่มีของวิเศษจากชาติก่อนในหีบ…<br><small>(เมื่อจบการเดินทางในแต่ละรอบ ของทั้งหมดจะถูกส่งมาเก็บไว้ที่นี่)</small></div>';
   } else {
-    html += '<div class="row dim" style="justify-content:center;padding:12px;margin-bottom:14px">ยังไม่มีของวิเศษที่ฝากไว้ในหีบ</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow-y:auto;text-align:left;padding-right:4px;margin-bottom:12px">';
+    itemsList.forEach((it, idx) => {
+      const cost = calculateStashCost(it);
+      const rCol = RARITY_COLORS[it.r || 'common'] || '#fff';
+      const canAfford = player && curPunya >= cost && !hasClaimed;
+      const sType = it.slotType || (it.t === 'wpn' ? 'อาวุธ' : (it.t === 'arm' ? 'ชุดเกราะ' : 'ของวิเศษ'));
+
+      html += '<div style="background:#190c19;border:1px solid ' + rCol + ';padding:8px;border-radius:4px">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:flex-start">';
+      html += '<div>';
+      html += '<span style="font-size:11px;color:var(--dim)">[' + sType + (it.fromFloor ? ' · ชั้น ' + thaiNum(it.fromFloor) : '') + ']</span> ';
+      html += '<b style="color:' + rCol + ';font-size:14px;font-family:Chakra Petch">' + it.name + '</b>';
+      html += '<div style="font-size:11.5px;color:var(--teal);margin:2px 0">' + statTxt(it) + '</div>';
+      if(it.curseDesc) html += '<div style="color:var(--red);font-size:10.5px">☠ ' + it.curseDesc + '</div>';
+      html += '</div>';
+
+      html += '<div style="text-align:right;flex-shrink:0">';
+      html += '<div style="color:var(--gold);font-weight:700;font-size:12px">✦ ' + cost + ' ปุญ</div>';
+      if(!player){
+        html += '<button class="mini-btn" disabled style="margin-top:4px">เริ่มเกมก่อนเบิก</button>';
+      } else if(hasClaimed){
+        html += '<button class="mini-btn" disabled style="margin-top:4px">เบิกครบแล้ว</button>';
+      } else if(curPunya < cost){
+        html += '<button class="mini-btn" disabled style="margin-top:4px;font-size:10px">ปุญไม่พอ</button>';
+      } else {
+        html += '<button class="mini-btn" style="background:#158574;border-color:#2ec4a6;color:#fff;margin-top:4px" onclick="reclaimStashItem(' + idx + ')">เบิกมาใช้</button>';
+      }
+      html += '</div>';
+
+      html += '</div></div>';
+    });
+    html += '</div>';
   }
 
-  // ตัวเลือกฝากของที่กำลังถืออยู่
-  html += '<div style="text-align:left;border-top:1px dashed var(--line);padding-top:10px;margin-bottom:14px">';
-  html += '<div style="font-size:12px;color:var(--ink);margin-bottom:6px">เลือกฝากอาวุธหรือเครื่องรางปัจจุบันลงในหีบ:</div>';
-  if(player.wpn && player.wpn.tier > 0){
-    html += '<button class="btn ghost" style="font-size:12px;width:100%;margin-bottom:6px" onclick="depositToStash(player.wpn)">ฝากอาวุธ: «' + player.wpn.name + '»</button>';
-  }
-  if(player.relic){
-    html += '<button class="btn ghost" style="font-size:12px;width:100%" onclick="depositToStash(player.relic)">ฝากเครื่องราง: «' + player.relic.name + '»</button>';
-  }
-  html += '</div>';
-
-  html += '<button class="btn" id="btnCloseStash" style="width:100%">ปิด</button>';
+  html += '<button class="btn ghost" id="btnCloseStash" style="width:100%">ปิดหีบ</button>';
   html += '</div>';
 
   ov.innerHTML = html;
   show(ov);
-
   $('btnCloseStash').onclick = () => hide(ov);
 }
 
-function depositToStash(it){
-  saveStashItem(it);
-  sfx.level();
-  msg('🪷 ฝาก «' + it.name + '» ลงในหีบสังสารวัฏแล้ว! ชาติถัดไปสามารถใช้ปุญแลกคืนมาได้', 'good');
-  openStashModal();
-}
-
-function reclaimStashItem(){
-  const stored = getStashItem();
-  if(!stored || player.punya < 30) return;
-  player.punya -= 30;
-  if(player.inv.length < (player.bagMax || 10)){
-    player.inv.push(stored);
-  } else {
-    items.push({x: player.x, y: player.y, ...stored});
+function reclaimStashItem(idx){
+  if(!player || player.stashClaimed) return;
+  const stashData = getStashData();
+  const it = stashData.items[idx];
+  if(!it) return;
+  const cost = calculateStashCost(it);
+  if(player.punya < cost){
+    msg('แต้มปุญบารมีไม่พอ… (ต้องการ ' + cost + ' ปุญ / มี ' + player.punya + ')', 'warn');
+    return;
   }
-  localStorage.removeItem(STASH_KEY);
-  sfx.level(); flash = 0.5;
-  msg('🪷 สละ ๓๐ ปุญบารมี เบิก «' + stored.name + '» จากชาติก่อนกลับคืนสู่ถุงผ้าสำเร็จ!', 'good');
+
+  player.punya -= cost;
+  player.stashClaimed = true;
+
+  if(player.inv.length < (player.bagMax || 10)){
+    player.inv.push(it);
+  } else {
+    items.push({ x: player.x, y: player.y, ...it });
+  }
+
+  stashData.items.splice(idx, 1);
+  saveStashData(stashData);
+
+  sfx.level(); flash = 0.7; shake = 6;
+  msg('🪷 มหาบารมีข้ามภพ! สละ ' + cost + ' ปุญ เบิก «' + it.name + '» จากชาติก่อนมาใช้สำเร็จ! (จำกัด ๑ ชิ้นต่อภพชาตินี้)', 'good');
+  floats.push({x: player.x, y: player.y, t: 'เบิกของข้ามชาติสำเร็จ!', c: '#f5c542', life: 2.2});
+
   hide($('stashOv'));
   updateHud();
 }
@@ -5092,6 +5203,7 @@ function die(){
   k.pts += earnedKarma;
   if(floor >= 10) k.unlockedBibhek = true;
   saveKarma(k);
+  saveRunItemsToStash(); // บันทึกไอเทมทั้งหมดในตัวลงหีบข้ามชาติ
 
   // บันทึกกองอัฐิชาติก่อน (Skeleton)
   try {
@@ -5129,6 +5241,7 @@ function victory(){
   k.pts += earnedKarma;
   k.unlockedBibhek = true;
   saveKarma(k);
+  saveRunItemsToStash(); // บันทึกไอเทมทั้งหมดในตัวลงหีบข้ามชาติ
 
   hallAdd(sc,true);
     const isGoodEnd = player.punya >= 80 && !player.usedCursedAltar;
@@ -5303,6 +5416,8 @@ function renderTalentModal(){
 function startRun(cls, forcedSeed = 0){
   isBossRushMode = false;
   window._selectBossRush = false;
+  player = player || {};
+  player.stashClaimed = false;
   seed = forcedSeed ? forcedSeed : ((Date.now()^(Math.random()*1e9))>>>0);
   currentSeed = seed;
   rng=mulberry32(seed);
@@ -5322,7 +5437,7 @@ function startRun(cls, forcedSeed = 0){
     rerollCost:10,
     pendingTalents:[],
     mantras:[],floor:1,poison:0,burn:0,
-    facing:1,prevX:0,prevY:0,pet:null,usedCursedAltar:false,hasDeliveryScroll:false,deliveryDone:false,
+    facing:1,prevX:0,prevY:0,pet:null,stashClaimed:false,usedCursedAltar:false,hasDeliveryScroll:false,deliveryDone:false,
     sparedAsura:false,asuraHelped:false,sin:0,vow:null};
   for(const s of C.mantras){if(!s.includes('@'))player.mantras.push(s);}
   rng=Math.random;time=0;endless=false;floats=[];logs=[];slashes=[];sparks=[];
