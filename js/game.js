@@ -458,7 +458,10 @@ const SPRD={
   "spider": ["................", "...kk......kk...", "....kk....kk....", "..kk.kkppkk.kk..", "...kkkppppkkk...", "....kpp00ppk....", "...kkppppppkk...", "..kk.kppppk.kk..", ".....kkppkk.....", "....kk.pp.kk....", "...kk......kk...", "..kk........kk..", "................", "................", "................", "................"],
   "kinnara": ["......ffff......", ".....ffffff.....", "....ffssssff....", "....fss00ssf....", "....ffssssff....", ".ffffttffttffff.", "ff.ffttffttff.ff", "f..ffttffttff..f", "...ffttffttff...", "....ffttttff....", ".....ffffff.....", ".....ff..ff.....", "....fff..fff....", "....ff....ff....", "...fff....fff...", "................"],
   "wraith": ["......tttt......", ".....tttttt.....", "....tt0000tt....", "....tttttttt....", ".....tttttt.....", "....tttttttt....", "...tt.tttt.tt...", "..tt..tttt..tt..", "......tttt......", ".....tttttt.....", "....tttttttt....", "....tt....tt....", "....tt....tt....", ".....t....t.....", "................", "................"],
-  "berserker": ["....rr....rr....", "...rrrr..rrrr...", "..rrrrrrrrrrrr..", "..rrg00rr00grr..", "..rrrrrrrrrrrr..", ".w.rrrrrrrrrr.w.", "www.rrrrrrrr.www", ".w..rrrrrrrr..w.", "....rrrrrrrr....", "...rrrrrrrrrr...", "...rrrr..rrrr...", "...rr......rr...", "..rrr......rrr..", "..rrr......rrr..", "................", "................"]
+  "berserker": ["....rr....rr....", "...rrrr..rrrr...", "..rrrrrrrrrrrr..", "..rrg00rr00grr..", "..rrrrrrrrrrrr..", ".w.rrrrrrrrrr.w.", "www.rrrrrrrr.www", ".w..rrrrrrrr..w.", "....rrrrrrrr....", "...rrrrrrrrrr...", "...rrrr..rrrr...", "...rr......rr...", "..rrr......rrr..", "..rrr......rrr..", "................", "................"],
+  "singha": [".....ff..ff.....", "....ffffffff....", "...ffggggggff...", "..ffggggggggff..", "..fgg00ff00ggf..", "..fggggggggggf..", "..ffggoogoggff..", "...fggggggggf...", "..ffffffffffff..", ".ffffggggggffff.", ".fff.gggggg.fff.", ".....gggggg.....", "....gg....gg....", "...ggg....ggg...", "...dd......dd...", "................"],
+  "makara": ["................", "..tt........tt..", "..tttt....tttt..", "...tttttttttt...", "...ttg00tt00g...", "..tttttttttttt..", "..ttwwwwwwwwtt..", ".tttttttttttttt.", ".tt.tttttttt.tt.", "....tttttttt....", "....tttttttt....", "...tttt..tttt...", "...tt......tt...", "..ttt......ttt..", "..ttt......ttt..", "................"],
+  "peacock": ["......tttt......", ".....tttttt.....", "....ttfffftt....", "....tf0000ft....", "....ttfffftt....", "...ttttbbtttt...", "..ttbbbbbbbbtt..", ".ttbb.bbbb.bbtt.", ".tbb..bbbb..bbt.", "......bbbb......", ".....bbbbbb.....", "....bbbbbbbb....", "...bb......bb...", "..bbb......bbb..", "..bbb......bbb..", "................"]
 };
 const SPR={};
 for(const name in SPRD){
@@ -668,6 +671,45 @@ function acceptBounty(bountyId){
   sfx.level();
   hide($('shopOv'));
   updateHud();
+}
+
+
+function openBountyBoardModal(){
+  let ov = $('bountyBoardOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'bountyBoardOv';
+    ov.className = 'ov';
+    ov.style.zIndex = '370';
+    document.body.appendChild(ov);
+  }
+
+  let html = '<div class="panel" style="max-width:440px;border-color:var(--gold);box-shadow:0 0 28px rgba(245,197,66,.45);text-align:center">';
+  html += '<div class="deva">दण्ड</div>';
+  html += '<h2 style="font-family:Chakra Petch;color:var(--gold);margin:2px 0 6px;font-size:22px">📜 ป้ายประกาศจับล่าค่าหัว</h2>';
+  html += '<p style="font-size:12.5px;color:var(--ink);margin:0 0 12px">รับสัญญาจ้างล่าอสูรนอกรีตที่กบดานในวิหาร เพื่อรับทรัพย์สินและปุญบารมีมหาศาล</p>';
+
+  html += '<div style="display:flex;flex-direction:column;gap:8px;text-align:left;margin-bottom:14px">';
+  WANTED_BOUNTIES.forEach(b => {
+    const isCurrent = activeBounty && activeBounty.id === b.id;
+    html += '<div class="row" style="background:#190b17;padding:8px;border:1px solid ' + (isCurrent ? 'var(--gold)' : 'var(--line)') + '">';
+    html += '<div><b class="gold">' + b.name + '</b> <small class="dim">(' + b.title + ' · ชั้น ' + thaiNum(b.reqFloor) + '+)</small>';
+    html += '<div style="font-size:11px;color:var(--teal)">รางวัล: ◉ ' + b.reward + ' · ปุญบารมี +' + b.punya + '</div></div>';
+    if(isCurrent){
+      html += '<span class="teal" style="font-size:11px;font-weight:700">กำลังตามล่า</span>';
+    } else {
+      html += '<button class="mini-btn" ' + (activeBounty ? 'disabled' : '') + ' onclick="acceptBounty(' + "'" + b.id + "'" + ');hide($(' + "'bountyBoardOv'" + '));">รับสัญญาจ้าง</button>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+
+  html += '<button class="btn ghost" id="btnCloseBountyBoard" style="width:100%">ปิด</button>';
+  html += '</div>';
+
+  ov.innerHTML = html;
+  show(ov);
+  $('btnCloseBountyBoard').onclick = () => hide(ov);
 }
 
 /* ── ๔. สหายร่วมรบที่ช่วยเหลือได้ & ทหารรับจ้าง (Companion Allies) ── */
@@ -1947,6 +1989,11 @@ const FOES=[
   {id:'wraith',name:'ภูตผีลวงตา',sprite:'wraith',hp:28,atk:9,def:1,xp:30,g:12,min:12,max:19,splitter:true},
   {id:'yaksha',name:'ยักษ์ทวารบาล',sprite:'yaksha',hp:38,atk:12,def:3,xp:35,g:14,min:12,max:20},
   {id:'golem',name:'ทวารบาลหินศิลา',sprite:'golem',hp:45,atk:13,def:5,xp:40,g:16,min:14,max:25,stomp:true},
+  // ๔ มอนสเตอร์หิมพานต์สายพันธุ์ใหม่ (ทิศทาง ก)
+  {id:'singha',name:'สิงหราชา',sprite:'singha',hp:34,atk:11,def:3,xp:32,g:12,min:7,max:17,roar:true},
+  {id:'makara',name:'กุมภีร์พญากุมภีล์',sprite:'makara',hp:38,atk:12,def:4,xp:36,g:15,min:6,max:16,waterAmbush:true},
+  {id:'peacock',name:'มยุรเทวะ',sprite:'peacock',hp:28,atk:8,def:2,xp:30,g:12,min:9,max:18,reflectMagic:true,featherIllusion:true,ranged:true},
+  {id:'preta_bat',name:'ค้างคาวผีอเวจี',sprite:'bat',hp:22,atk:9,def:1,xp:24,g:9,min:11,max:22,lifesteal:true,flyer:true},
   {id:'berserker',name:'ยักษ์ขวานคู่',sprite:'berserker',hp:42,atk:14,def:2,xp:42,g:18,min:15,max:25,berserk:true}
 ];
 
@@ -2258,6 +2305,10 @@ const BESTIARY_DATA = [
   { id: 'boss_5', name: 'พญาขร (บอสชั้น ๕)', s: 'rakshasa', desc: 'นายทัพหน้าแห่งลงกา น้องชายทศกัณฐ์ ผู้มีฤทธาฟาดฟันศัตรูไม่หวั่นเกรง', tip: 'ระวังการจู่โจมคริติคอล พยายามใช้คาถาอมฤตหล่อเลี้ยงเลือด' },
   { id: 'boss_10', name: 'มารีศ (บอสชั้น ๑๐)', s: 'asura', desc: 'อสูรผู้เชี่ยวชาญการจำแลงแปลงกายเป็นกวางทอง ล่อลวงผู้กล้าสู่ความตาย', tip: 'เคลื่อนไหวว่องไว ควรใช้คาถาวายุหรือกระบองหนักทุบกระเด็น' },
   { id: 'boss_15', name: 'กุมภกรรณ (บอสชั้น ๑๕)', s: 'yaksha', desc: 'พญายักษ์ผู้ถือหอกโมกขศักดิ์ ยามตื่นจากบรรทมจะมีพละกำลังมหาศาลดุจภูผา', tip: 'เกราะหนาและโจมตีระยะ ๒ ช่อง ให้ใช้คาถาวัชระสายฟ้าโจมตีทะลวงเกราะ' },
+  { id: 'singha', name: 'สิงหราชา', s: 'singha', desc: 'ราชสีห์ทองคำแห่งป่าหิมพานต์ คำรามกึกก้องสะท้านวิหาร ทำให้ผู้กล้าตัวชา', tip: 'เมื่อคำรามจะทำให้ติดสตั๊น ระวังการโดนรุมซ้ำ' },
+  { id: 'makara', name: 'กุมภีร์พญากุมภีล์', s: 'makara', desc: 'จระเข้โบราณซุ่มกบดานในแอ่งน้ำ พุ่งงับดึงขาผู้เล่นลงน้ำเพื่อช็อตไฟฟ้า', tip: 'หลีกเลี่ยงการยืนใกล้แอ่งน้ำ หรือใช้สายฟ้าช็อตผืนน้ำก่อนเดินผ่าน' },
+  { id: 'peacock', name: 'มยุรเทวะ', s: 'peacock', desc: 'นกยูงสวรรค์ขนมรกต แผ่รำแพนสะท้อนเวทมนตร์และโปรยขนนกลวงตา', tip: 'อย่าใช้คาถาโจมตีโดยตรง ให้ใช้อาวุธประชิดฟันทำลาย' },
+  { id: 'preta_bat', name: 'ค้างคาวผีอเวจี', s: 'bat', desc: 'ค้างคาวปีศาจจากก้นบึ้งอเวจี บินข้ามสิ่งกีดขวางและดูดเลือดฟื้นฟูตนเอง', tip: 'ใช้อาวุธขว้างปาหรือธนูสอยก่อนมันบินเข้าประชิด' },
   { id: 'boss_20', name: 'ทศกัณฐ์ (บอสใหญ่ชั้น ๒๐)', s: 'boss', desc: 'พญายักษ์ ๑๐ หน้า ๒๐ กร จ้าวแห่งกรุงลงกา ผู้ครอบครองฤทธาไร้เทียมทาน', tip: 'บอสใหญ่สุดแกร่ง ต้องเตรียมยาอมฤต อาวุธตีบวก และเครื่องรางมณีโมกษะให้พร้อม!' }
 ];
 
@@ -2692,6 +2743,19 @@ function genFloor(fl){
     if(floorR()<.10 && fl > 1){map[(r.y+2)*W+r.x+3]=12;}
     // ตลาดมืดอสูร (13) สุ่มพบบนชั้น ๗, ๑๔ หรือชั้นอเวจี
     if((fl === 7 || fl === 14 || (fl > 20 && floorR() < 0.18))){map[(r.y+1)*W+r.x+2]=13;}
+    // แท่นสักยันต์ครูโบราณ (16) สุ่มพบบนชั้น ๓, ๗, ๑๓
+    if((fl === 3 || fl === 7 || fl === 13) && !player.yantras?.length >= 2){
+      map[(r.y+2)*W+r.x+1] = 16;
+    }
+    // สุ่มเสาหินร้าว (17), โคมไฟระย้า (18), หรือรังต่อหิมพานต์ (19)
+    if(floorR() < 0.25){
+      const hzType = pick([17, 18, 19]);
+      const hx = r.x + 1 + Math.floor(floorR() * (r.w - 2));
+      const hy = r.y + 1 + Math.floor(floorR() * (r.h - 2));
+      if(map[hy*W+hx] === 1 && !(hx === player.x && hy === player.y)){
+        map[hy*W+hx] = hzType;
+      }
+    }
     // กับดักซ่อนเร้น
     if(floorR() < (heatSettings.moreTraps ? 0.70 : 0.35)){
       const tx = r.x + 1 + Math.floor(floorR()*(r.w-2));
@@ -2787,6 +2851,29 @@ function genFloor(fl){
     }
     enemies.push(spawnedF);
   }
+    // สุ่มเกิดมินิบอสตามสัญญาจ้างล่าค่าหัว
+  if(activeBounty && !activeBounty.hunted && fl >= activeBounty.reqFloor){
+    const br = rooms[Math.floor(floorR() * (rooms.length - 1)) + 1];
+    if(br){
+      const bFoe = spawnFoe({
+        id: activeBounty.id,
+        name: activeBounty.name + ' [' + activeBounty.title + ']',
+        sprite: activeBounty.sprite,
+        hp: activeBounty.hp + fl * 2,
+        maxhp: activeBounty.hp + fl * 2,
+        atk: activeBounty.atk,
+        def: activeBounty.def,
+        xp: 60 + fl * 4,
+        g: activeBounty.reward,
+        ranged: !!activeBounty.ranged,
+        awake: true,
+        isBountyTarget: true
+      }, br.cx, br.cy);
+      enemies.push(bFoe);
+      msg('☠ มินิบอสเป้าหมายค่าหัว «' + activeBounty.name + '» กบดานอยู่ในชั้นนี้!', 'warn');
+      sfx.boss();
+    }
+  }
   if(boss){
     const b={...boss,id:'boss_'+fl,boss:true,ranged:false,awake:false};
     enemies.push(spawnFoe(b,lr.cx,Math.min(H-2,lr.cy+1)));
@@ -2880,6 +2967,29 @@ function genFloor(fl){
   else {
     const tList = fl > 20 ? ABYSS_TITLES : FLOOR_TITLES;
     msg('ชั้น '+thaiNum(fl)+' — '+tList[(fl-1)%tList.length]+(fl>20?' (อเวจี)':''));
+  }
+    // สุ่มเกิดมินิบอสตามสัญญาจ้างล่าค่าหัว
+  if(activeBounty && !activeBounty.hunted && fl >= activeBounty.reqFloor){
+    const br = rooms[Math.floor(floorR() * (rooms.length - 1)) + 1];
+    if(br){
+      const bFoe = spawnFoe({
+        id: activeBounty.id,
+        name: activeBounty.name + ' [' + activeBounty.title + ']',
+        sprite: activeBounty.sprite,
+        hp: activeBounty.hp + fl * 2,
+        maxhp: activeBounty.hp + fl * 2,
+        atk: activeBounty.atk,
+        def: activeBounty.def,
+        xp: 60 + fl * 4,
+        g: activeBounty.reward,
+        ranged: !!activeBounty.ranged,
+        awake: true,
+        isBountyTarget: true
+      }, br.cx, br.cy);
+      enemies.push(bFoe);
+      msg('☠ มินิบอสเป้าหมายค่าหัว «' + activeBounty.name + '» กบดานอยู่ในชั้นนี้!', 'warn');
+      sfx.boss();
+    }
   }
   if(boss){
     msg('☠ นายทัพ '+boss.name+' ครองชั้นนี้!','warn');sfx.boss();
@@ -3092,7 +3202,8 @@ function genGroundItem(){
     const th = pick(THROWABLES);
     return {t:'throw', name: th.name, dmg: th.dmg + Math.floor(floor * 0.8), range: th.range, c: th.c, burn: th.burn||0, r:'common', lore:'อาวุธขว้างโจมตีระยะไกล ' + thaiNum(th.range) + ' ช่อง', price: 20 + floor*2};
   }
-  if(r<.73) return genScrollUpg(); // คัมภีร์ตีบวก
+  if(r<.71) return genScrollUpg(); // คัมภีร์ตีบวก
+  if(r<.75) return { t: 'lore_scroll', ch: 1 + Math.floor(floorR() * 4), name: 'คัมภีร์ใบลานลงกา (บทที่ ' + thaiNum(1 + Math.floor(floorR() * 4)) + ')', r: 'legendary', lore: 'คัมภีร์บันทึกประวัติศาสตร์โบราณแห่งกรุงลงกา ศึกษาเพื่อรับปัญญาและพลังถาวร' };
   if(r<.78) return genRelic(); // เครื่องราง
   if(r<.82) return genHeadgear(); // มงกุฎ/ชฎา
   if(r<.85) return {...TOOL_HOOK};
@@ -3877,6 +3988,15 @@ function killFoe(e){
 
   enemies=enemies.filter(o=>o!==e);
   if(isBossRushMode) checkArenaWaveCompletion();
+    if(e.isBountyTarget && activeBounty && !activeBounty.hunted){
+    activeBounty.hunted = true;
+    player.gold += activeBounty.reward;
+    player.punya += activeBounty.punya;
+    sfx.level(); flash = 0.8; shake = 8;
+    msg('🏆 สังหารมินิบอสค่าหัว «' + activeBounty.name + '» สำเร็จ! รับเงินรางวัล ◉' + activeBounty.reward + ' และปุญบารมี +' + activeBounty.punya + '!', 'good');
+    floats.push({x: e.x, y: e.y, t: 'พิชิตค่าหัว! +◉' + activeBounty.reward, c: '#f5c542', life: 2.5});
+    activeBounty = null;
+  }
   if(e.elite){
     msg('👑 ล้มจอม' + e.name + 'สำเร็จ! หีบสมบัติล้ำค่าหล่นลงพื้น!', 'good');
     items.push({ x: e.x, y: e.y, ...genW(clamp(Math.floor(floor/4)+1, 1, 4)) });
@@ -4020,6 +4140,40 @@ function enemiesAct(){
       hurtPlayer(d,e.name,e);
 
     // ๑. ค้างคาวผี: ดูดเลือดฟื้นฟูตนเอง
+    
+    // 🦁 สิงหราชา: คำรามสนั่นห้อง ทำให้ผู้เล่นติดสตั๊น ๑ เทิร์น
+    if(e.roar && dist <= 4 && dist > 1 && rng() < 0.28 && los(e.x, e.y, player.x, player.y)){
+      player.stun = 1;
+      shake = 8; flash = 0.5; sfx.boss();
+      triggerSlash(player.x, player.y, '#f5c542');
+      floats.push({x: player.x, y: player.y, t: 'ตัวชา (สตั๊น)!', c: '#f5c542', life: 1.5});
+      msg('🦁 สิงหราชาคำรามก้องสะท้านห้อง! คลื่นเสียงคำรามทำให้เจ้าตัวชา ๑ เทิร์น!', 'warn');
+      continue;
+    }
+
+    // 🐊 กุมภีร์พญากุมภีล์: ซุ่มกบดานในแอ่งน้ำ พุ่งงับดึงขาผู้เล่นลงน้ำ
+    if(e.waterAmbush && dist <= 2 && dist > 1 && isWater(e.x, e.y)){
+      const dragX = e.x, dragY = e.y;
+      player.prevX = player.x; player.prevY = player.y;
+      player.x = dragX; player.y = dragY;
+      player.immobilized = 1;
+      const wDmg = 8 + R(5);
+      hurtPlayer(wDmg, 'พญากุมภีล์งับลากลงน้ำ', e);
+      triggerSlash(player.x, player.y, '#2ec4a6');
+      floats.push({x: player.x, y: player.y, t: 'งับลากลงน้ำ -' + wDmg, c: '#2ec4a6', life: 1.5});
+      msg('🐊 พญากุมภีล์พุ่งขึ้นจากแอ่งน้ำงับขากระชากเจ้าลงสู่วารี! -' + wDmg + ' HP', 'warn');
+      continue;
+    }
+
+    // 🦚 มยุรเทวะ: โปรยขนนกลวงตา
+    if(e.featherIllusion && dist <= 4 && dist > 1 && rng() < 0.30){
+      player.blind = 2;
+      triggerSlash(player.x, player.y, '#2ec4a6');
+      floats.push({x: player.x, y: player.y, t: 'ตามัว!', c: '#ffe9a3', life: 1.2});
+      msg('🦚 มยุรเทวะโปรยขนนกลวงตาระยิบระยับ! ดวงตาเจ้าพร่ามัวมองไม่ชัด ๒ เทิร์น!', 'warn');
+      continue;
+    }
+
     if(e.lifesteal && dist === 1){
       const lDrain = Math.max(1, Math.floor(d * 0.5));
       e.hp = Math.min(e.maxhp, e.hp + lDrain);
@@ -4532,6 +4686,13 @@ function useItem(i){
     msg('สวมใส่เครื่องราง «' + it.name + '» ' + it.desc, 'good');
     sfx.level();
   }
+  else if(it.t==='lore_scroll'){
+    readLoreScroll(it.ch || 1);
+    player.inv.splice(i, 1);
+    updateHud();
+    endTurn();
+    return;
+  }
   else if(it.t==='hook'){
     // ตรวจสอบกำแพงทั้ง 4 ทิศรอบตัวผู้เล่น
     const dirs = [[0,-1],[0,1],[-1,0],[1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
@@ -4596,6 +4757,14 @@ function castMantra(key){
     floats.push({x:t.x,y:t.y,t:'-'+d,c:key==='agni'?'#ff8b1f':'#f5c542',life:1});
     msg((key==='agni'?'✹ เปลวเพลิง':'⌁ สายฟ้าพระอินทร์')+'สังหาร'+t.name+' -'+d);
     if(key === 'vajra' && isWater(t.x, t.y)) electrifyWater(t.x, t.y, d);
+        // มยุรเทวะ: สะท้อนเวทมนตร์ ๕๐%
+    if(t.reflectMagic){
+      const refDmg = Math.max(2, Math.floor(d * 0.5));
+      hurtPlayer(refDmg, 'มนตราสะท้อนจากมยุรเทวะ', t);
+      triggerSlash(player.x, player.y, '#2ec4a6');
+      floats.push({x: player.x, y: player.y, t: 'สะท้อน -' + refDmg + ' HP', c: '#2ec4a6', life: 1.2});
+      msg('🦚 มยุรเทวะแผ่รำแพนขนยูงสวรรค์สะท้อนเวทมนตร์กลับใส่เจ้า! -' + refDmg + ' HP', 'warn');
+    }
     if(t.hp<=0){
       player.spellKills = (player.spellKills || 0) + 1;
       if(player.spellKills >= 10) unlockAch('mage_master');
@@ -4799,6 +4968,13 @@ function renderShop(n){
     renderShop(n);
   };
   rMerc.appendChild(bMerc); svcBox.appendChild(rMerc);
+  // ปุ่มเปิดกระดานประกาศจับค่าหัว
+  const rBounty = document.createElement('div'); rBounty.className = 'row';
+  rBounty.innerHTML = '<span>📜 <b>ป้ายประกาศจับล่าค่าหัว</b> <small class="gold">(รับสัญญาจ้างล่ามินิบอส)</small></span>';
+  const bBounty = document.createElement('button'); bBounty.className = 'mini-btn';
+  bBounty.textContent = activeBounty ? '✓ กำลังล่า' : 'ดูป้ายประกาศ';
+  bBounty.onclick = openBountyBoardModal;
+  rBounty.appendChild(bBounty); svcBox.appendChild(rBounty);
 
   s.appendChild(svcBox);
 
@@ -5405,7 +5581,16 @@ function render(){
     }
 
     // ออร่ามอนสเตอร์ระดับหัวหน้า (Elite)
-    if(e.elite){
+      if(e.isBountyTarget && activeBounty && !activeBounty.hunted){
+    activeBounty.hunted = true;
+    player.gold += activeBounty.reward;
+    player.punya += activeBounty.punya;
+    sfx.level(); flash = 0.8; shake = 8;
+    msg('🏆 สังหารมินิบอสค่าหัว «' + activeBounty.name + '» สำเร็จ! รับเงินรางวัล ◉' + activeBounty.reward + ' และปุญบารมี +' + activeBounty.punya + '!', 'good');
+    floats.push({x: e.x, y: e.y, t: 'พิชิตค่าหัว! +◉' + activeBounty.reward, c: '#f5c542', life: 2.5});
+    activeBounty = null;
+  }
+  if(e.elite){
       ctx.strokeStyle = 'rgba(245, 197, 66, ' + (0.35 + 0.35 * Math.sin(time * 0.3 + e.x)).toFixed(2) + ')';
       ctx.lineWidth = 1.5;
       ctx.strokeRect(ex - 1, ey - 1, T + 2, T + 2);
@@ -5448,7 +5633,92 @@ function render(){
     }
     const pBob = ((time & 8) ? 0 : -1);
     const flipP = player.facing === -1;
+
+    // ── ทิศทาง ข: ระบบกราฟิกเปลี่ยนตามของสวมใส่จริง (Visual Paperdoll System) ──
+    // ๑. เลเวล ๑๐+: ปลดล็อกแสงออร่าบารมีสีทองเรืองรองรอบตัว
+    if(player.lvl >= 10){
+      ctx.save();
+      const auraPulse = 0.22 + 0.12 * Math.sin(time * 0.2);
+      ctx.fillStyle = 'rgba(245, 197, 66, ' + auraPulse.toFixed(2) + ')';
+      ctx.beginPath();
+      ctx.arc(px + 8, py + 8 + pBob, 11 + Math.sin(time * 0.25) * 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // ๒. วาดสไปรต์ตัวละครหลัก
     drawSpr(player.sprite, px, py + pBob, 16, 16, flipP, 0);
+
+    // ๓. สวมเกราะ: ลายเกราะมรกต/ทองคำประกายบนแผ่นอก
+    if(player.arm && player.arm.tier > 1){
+      ctx.save();
+      const armColor = player.arm.name.includes('นาค') ? '#2ec4a6' :
+                       (player.arm.name.includes('สุริยะ') ? '#f5c542' :
+                       (player.arm.name.includes('กระดูก') ? '#8f2438' : '#e8b06a'));
+      ctx.fillStyle = armColor;
+      const chestX = flipP ? px + 5 : px + 7;
+      ctx.fillRect(chestX, py + 7 + pBob, 4, 3);
+      ctx.restore();
+    }
+
+    // ๔. สวมชฎา/มงกุฎ: มีมงกุฎทองคำประดับบนหัวตัวละครจริงในฉากเดิน
+    if(player.head){
+      ctx.save();
+      const hColor = (player.head.r === 'mythic' || player.head.name.includes('ทอง')) ? '#f5c542' : '#ffe9a3';
+      ctx.fillStyle = hColor;
+      const headPeakX = flipP ? px + 6 : px + 7;
+      ctx.fillRect(headPeakX, py - 3 + pBob, 2, 4); // ยอดชฎาแหลม
+      ctx.fillRect(headPeakX - 2, py + 1 + pBob, 6, 2); // ฐานมงกุฎ
+      ctx.fillStyle = '#ff3b30'; // ทับทิมยอดชฎา
+      ctx.fillRect(headPeakX, py - 1 + pBob, 2, 2);
+      ctx.restore();
+    }
+
+    // ๕. ถืออาวุธ: อาวุธในมือตัวละครเปลี่ยนรูปร่างตามประเภทจริง
+    if(player.wpn){
+      ctx.save();
+      const wType = player.wpn.type || 'dagger';
+      const wColor = player.wpn.r === 'mythic' ? '#e5482e' : (player.wpn.r === 'legendary' ? '#f5c542' : '#f4ecdc');
+      const handX = flipP ? px + 1 : px + 12;
+      const handY = py + 7 + pBob;
+
+      if(wType === 'spear'){
+        ctx.fillStyle = '#7a4a22';
+        const tipX = flipP ? handX - 5 : handX + 2;
+        ctx.fillRect(tipX, handY, 6, 2);
+        ctx.fillStyle = wColor;
+        ctx.fillRect(flipP ? tipX - 2 : tipX + 5, handY - 1, 3, 4);
+      } else if(wType === 'bow'){
+        ctx.strokeStyle = '#f5c542'; ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        const bx = flipP ? handX - 2 : handX + 2;
+        ctx.arc(bx, handY + 1, 4, flipP ? Math.PI*0.5 : -Math.PI*0.5, flipP ? Math.PI*1.5 : Math.PI*0.5);
+        ctx.stroke();
+      } else if(wType === 'mace'){
+        ctx.fillStyle = '#7a4a22'; ctx.fillRect(handX, handY + 1, 2, 4);
+        ctx.fillStyle = wColor; ctx.fillRect(flipP ? handX - 3 : handX + 1, handY - 2, 4, 4);
+      } else if(wType === 'cleave'){
+        ctx.fillStyle = wColor; ctx.fillRect(flipP ? handX - 3 : handX + 2, handY - 2, 4, 5);
+      } else if(wType === 'claw'){
+        ctx.fillStyle = '#ff3b30';
+        ctx.fillRect(flipP ? handX - 2 : handX + 2, handY - 1, 3, 2);
+        ctx.fillRect(flipP ? handX - 3 : handX + 3, handY + 1, 3, 2);
+      } else if(wType === 'whip'){
+        ctx.strokeStyle = '#f5c542'; ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(handX, handY);
+        ctx.lineTo(flipP ? handX - 3 : handX + 3, handY + 4);
+        ctx.lineTo(flipP ? handX - 5 : handX + 5, handY + 2);
+        ctx.stroke();
+      } else if(wType === 'fan'){
+        ctx.fillStyle = '#2ec4a6';
+        ctx.beginPath(); ctx.arc(handX, handY, 3, 0, Math.PI); ctx.fill();
+      } else {
+        ctx.fillStyle = wColor;
+        ctx.fillRect(flipP ? handX - 3 : handX + 2, handY, 4, 2);
+      }
+      ctx.restore();
+    }
 
     // วาดสัตว์เลี้ยงเดินตามหลังกระโดดดุ๊กดิ๊ก
     if(player.pet){
@@ -5708,6 +5978,20 @@ function openStatusModal(){
   }
   html += '</div>';
   html += '</div>';
+
+  // แสดงชุดเซ็ตคู่บารมีที่ทำงานอยู่
+  const activeSets = getActiveSetBonuses();
+  if(activeSets.length){
+    html += '<h4 style="margin:8px 0 4px;color:var(--gold);font-size:13px">🏹 พลังชุดเซ็ตคู่บารมี</h4>';
+    html += '<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px">';
+    activeSets.forEach(st => {
+      html += '<div style="background:#1a0814;padding:6px 8px;border-left:3px solid ' + st.color + ';font-size:12px">';
+      html += '<b style="color:' + st.color + '">' + st.icon + ' ' + st.name + ' (' + thaiNum(st.count) + ' ชิ้น):</b> ';
+      html += '<span style="color:#fff">' + (st.count >= 3 ? st.bonus3 : st.bonus2) + '</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
 
   // วิชาพรสวรรค์ที่เลือกไว้
   html += '<h4 style="margin:8px 0 4px;color:var(--teal);font-size:13px">✦ วิชาพรสวรรค์ประจำตัว</h4>';
