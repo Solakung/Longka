@@ -924,6 +924,15 @@ function genMountItem(){
 
 
 /* ── ๓. หีบสังสารวัฏข้ามชาติ (Past Life Reliquary - ฝาก ๑ ชิ้น & จ่ายปุญแลก) ── */
+
+const VAULT_KEY = 'lanka_gold_vault_v1';
+function getVaultGold(){
+  try { return parseInt(localStorage.getItem(VAULT_KEY) || '0'); } catch(e){ return 0; }
+}
+function saveVaultGold(amt){
+  try { localStorage.setItem(VAULT_KEY, String(amt)); } catch(e){}
+}
+
 const STASH_KEY = 'lanka_stash_v1';
 
 function getStashItem(){
@@ -1771,10 +1780,10 @@ const FOES=[
   {id:'yaksha',name:'ยักษ์ทวารบาล',sprite:'yaksha',hp:32,atk:10,def:3,xp:27,g:13,min:9,max:18},
 ];
 const BOSSES={
-  5:{name:'พญาขร',title:'นายทัพหน้าแห่งลงกา',sprite:'rakshasa',hp:65,atk:9,def:2,xp:70,g:30},
-  10:{name:'มารีศ',title:'อสูรจำแลงกวางทอง',sprite:'asura',hp:110,atk:12,def:3,xp:120,g:50},
-  15:{name:'กุมภกรรณ',title:'พญายักษ์หอกโมกขศักดิ์',sprite:'yaksha',hp:170,atk:15,def:5,xp:180,g:80},
-  20:{name:'ทศกัณฐ์',title:'พญายักษ์ ๑๐ หน้า ๒๐ กร จ้าวแห่งลงกา',sprite:'boss',hp:260,atk:19,def:6,xp:0,g:120},
+  5:{name:'พญาขร',title:'นายทัพหน้าแห่งลงกา',sprite:'rakshasa',hp:120,atk:10,def:4,xp:100,g:45},
+  10:{name:'มารีศ',title:'อสูรจำแลงกวางทอง',sprite:'asura',hp:200,atk:14,def:5,xp:150,g:70},
+  15:{name:'กุมภกรรณ',title:'พญายักษ์หอกโมกขศักดิ์',sprite:'yaksha',hp:320,atk:17,def:7,xp:220,g:100},
+  20:{name:'ทศกัณฐ์',title:'พญายักษ์ ๑๐ หน้า ๒๐ กร จ้าวแห่งลงกา',sprite:'boss',hp:550,atk:22,def:9,xp:0,g:150},
 };
 const WEAPONS=[null,{n:'ขรรค์เหล็ก',a:2},{n:'ขรรค์อัคนี',a:4},{n:'ตรีศูล',a:7},
   {n:'วัชระ',a:10},{n:'จักรสุทรรศน์',a:14}];
@@ -2360,7 +2369,8 @@ function openDilemmaModal(n){
     player.sparedAsura = true;
     n.resolved = true;
     n.used = true;
-    msg('✦ เจ้าสละยาอมฤตช่วยชีวิตอสูร! ปุญบารมีเพิ่มขึ้น +๓๕ อย่างยิ่งใหญ่', 'good');
+    npcs = npcs.filter(o => o !== n); // อสูรคำนับแล้วลุกเดินจากไป ไม่ขวางทางเดินหรือบันได ๑๐๐%
+    msg('✦ เจ้าสละยาอมฤตช่วยชีวิตอสูร! อสูรคำนับขอบคุณแล้วเร้นกายจากไป ปุญบารมีเพิ่มขึ้น +๓๕', 'good');
     floats.push({x: player.x, y: player.y, t: 'เมตตาบารมี +๓๕', c: '#2ec4a6', life: 2});
     sfx.level(); flash = 0.5;
     unlockAch('karma_mercy');
@@ -2372,6 +2382,7 @@ function openDilemmaModal(n){
     hide(ov);
     n.resolved = true;
     n.used = true;
+    npcs = npcs.filter(o => o !== n); // สลายร่างเป็นกลุ่มควัน ไม่ขวางทางเดิน ๑๐๐%
     player.xp += 50;
     player.gold += 35;
     player.sin = (player.sin || 0) + 1;
@@ -2577,7 +2588,7 @@ function genFloor(fl){
   }
   // ทางแยกแห่งกรรม: อสูรบาดเจ็บ (ชั้น ๔, ๘, ๑๒, ๑๖)
   if(fl % 4 === 0 && fl <= 16){
-    const r = rooms[Math.floor(floorR()*rooms.length)];
+    const r = pick(rooms.slice(1, -1)); // ห้ามเกิดในห้องแรกหรือห้องบันไดเด็ดขาด
     npcs.push({type:'dilemma_asura', x:r.cx, y:r.cy, sprite:'asura', resolved:false, used:false});
   }
   // แท่นศิลาถวายคำสัตย์แห่งพระอินทร์ (ชั้น ๓, ๗, ๑๑)
@@ -2658,7 +2669,7 @@ function genFloor(fl){
   fireTiles = [];
   // โลงศิลาโบราณ (สุ่มพบบนชั้น ๔, ๘, ๑๒, ๑๖ หรือ ๒๐% ต่อชั้น)
   if((fl % 4 === 0 || floorR() < 0.20) && !isBossRushMode){
-    const r = pick(rooms.slice(1));
+    const r = pick(rooms.slice(1, -1)); // โลงศิลาห้ามเกิดทับห้องบันได
     map[(r.y+2)*W + r.x+2] = 15;
   }
   if(rooms.length > 1){
@@ -2683,11 +2694,12 @@ function genFloor(fl){
     player.asuraHelped = true;
     const bFoe = enemies.find(e => e.boss);
     if(bFoe){
-      bFoe.hp = Math.max(1, bFoe.hp - 35);
+      const aDmg = Math.max(15, Math.floor(bFoe.maxhp * 0.18));
+      bFoe.hp = Math.max(1, bFoe.hp - aDmg);
       bFoe.flash = 6;
       triggerSlash(bFoe.x, bFoe.y, '#2ec4a6');
       shake = 8; sfx.level();
-      msg('✦ อสูรที่เจ้าเคยเมตตาช่วยเหลือไว้ ปรากฏกายตอบแทนคุณ! พุ่งเสียบเปิดแผลใส่ ' + bFoe.name + ' -๓๕ HP!', 'good');
+      msg('✦ อสูรที่เจ้าเคยเมตตาช่วยเหลือไว้ ปรากฏกายตอบแทนคุณ! พุ่งเสียบเปิดแผลใส่ ' + bFoe.name + ' -' + thaiNum(aDmg) + ' HP!', 'good');
     }
   }
 
@@ -2705,9 +2717,14 @@ function genFloor(fl){
   }
     // โลงศิลาโบราณ (สุ่มพบบนชั้น ๔, ๘, ๑๒, ๑๖ หรือ ๒๐% ต่อชั้น)
   if((fl % 4 === 0 || floorR() < 0.20) && !isBossRushMode){
-    const r = pick(rooms.slice(1));
+    const r = pick(rooms.slice(1, -1)); // โลงศิลาห้ามเกิดทับห้องบันได
     map[(r.y+2)*W + r.x+2] = 15;
   }
+  // 🛡️ ประกันความปลอดภัยขั้นสูงสุด: คืนค่าบันไดทางลงให้คงอยู่ ๑๐๐% เสมอ
+  map[stairs.y * W + stairs.x] = 2;
+  npcs = npcs.filter(o => !(o.x === stairs.x && o.y === stairs.y));
+  enemies = enemies.filter(o => !(o.x === stairs.x && o.y === stairs.y));
+  traps = traps.filter(o => !(o.x === stairs.x && o.y === stairs.y));
   computeFov();
 }
 function spawnFoe(base,x,y){
@@ -3369,6 +3386,13 @@ function attackFoe(e, dirX=0, dirY=0){
     msg('👑 ขัตติยมานะสำแดงฤทธิ์! เลือดวิกฤตพลังโจมตีทวีคูณ!', 'warn');
   }
   if(crit) d <<= 1;
+  if(e.boss){
+    const maxCap = Math.max(12, Math.floor(e.maxhp * 0.28));
+    if(d > maxCap){
+      d = maxCap;
+      floats.push({x: e.x, y: e.y - 0.5, t: 'กายาสิทธิ์ต้านทาน!', c: '#f5c542', life: 1});
+    }
+  }
   e.hp -= d; e.awake = true; e.flash = 5;
 
   let slashColor = crit ? '#f5c542' : '#f4ecdc';
@@ -3901,6 +3925,18 @@ function endTurn(){
   }
 
   // ทหารวานรช่วยสู้
+    // ทหารเอกวานรรับจ้างช่วยรบ
+  if(player.mercenaryTurns > 0){
+    const nearFoe = enemies.find(e => vis[e.y*W+e.x] && Math.max(Math.abs(e.x-player.x), Math.abs(e.y-player.y)) <= 2);
+    if(nearFoe){
+      const mDmg = 10 + R(4);
+      nearFoe.hp -= mDmg; nearFoe.flash = 4;
+      triggerSlash(nearFoe.x, nearFoe.y, '#ffe9a3');
+      floats.push({x: nearFoe.x, y: nearFoe.y, t: 'วานรฟัน -' + mDmg, c: '#ffe9a3', life: 1});
+      msg('🐒 ทหารเอกวานรตวัดกระบองทุบใส่ ' + nearFoe.name + ' -' + mDmg, 'good');
+      if(nearFoe.hp <= 0) killFoe(nearFoe);
+    }
+  }
   if(player.summons > 0){
     const nearFoe = enemies.find(e => vis[e.y*W+e.x] && Math.max(Math.abs(e.x-player.x), Math.abs(e.y-player.y)) <= 3);
     if(nearFoe){
@@ -4400,22 +4436,41 @@ function renderShop(n){
   svcBox.style.marginBottom = '10px';
   svcBox.innerHTML = '<h4 style="margin:0 0 6px;color:var(--gold);font-size:13px">🔨 บริการช่างตีดาบ & ช่างทอง</h4>';
 
-  // บริการตีบวก +1
-  const upgradeCost = 45 + floor * 3;
+  // บริการตีบวก +1 (จำกัด ๑ ครั้งต่อร้าน และราคาเพิ่มตามระดับอาวุธ)
+  const currentPlus = (player.wpn && player.wpn.plus) || 0;
+  const maxPlus = Math.min(5, 1 + Math.floor(floor / 3)); // ชั้น 1-3 = +2, ชั้น 4-6 = +3, ชั้น 10+ = +5
+  const upgradeCost = 40 + (currentPlus * 35) + (floor * 4);
+  const isMaxPlus = currentPlus >= maxPlus && floor <= 20;
+  const alreadyUpgraded = n.upgradedOnce || false;
+
   const rUpg = document.createElement('div'); rUpg.className = 'row';
-  rUpg.innerHTML = '<span>🔨 <b>ตีบวกอาวุธ (+๑)</b> <small class="dim">(อาวุธที่ถือ: ' + (player.wpn?player.wpn.name:'ไม่มี') + ')</small></span>';
+  let upgStatusText = '🔨 <b>ตีบวกอาวุธ (+๑)</b> <small class="dim">(' + (player.wpn?player.wpn.name:'ไม่มี') + ')</small>';
+  if(alreadyUpgraded) upgStatusText += ' <span class="teal">(ขัดเกลาแล้ว)</span>';
+  else if(isMaxPlus) upgStatusText += ' <span class="gold">(เต็มขั้นชั้นนี้)</span>';
+  rUpg.innerHTML = '<span>' + upgStatusText + '</span>';
+
   const bUpg = document.createElement('button'); bUpg.className = 'mini-btn';
-  bUpg.textContent = '◉ ' + upgradeCost;
-  bUpg.disabled = player.gold < upgradeCost || !player.wpn;
-  bUpg.onclick = () => {
-    player.gold -= upgradeCost;
-    player.wpn.plus = (player.wpn.plus || 0) + 1;
-    player.wpn.v += 2;
-    player.wpn.name = player.wpn.baseName + ' +' + thaiNum(player.wpn.plus) + (player.wpn.afName ? ' [' + player.wpn.afName + ']' : '');
-    sfx.level(); flash = 0.5;
-    msg('🔨 วาณิชตีบวก «' + player.wpn.name + '» พลังโจมตีเพิ่มเป็น ' + player.wpn.v + '!', 'good');
-    updateHud(); renderShop(n);
-  };
+  if(alreadyUpgraded){
+    bUpg.textContent = '✓ สำเร็จแล้ว';
+    bUpg.disabled = true;
+  } else if(isMaxPlus){
+    bUpg.textContent = '★ ขีดจำกัด +' + thaiNum(maxPlus);
+    bUpg.disabled = true;
+  } else {
+    bUpg.textContent = '◉ ' + upgradeCost;
+    bUpg.disabled = player.gold < upgradeCost || !player.wpn;
+    bUpg.onclick = () => {
+      n.upgradedOnce = true;
+      player.gold -= upgradeCost;
+      player.wpn.plus = currentPlus + 1;
+      player.wpn.v += 2;
+      player.wpn.name = player.wpn.baseName + ' +' + thaiNum(player.wpn.plus) + (player.wpn.afName ? ' [' + player.wpn.afName + ']' : '');
+      sfx.level(); flash = 0.5;
+      msg('🔨 วาณิชขัดเกลาคมดาบ «' + player.wpn.name + '» พลังโจมตีเพิ่มเป็น ' + player.wpn.v + '!', 'good');
+      floats.push({x: player.x, y: player.y, t: 'ตีบวก +๑!', c: '#f5c542', life: 1.8});
+      updateHud(); renderShop(n);
+    };
+  }
   rUpg.appendChild(bUpg); svcBox.appendChild(rUpg);
 
   // บริการสกัดถอดอัญมณี
@@ -4431,6 +4486,55 @@ function renderShop(n){
     updateHud(); renderShop(n);
   };
   rUnsocket.appendChild(bUnsocket); svcBox.appendChild(rUnsocket);
+  
+  // บริการตู้เซฟฝากทองข้ามชาติ
+  const curVault = getVaultGold();
+  const rVault = document.createElement('div'); rVault.className = 'row';
+  rVault.innerHTML = '<span>🏦 <b>ตู้เซฟสังสารวัฏ (ฝาก ๕๐ ◉)</b> <small class="teal">(ในเซฟมี ' + curVault + ' ◉)</small></span>';
+  const bVault = document.createElement('button'); bVault.className = 'mini-btn';
+  bVault.textContent = 'ฝาก ๕๐ ◉';
+  bVault.disabled = player.gold < 50 || curVault >= 200;
+  bVault.onclick = () => {
+    player.gold -= 50;
+    saveVaultGold(curVault + 50);
+    sfx.gold();
+    msg('🏦 ฝากเหรียญ ◉๕๐ ลงตู้เซฟแล้ว! ในชาติถัดไปจะเริ่มต้นด้วยทองก้อนนี้', 'good');
+    updateHud(); renderShop(n);
+  };
+  rVault.appendChild(bVault); svcBox.appendChild(rVault);
+
+  // บริการจ้างทหารเอกวานรคุ้มกัน
+  const rMerc = document.createElement('div'); rMerc.className = 'row';
+  rMerc.innerHTML = '<span>🐒 <b>จ้างทหารเอกวานรคุ้มกัน</b> <small class="dim">(ช่วยรบ ๓ ชั้น)</small></span>';
+  const bMerc = document.createElement('button'); bMerc.className = 'mini-btn';
+  bMerc.textContent = '◉ ๖๐';
+  bMerc.disabled = player.gold < 60 || (player.mercenaryTurns > 0);
+  bMerc.onclick = () => {
+    player.gold -= 60;
+    player.mercenaryTurns = 3;
+    sfx.level(); flash = 0.4;
+    msg('🐒 ทหารเอกวานรรับสินจ้าง! ติดตามคุ้มกันเจ้าตลอด ๓ ชั้นถัดไป!', 'good');
+    updateHud(); renderShop(n);
+  };
+  rMerc.appendChild(bMerc); svcBox.appendChild(rMerc);
+
+  // บริการคัมภีร์บรรลุปัญญาญาณ (+1 พรสวรรค์)
+  const rTome = document.createElement('div'); rTome.className = 'row';
+  rTome.innerHTML = '<span>📖 <b>คัมภีร์บรรลุปัญญาญาณ</b> <small class="gold">(รับ +๑ แต้มพรสวรรค์)</small></span>';
+  const bTome = document.createElement('button'); bTome.className = 'mini-btn';
+  bTome.textContent = '◉ ๑๒๐';
+  bTome.disabled = player.gold < 120 || n.boughtTome;
+  bTome.onclick = () => {
+    n.boughtTome = true;
+    player.gold -= 120;
+    player.talentPoints = (player.talentPoints || 0) + 1;
+    sfx.level(); flash = 0.6;
+    msg('📖 เจ้าศึกษาคัมภีร์ปัญญาญาณ! ได้รับ +๑ แต้มวิชาพรสวรรค์ทันที!', 'good');
+    updateHud(); renderShop(n);
+    triggerTalentChoice();
+  };
+  rTome.appendChild(bTome); svcBox.appendChild(rTome);
+
   s.appendChild(svcBox);
 
   // ๒. รายการสินค้าของวาณิช
@@ -4477,26 +4581,50 @@ function renderShop(n){
   }
   s.appendChild(sellBox);
 }
-function pray(free){
+function pray(mode){
   hide($('altarOv'));
   if(isNaN(player.gold)) player.gold = 0;
-  if(!free && player.gold < 20){ msg('เหรียญไม่พอถวาย…','warn'); return; }
   const idx = player.y * W + player.x;
   map[idx] = 4; // เทวาลัยมอดดับลงทันที ใช้ได้ครั้งเดียวเท่านั้น!
-  if(!free){ player.gold -= 20; player.punya += 10; msg('เจ้าถวายเครื่องสักการะ ปุญ +๑๐','good'); }
-  const luck=rng()+Math.min(.25,player.punya/200);
-  if(luck>.8){const s=['atk','def','mhp'][R(3)];
-    if(s==='atk')player.atk++;else if(s==='def')player.def++;else{player.mhp+=5;player.hp+=5;}
-    msg('🛕 เทพประทานพร! '+(s==='atk'?'โจมตี':s==='def'?'ป้องกัน':'เลือดสูงสุด')+' +ถาวร','good');sfx.level();}
-  else if(luck>.45){player.hp=player.mhp;player.mp=player.mmp;
-    msg('🛕 แสงศักดิ์สิทธิ์ชำระกาย — ฟื้นเต็ม!','good');sfx.level();}
-  else if(luck>.12){msg('🛕 เทพนิ่งเงียบ… ไม่มีสิ่งใดเกิดขึ้น');}
-  else{player.hp-=6;msg('🛕 คำสาปจากวิหาร! -๖ เลือด','warn');sfx.hurt();
-    if(player.hp<=0){die();return;}}
-  updateHud();endTurn();
+
+  if(mode === 'big'){
+    if(player.gold < 60){ msg('เหรียญไม่พอถวายมหาทาน…', 'warn'); return; }
+    player.gold -= 60;
+    player.punya += 35;
+    player.hp = player.mhp; player.mp = player.mmp;
+    const s = ['atk', 'def', 'mhp'][R(3)];
+    if(s === 'atk') player.atk += 2;
+    else if(s === 'def') player.def += 2;
+    else { player.mhp += 10; player.hp += 10; }
+    sfx.level(); flash = 0.8;
+    msg('🛕 มหาทานบารมีสำแดงฤทธิ์! ปุญ +๓๕, เลือด/มนตร์ฟื้นเต็ม, และ ' + (s==='atk'?'โจมตีถาวร +๒':s==='def'?'ป้องกันถาวร +๒':'เลือดสูงสุด +๑๐') + '!', 'good');
+    floats.push({x: player.x, y: player.y, t: 'มหาเทวพรสถิต!', c: '#f5c542', life: 2.2});
+  } else if(mode === 'small' || mode === false){
+    if(player.gold < 20){ msg('เหรียญไม่พอถวาย…','warn'); return; }
+    player.gold -= 20; player.punya += 10;
+    player.hp = Math.min(player.mhp, player.hp + Math.floor(player.mhp * 0.6));
+    player.mp = player.mmp;
+    sfx.level(); flash = 0.5;
+    msg('🛕 เจ้าถวายเครื่องสักการะ ปุญ +๑๐ และฟื้นฟูกายาเต็มเปี่ยม!', 'good');
+    floats.push({x: player.x, y: player.y, t: 'ปุญบารมี +๑๐', c: '#2ec4a6', life: 1.8});
+  } else {
+    // สวดฟรี
+    const luck = rng() + Math.min(0.25, player.punya / 200);
+    if(luck > 0.65){
+      player.hp = Math.min(player.mhp, player.hp + 15);
+      msg('🛕 แสงศักดิ์สิทธิ์ส่องประกาย ฟื้นเลือด +๑๕', 'good'); sfx.level();
+    } else {
+      msg('🛕 จิตสงบนิ่ง… ไม่มีสิ่งใดเกิดขึ้น');
+    }
+  }
+  updateHud(); endTurn();
 }
 function descend(){
   checkFloorBountyComplete();
+  if(player.mercenaryTurns > 0){
+    player.mercenaryTurns--;
+    if(player.mercenaryTurns === 0) msg('สัญญาจ้างทหารเอกวานรสิ้นสุดลงแล้ว… วานรคำนับแล้วจากไป');
+  }
   // ตรวจสอบความสำเร็จแห่งคำสัตย์ปฏิญาณ
   if(player.vow && (floor + 1) >= player.vow.endFloor){
     player.punya += 30;
@@ -4773,6 +4901,12 @@ function startRun(cls, forcedSeed = 0){
   
   const karma = getKarma();
   player.gold += (karma.goldLvl || 0) * 20;
+  const vGold = getVaultGold();
+  if(vGold > 0){
+    player.gold += vGold;
+    saveVaultGold(0);
+    msg('🏦 เจ้าเบิกเหรียญ ◉' + vGold + ' จากตู้เซฟสังสารวัฏที่ฝากไว้จากชาติก่อน!', 'good');
+  }
   player.bagMax = 10 + (karma.bagLvl || 0);
   player.mhp += (karma.hpLvl || 0) * 5; player.hp = player.mhp;
   player.mmp += (karma.mpLvl || 0) * 4; player.mp = player.mmp;
@@ -6148,3 +6282,4 @@ window.addEventListener('resize',fitCanvas);
 /* ── เริ่มระบบ ── */
 buildClassCards();setupInput();refreshTitle();fitCanvas();
 requestAnimationFrame(loop);
+
