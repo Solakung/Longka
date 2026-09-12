@@ -1079,24 +1079,15 @@ function openArenaIntermissionModal(){
   show(ov);
   updateHud();
 
-  $('btnArenaShop').onclick = () => {
+$('btnArenaShop').onclick = () => {
     hide(ov);
-    const dummyMerchant = {
-      type: 'merchant',
-      stock: [
-        {t:'pot', name:'อมฤต', heal:20+arenaWave*4, price:20+arenaWave*3},
-        {t:'mana', name:'น้ำโสม', mana:18+arenaWave*3, price:18+arenaWave*3},
-        genRation(),
-        genW(clamp(Math.floor(arenaWave/2)+1, 2, 5)),
-        genA(clamp(Math.floor(arenaWave/2)+1, 2, 6)),
-        genScrollUpg()
-      ]
-    };
+    ...
     renderShop(dummyMerchant);
     show($('shopOv'));
     $('btnShopClose').onclick = () => {
       hide($('shopOv'));
       show(ov);
+      $('btnShopClose').onclick = () => { hide($('shopOv')); endTurn(); }; // คืนค่า handler เดิม
     };
   };
 
