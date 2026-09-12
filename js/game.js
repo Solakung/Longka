@@ -3953,6 +3953,14 @@ function attackFoe(e, dirX=0, dirY=0){
   e.awake = true;
   e.flash = 5;
 
+  let slashColor = crit ? '#f5c542' : '#f4ecdc';
+
+  // พลังสังวาลย์นาคราช: ตีติดพิษ
+  if(player.relic && player.relic.id === 'naga_sash'){
+    e.poison = (e.poison || 0) + 3;
+    slashColor = '#43b05c';
+  }
+
   // เอฟเฟกต์พิเศษของอาวุธ
   if(player.wpn && player.wpn.affix && player.arm && player.arm.affix) unlockAch('affix_full');
   if(wpn.affix === 'flame'){
@@ -5774,16 +5782,7 @@ function render(){
     }
 
     // ออร่ามอนสเตอร์ระดับหัวหน้า (Elite)
-      if(e.isBountyTarget && activeBounty && !activeBounty.hunted){
-    activeBounty.hunted = true;
-    player.gold += activeBounty.reward;
-    player.punya += activeBounty.punya;
-    sfx.level(); flash = 0.8; shake = 8;
-    msg('🏆 สังหารมินิบอสค่าหัว «' + activeBounty.name + '» สำเร็จ! รับเงินรางวัล ◉' + activeBounty.reward + ' และปุญบารมี +' + activeBounty.punya + '!', 'good');
-    floats.push({x: e.x, y: e.y, t: 'พิชิตค่าหัว! +◉' + activeBounty.reward, c: '#f5c542', life: 2.5});
-    activeBounty = null;
-  }
-  if(e.elite){
+    if(e.elite){
       ctx.strokeStyle = 'rgba(245, 197, 66, ' + (0.35 + 0.35 * Math.sin(time * 0.3 + e.x)).toFixed(2) + ')';
       ctx.lineWidth = 1.5;
       ctx.strokeRect(ex - 1, ey - 1, T + 2, T + 2);
