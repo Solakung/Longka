@@ -437,205 +437,28 @@ const SPRD={
   "................",
   "................"
 ],
-  "bibhek": [
-  ".....ffwwff.....",
-  "....ffffffff....",
-  "....ffggggff....",
-  "....gseeeesg....",
-  "...gse00ee0esg..",
-  "...gseeeeeeesg..",
-  "..gwwwwwwwwwwg..",
-  ".gwwwwwwwwwwwwg.",
-  ".gw.wwwwwwww.wg.",
-  "....wwwwwwww....",
-  "....wwwwwwww....",
-  "...wwdd..ddww...",
-  "...dd......dd...",
-  "..ddd......ddd..",
-  "..ddd......ddd..",
-  "................"
-],
-  "garuda": [
-  "....ff....ff....",
-  "...ffff..ffff...",
-  "..ffggffffggff..",
-  "..ffg00ff00gff..",
-  "..ffffggggffff..",
-  "...ffooooooff...",
-  ".ffffooooooffff.",
-  "fffoooooooooofff",
-  "ff.oooooooooo.ff",
-  "....oooooooo....",
-  "....oooooooo....",
-  "...ffff..ffff...",
-  "...ff......ff...",
-  "..fff......fff..",
-  "..fff......fff..",
-  "................"
-],
-  "ration": [
-  "................",
-  ".....eeee.......",
-  "....eeeeee......",
-  "...eegggeee.....",
-  "..eeggggggee....",
-  ".eegffffgggee...",
-  ".eegffffffgge...",
-  "..gggggggggg....",
-  "...dddddddd.....",
-  "..dddddddddd....",
-  "..dddddddddd....",
-  "..dddddddddd....",
-  "...dddddddd.....",
-  "....dddddd......",
-  "................",
-  "................"
-],
-  "gem": [
-  "................",
-  ".....ffffff.....",
-  "....fttttttf....",
-  "...fttttttttf...",
-  "..fttwwwwwwttf..",
-  "..ftwwwwwwwwtf..",
-  "...twwwwwwwwt...",
-  "....twwwwwwt....",
-  ".....twwwwt.....",
-  "......twwt......",
-  ".......tt.......",
-  "........t.......",
-  "................",
-  "................",
-  "................",
-  "................"
-],
-  "ore": [
-  "................",
-  ".....ddddd......",
-  "....dddddddd....",
-  "...ddddgggddd...",
-  "..ddddgggggddd..",
-  "..dddggfffggdd..",
-  ".ddddgffffggddd.",
-  ".dddddgggdddddd.",
-  ".dddddddddddddd.",
-  "..dddddddddddd..",
-  "...dddddddddd...",
-  "....dddddddd....",
-  ".....dddddd.....",
-  "................",
-  "................",
-  "................"
-],
-  "egg": [
-  "................",
-  "......ffff......",
-  ".....ffffff.....",
-  "....ffooffff....",
-  "...ffffffffgf...",
-  "...ffffgffffg...",
-  "..ffffffgffffg..",
-  "..ffffffoffffg..",
-  "..ffffffffffff..",
-  "..ffffgfffffff..",
-  "...ffffffffffff.",
-  "...ffffffffffff.",
-  "....ffffffffff..",
-  ".....ffffffff...",
-  "................",
-  "................"
-],
-  "head": [
-  ".......ff.......",
-  "......ffff......",
-  ".....fggggf.....",
-  ".....fggggf.....",
-  "....ffggggff....",
-  "...fffggggfff...",
-  "...fgggrrgggf...",
-  "..fggggrrggggf..",
-  "..gggggttggggg..",
-  ".ggggggttgggggg.",
-  ".ggggggrrgggggg.",
-  "..gggggffggggg..",
-  "...gggggggggg...",
-  "....ffffffff....",
-  "................",
-  "................"
-],
-  "scroll_tac": [
-  "....rrrrrrrr....",
-  "...rwwwwwwwwr...",
-  "..rwwwwwwwwwwr..",
-  "..rwwwwwwwwwr...",
-  "..rwwkkkkkkr....",
-  "..rwwrrrrrrwwr..",
-  "..rwwrrrrrrwwr..",
-  "...rwwwwwwwwwr..",
-  "....rwwwwwwwwr..",
-  ".....rrrrrrrr...",
-  "................",
-  "................",
-  "................",
-  "................",
-  "................",
-  "................"
-],
-  "player_tool": [
-  "................",
-  "....ww....ww....",
-  "...wwww..wwww...",
-  "..wwwwwwwwwwww..",
-  "..wwkkwwwwkkww..",
-  "...wkkkkkkkkw...",
-  "....kkkkkkkk....",
-  "....rrrrrrrr....",
-  "....rrrrrrrr....",
-  "....kkkkkkkk....",
-  "...wkkkkkkkkw...",
-  "..wwkkwwwwkkww..",
-  "..wwwwwwwwwwww..",
-  "...wwww..wwww...",
-  "....ww....ww....",
-  "................"
-],
-  "relic": [
-  "................",
-  ".....gggggg.....",
-  "....gggggggg....",
-  "...gggg..gggg...",
-  "...ggg....ggg...",
-  "....gg....gg....",
-  ".....gg..gg.....",
-  "......gggg......",
-  ".....fffftt.....",
-  "....fffftttt....",
-  "....fffftttt....",
-  ".....fffftt.....",
-  "......ffff......",
-  "................",
-  "................",
-  "................"
-],
-  "elixir": [
-  "......wwww......",
-  "......wwww......",
-  ".....tttttt.....",
-  "....tfttttttt...",
-  "...tfffttttttt..",
-  "..tfffftttttttt.",
-  "..tfffftttttttt.",
-  "..tfffftttttttt.",
-  "...tfffttttttt..",
-  "....tttttttt....",
-  ".....tttttt.....",
-  "................",
-  "................",
-  "................",
-  "................",
-  "................"
-]
-
+  "bibhek": [".....ffwwff.....", "....ffffffff....", "....ffggggff....", "....gseeeesg....", "...gse00ee0esg..", "...gseeeeeeesg..", "..gwwwwwwwwwwg..", ".gwwwwwwwwwwwwg.", ".gw.wwwwwwww.wg.", "....wwwwwwww....", "....wwwwwwww....", "...wwdd..ddww...", "...dd......dd...", "..ddd......ddd..", "..ddd......ddd..", "................"],
+  "garuda": ["....ff....ff....", "...ffff..ffff...", "..ffggffffggff..", "..ffg00ff00gff..", "..ffffggggffff..", "...ffooooooff...", ".ffffooooooffff.", "fffoooooooooofff", "ff.oooooooooo.ff", "....oooooooo....", "....oooooooo....", "...ffff..ffff...", "...ff......ff...", "..fff......fff..", "..fff......fff..", "................"],
+  "ration": ["................", ".....eeee.......", "....eeeeee......", "...eegggeee.....", "..eeggggggee....", ".eegffffgggee...", ".eegffffffgge...", "..gggggggggg....", "...dddddddd.....", "..dddddddddd....", "..dddddddddd....", "..dddddddddd....", "...dddddddd.....", "....dddddd......", "................", "................"],
+  "gem": ["................", ".....ffffff.....", "....fttttttf....", "...fttttttttf...", "..fttwwwwwwttf..", "..ftwwwwwwwwtf..", "...twwwwwwwwt...", "....twwwwwwt....", ".....twwwwt.....", "......twwt......", ".......tt.......", "........t.......", "................", "................", "................", "................"],
+  "ore": ["................", ".....ddddd......", "....dddddddd....", "...ddddgggddd...", "..ddddgggggddd..", "..dddggfffggdd..", ".ddddgffffggddd.", ".dddddgggdddddd.", ".dddddddddddddd.", "..dddddddddddd..", "...dddddddddd...", "....dddddddd....", ".....dddddd.....", "................", "................", "................"],
+  "egg": ["................", "......ffff......", ".....ffffff.....", "....ffooffff....", "...ffffffffgf...", "...ffffgffffg...", "..ffffffgffffg..", "..ffffffoffffg..", "..ffffffffffff..", "..ffffgfffffff..", "...ffffffffffff.", "...ffffffffffff.", "....ffffffffff..", ".....ffffffff...", "................", "................"],
+  "head": [".......ff.......", "......ffff......", ".....fggggf.....", ".....fggggf.....", "....ffggggff....", "...fffggggfff...", "...fgggrrgggf...", "..fggggrrggggf..", "..gggggttggggg..", ".ggggggttgggggg.", ".ggggggrrgggggg.", "..gggggffggggg..", "...gggggggggg...", "....ffffffff....", "................", "................"],
+  "scroll_tac": ["....rrrrrrrr....", "...rwwwwwwwwr...", "..rwwwwwwwwwwr..", "..rwwwwwwwwwr...", "..rwwkkkkkkr....", "..rwwrrrrrrwwr..", "..rwwrrrrrrwwr..", "...rwwwwwwwwwr..", "....rwwwwwwwwr..", ".....rrrrrrrr...", "................", "................", "................", "................", "................", "................"],
+  "player_tool": ["................", "....ww....ww....", "...wwww..wwww...", "..wwwwwwwwwwww..", "..wwkkwwwwkkww..", "...wkkkkkkkkw...", "....kkkkkkkk....", "....rrrrrrrr....", "....rrrrrrrr....", "....kkkkkkkk....", "...wkkkkkkkkw...", "..wwkkwwwwkkww..", "..wwwwwwwwwwww..", "...wwww..wwww...", "....ww....ww....", "................"],
+  "relic": ["................", ".....gggggg.....", "....gggggggg....", "...gggg..gggg...", "...ggg....ggg...", "....gg....gg....", ".....gg..gg.....", "......gggg......", ".....fffftt.....", "....fffftttt....", "....fffftttt....", ".....fffftt.....", "......ffff......", "................", "................", "................"],
+  "elixir": ["......wwww......", "......wwww......", ".....tttttt.....", "....tfttttttt...", "...tfffttttttt..", "..tfffftttttttt.", "..tfffftttttttt.", "..tfffftttttttt.", "...tfffttttttt..", "....tttttttt....", ".....tttttt.....", "................", "................", "................", "................", "................"]
+,
+  "bat": ["................", ".rr..........rr.", ".rrrr......rrrr.", ".krrrr....rrrrk.", "..krrrr..rrrrk..", "...krrkkkkrrk...", "....kk0kk0kk....", "...kkkrrkkrrr...", "..kkkrrrrrrrrk..", "..kkrrrrrrrrrk..", "...kkrrrrrrrrk..", "....krrrrrrrk...", ".....kkkkkkk....", "......kk.kk.....", "................", "................"],
+  "scorpion": [".......rr.......", "......rrrr......", ".....rr..rr.....", ".....r....r.....", ".....r....r.....", ".....rrrrrr.....", "....dddddddd....", ".dd.dddddddd.dd.", "ddd.dd0000dd.ddd", "ddd.dddddddd.ddd", ".dd.dddddddd.dd.", "....d.d..d.d....", "...d..d..d..d...", "..d...d..d...d..", "................", "................"],
+  "shaman": ["......pppp......", ".....pppppp.....", "....ppffffpp....", "....pfs00sfp....", "....ppffffpp....", "...pppttttppp...", "..ppppttttpppp..", "..pp.ptttt.pp...", "..w..ptttt......", ".www.ptttt......", "..w..ptttt......", ".....pppppp.....", "....pp....pp....", "...ppp....ppp...", "..ppp......ppp..", "................"],
+  "golem": ["...dddddddddd...", "..dddddddddddd..", "..dddd0000dddd..", "..ddddttttdddd..", "..dddddddddddd..", ".dddddddddddddd.", ".dEEddddddddEEd.", ".dEEddttttddEEd.", ".dEEddddddddEEd.", "..dddddddddddd..", "..dddddddddddd..", "...dddd..dddd...", "...dddd..dddd...", "..ddddd..ddddd..", "..ddddd..ddddd..", "................"],
+  "chameleon": ["................", ".....eeee.......", "....ee00ee......", "...eeeeeeeeee...", "..eeeeeeeeeeee..", "..eeee..eeeeee..", "...ee....eeee...", ".........eeee...", "....eeeeeeeee...", "...eeeeeeeeee...", "..eeee....eee...", "..ee.e....e.ee..", "..e..e....e..e..", "......eeee......", "................", "................"],
+  "kamikaze": ["......oooo......", ".....oooooo.....", "....ooffffoo....", "...ooff00ffoo...", "...oofffffoo....", "....ooffffoo....", "...rrrrrrrrrr...", "..rrffffffffrr..", "..rrffoorrooff..", "..rrffffffffrr..", "...rrrrrrrrrr...", "....rrrrrrrr....", "....rr....rr....", "...rrr....rrr...", "..rrr......rrr..", "................"],
+  "spider": ["................", "...kk......kk...", "....kk....kk....", "..kk.kkppkk.kk..", "...kkkppppkkk...", "....kpp00ppk....", "...kkppppppkk...", "..kk.kppppk.kk..", ".....kkppkk.....", "....kk.pp.kk....", "...kk......kk...", "..kk........kk..", "................", "................", "................", "................"],
+  "kinnara": ["......ffff......", ".....ffffff.....", "....ffssssff....", "....fss00ssf....", "....ffssssff....", ".ffffttffttffff.", "ff.ffttffttff.ff", "f..ffttffttff..f", "...ffttffttff...", "....ffttttff....", ".....ffffff.....", ".....ff..ff.....", "....fff..fff....", "....ff....ff....", "...fff....fff...", "................"],
+  "wraith": ["......tttt......", ".....tttttt.....", "....tt0000tt....", "....tttttttt....", ".....tttttt.....", "....tttttttt....", "...tt.tttt.tt...", "..tt..tttt..tt..", "......tttt......", ".....tttttt.....", "....tttttttt....", "....tt....tt....", "....tt....tt....", ".....t....t.....", "................", "................"],
+  "berserker": ["....rr....rr....", "...rrrr..rrrr...", "..rrrrrrrrrrrr..", "..rrg00rr00grr..", "..rrrrrrrrrrrr..", ".w.rrrrrrrrrr.w.", "www.rrrrrrrr.www", ".w..rrrrrrrr..w.", "....rrrrrrrr....", "...rrrrrrrrrr...", "...rrrr..rrrr...", "...rr......rr...", "..rrr......rrr..", "..rrr......rrr..", "................", "................"]
 };
 const SPR={};
 for(const name in SPRD){
@@ -797,9 +620,163 @@ const TILEC=[];
    g.fillStyle='#f5c542';g.fillRect(6,5,4,2); // ยอดทอง
    g.fillStyle='#f4ecdc';g.fillRect(7,8,2,2); // หัวกะโหลกสลัก
    TILEC[15]=[c];}
+  // แท่นสักยันต์ครูโบราณ (16)
+  {const c=document.createElement('canvas');c.width=T;c.height=T;const g=c.getContext('2d');
+   g.fillStyle='#1c0a18';g.fillRect(0,0,T,T);
+   g.strokeStyle='#f5c542';g.strokeRect(2,2,12,12);
+   g.fillStyle='#8f2438';g.fillRect(4,4,8,8);
+   g.fillStyle='#f5c542';g.fillRect(6,6,4,4); // ยันต์ทอง
+   TILEC[16]=[c];}
+  // เสาหินร้าว (17)
+  {const c=document.createElement('canvas');c.width=T;c.height=T;const g=c.getContext('2d');
+   g.fillStyle='#3d2418';g.fillRect(2,0,12,T);
+   g.fillStyle='#1c1006';g.fillRect(5,2,2,8);g.fillRect(7,7,3,5); // รอยร้าว
+   g.fillStyle='#6b4634';g.fillRect(1,0,14,3);g.fillRect(1,13,14,3);
+   TILEC[17]=[c];}
+  // โคมไฟระย้าเพดาน (18)
+  {const c=document.createElement('canvas');c.width=T;c.height=T;const g=c.getContext('2d');
+   g.fillStyle='#241322';g.fillRect(0,0,T,T);
+   g.fillStyle='#f5c542';g.fillRect(5,4,6,8);
+   g.fillStyle='#ff8b1f';g.fillRect(6,5,4,6);
+   g.fillStyle='#ffe9a3';g.fillRect(7,6,2,3);
+   TILEC[18]=[c];}
+  // รังต่อหิมพานต์ (19)
+  {const c=document.createElement('canvas');c.width=T;c.height=T;const g=c.getContext('2d');
+   g.fillStyle='#241322';g.fillRect(0,0,T,T);
+   g.fillStyle='#7a4a22';g.beginPath();g.arc(8,8,6,0,7);g.fill();
+   g.fillStyle='#f5c542';g.fillRect(6,6,4,4);
+   g.fillStyle='#000000';g.fillRect(7,7,2,2);
+   TILEC[19]=[c];}
 })();
 
 /* ── ตารางข้อมูล ── */
+
+/* ── ๓. ระบบป้ายประกาศจับล่าค่าหัว (Wanted Bounties) ── */
+const WANTED_BOUNTIES = [
+  { id: 'bounty_asura', name: 'อสุรกายเขี้ยวเพชร', title: 'จอมโจรป่าทัณฑก', sprite: 'asura', hp: 55, atk: 11, def: 3, reward: 80, punya: 25, reqFloor: 6 },
+  { id: 'bounty_naga', name: 'พญานาคเจ็ดเศียร', title: 'อสรพิษลอบสังหาร', sprite: 'naga', hp: 65, atk: 12, def: 3, reward: 100, punya: 30, reqFloor: 9, ranged: true },
+  { id: 'bounty_sorcerer', name: 'รากษสจอมเวททมิฬ', title: 'ผู้ขโมยคัมภีร์เทวะ', sprite: 'shaman', hp: 80, atk: 14, def: 4, reward: 140, punya: 40, reqFloor: 13, ranged: true }
+];
+
+let activeBounty = null;
+
+function acceptBounty(bountyId){
+  const b = WANTED_BOUNTIES.find(x => x.id === bountyId);
+  if(!b) return;
+  activeBounty = { ...b, hunted: false };
+  msg('📜 รับสัญญาจ้างล่าค่าหัว «' + b.name + '» สำเร็จ! มินิบอสตนนี้จะซุ่มรอเจ้าในชั้นถัดไป!', 'good');
+  sfx.level();
+  hide($('shopOv'));
+  updateHud();
+}
+
+/* ── ๔. สหายร่วมรบที่ช่วยเหลือได้ & ทหารรับจ้าง (Companion Allies) ── */
+function hireMercenary(cost = 50){
+  if(player.gold < cost){ msg('เหรียญไม่พอจ้างทหารรับจ้าง… (ต้องการ ' + cost + ' ◉)', 'warn'); return; }
+  player.gold -= cost;
+  player.companion = {
+    name: 'ทหารเอกวานร',
+    hp: 45, maxhp: 45, atk: 9, def: 3, lifeFloors: 3
+  };
+  sfx.level(); flash = 0.5;
+  msg('🐒 เจ้าจ่าย ' + cost + ' ◉ จ้าง «ทหารเอกวานร» ร่วมรบเคียงบ่าเคียงไหล่ ๓ ชั้น!', 'good');
+  floats.push({x: player.x, y: player.y, t: 'จ้างสหายร่วมรบ!', c: '#f5c542', life: 2});
+  updateHud();
+}
+
+/* ── ๕. หอสมุดคัมภีร์ลงกา (Lanka Lore Archives) ── */
+const LORE_CHAPTERS = [
+  { ch: 1, title: 'กำเนิดกรุงลงกา', text: '“เกาะลงกามิใช่เพียงแผ่นดินยักษ์ แต่คือเขาพระสุเมรุส่วนที่ร่วงหล่นลงสู่มหาสมุทร…”', buff: 'hp' },
+  { ch: 2, title: 'อานุภาพหอกโมกขศักดิ์', text: '“หอกวิเศษที่กุมภกรรณบำเพ็ญพรตพันปีเพื่อขอพรจากพระพรหม แทงสรรพสิ่งดับดิ้น…”', buff: 'atk' },
+  { ch: 3, title: 'กล่องดวงใจทศกัณฐ์', text: '“ทศกัณฐ์ถอดดวงใจฝากไว้กับพระฤๅษีโคบุตร แม้ถูกตัดเศียรย่อมงอกเงยขึ้นมาใหม่…”', buff: 'def' },
+  { ch: 4, title: 'สัจจบารมีพระอินทร์', text: '“ผู้ถือสัจจะความซื่อตรง แม้เปลวเพลิงกัลป์หรือสายฟ้าอเวจีย่อมไม่อาจแผดเผาได้…”', buff: 'mp' }
+];
+
+function readLoreScroll(chNum){
+  const l = LORE_CHAPTERS.find(x => x.ch === chNum) || LORE_CHAPTERS[0];
+  if(l.buff === 'hp'){ player.mhp += 5; player.hp += 5; }
+  else if(l.buff === 'atk'){ player.atk += 1; }
+  else if(l.buff === 'def'){ player.def += 1; }
+  else if(l.buff === 'mp'){ player.mmp += 4; player.mp += 4; }
+
+  sfx.level(); flash = 0.5;
+  msg('📜 เจ้าอ่านคัมภีร์ประวัติศาสตร์บทที่ ' + thaiNum(l.ch) + ' «' + l.title + '» ได้รับปัญญาและพลังถาวร!', 'good');
+  floats.push({x: player.x, y: player.y, t: 'บรรลุปัญญา ' + l.title, c: '#2ec4a6', life: 2.2});
+  updateHud();
+}
+
+
+/* ── ๑. ระบบสักยันต์โบราณ ๔ ลายครู (Sacred Yantra Tattoos) ── */
+const YANTRAS = [
+  { id: 'tiger', name: 'ยันต์เสือเผ่น', icon: '🐅', desc: 'ก้าวแรกที่เดินพุ่งเข้าหาศัตรู ทำดาเมจกระแทกพุ่งชน +๘ หน่วยทันที', color: '#ff8b1f' },
+  { id: 'hanuman', name: 'ยันต์หนุมานคลุกฝุ่น', icon: '🐒', desc: 'เมื่อโดนโจมตีถึงตาย มีโอกาส ๔๐% กลิ้งหลบและชุบชีวิตฟื้น ๑๕ HP', color: '#ffe9a3' },
+  { id: 'diamond_armor', name: 'ยันต์เกราะเพชร', icon: '🪷', desc: 'กายาทิพย์ ต้านทานสถานะผิดปกติทั้งหมด ๑๐๐% (ไม่มีวันติดพิษ ไฟ หรือมึนงง)', color: '#2ec4a6' },
+  { id: 'blade_wave', name: 'ยันต์ดาบสรีกัญไชย', icon: '🗡️', desc: 'ทุกครั้งที่ฟันติดคริติคอล จะปล่อยคลื่นรังสีคมดาบพุ่งตัดศัตรูเป็นเส้นตรง ๓ ช่อง', color: '#f5c542' }
+];
+
+function openYantraModal(yx, gy){
+  let ov = $('yantraOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'yantraOv';
+    ov.className = 'ov';
+    ov.style.zIndex = '370';
+    document.body.appendChild(ov);
+  }
+
+  player.yantras = player.yantras || [];
+  const maxTattoos = 2;
+
+  let html = '<div class="panel" style="max-width:440px;border-color:var(--gold);box-shadow:0 0 30px rgba(245,197,66,.5);text-align:center">';
+  html += '<div class="deva">यन्त्र</div>';
+  html += '<h2 style="font-family:Chakra Petch;color:var(--gold);margin:2px 0 4px;font-size:22px">🛕 แท่นสักยันต์ครูโบราณ</h2>';
+  html += '<p style="font-size:12.5px;color:var(--ink);margin:0 0 10px">จารึกอักขระเลขยันต์ศักดิ์สิทธิ์ลงบนเรือนกาย (สักได้สูงสุด ๒ ลายครู)</p>';
+
+  if(player.yantras.length){
+    html += '<div style="background:#170b16;padding:6px;border:1px solid var(--line);border-radius:3px;margin-bottom:10px;font-size:12px;text-align:left">';
+    html += '<b class="gold">ลายยันต์ที่จารึกอยู่:</b> ' + player.yantras.map(y => y.icon + ' ' + y.name).join(' · ');
+    html += '</div>';
+  }
+
+  html += '<div style="display:flex;flex-direction:column;gap:8px;text-align:left;margin-bottom:12px">';
+  YANTRAS.forEach(y => {
+    const hasThis = player.yantras.some(py => py.id === y.id);
+    const canTattoo = player.yantras.length < maxTattoos && !hasThis;
+    html += '<div class="row" style="background:#1c0c19;padding:8px;border:1px solid ' + (hasThis ? y.color : 'var(--line)') + ';opacity:' + (hasThis ? '0.6' : '1') + '">';
+    html += '<div><span>' + y.icon + ' <b style="color:' + y.color + ';font-size:13.5px">' + y.name + '</b></span>';
+    html += '<div style="font-size:11.5px;color:var(--ink);margin-top:2px">' + y.desc + '</div></div>';
+    if(hasThis){
+      html += '<span style="color:' + y.color + ';font-size:11px;font-weight:700">จารึกแล้ว</span>';
+    } else {
+      html += '<button class="mini-btn" ' + (canTattoo ? '' : 'disabled') + ' onclick="applyYantraTattoo(\'' + y.id + '\',' + yx + ',' + gy + ')">สักยันต์</button>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+
+  html += '<button class="btn ghost" id="btnCloseYantra" style="width:100%">กราบลาแท่นครู</button>';
+  html += '</div>';
+
+  ov.innerHTML = html;
+  show(ov);
+  $('btnCloseYantra').onclick = () => hide(ov);
+}
+
+function applyYantraTattoo(yId, yx, gy){
+  const y = YANTRAS.find(item => item.id === yId);
+  if(!y) return;
+  player.yantras = player.yantras || [];
+  if(player.yantras.length >= 2) return;
+  player.yantras.push(y);
+  map[gy * W + yx] = 1; // แท่นถูกใช้แล้วกลายเป็นพื้น
+  sfx.level(); flash = 0.7; shake = 8;
+  msg('🛕 พระอาจารย์จารึก «' + y.name + '» ลงบนแผ่นกาย! ' + y.desc, 'good');
+  floats.push({x: player.x, y: player.y, t: 'จารึก ' + y.name + '!', c: y.color, life: 2.2});
+  hide($('yantraOv'));
+  updateHud();
+  endTurn();
+}
+
 
 /* ── ระบบภารกิจท้าทายประจำชั้น (Floor Bounties & Feats) ── */
 let currentFloorBounty = null;
@@ -1111,15 +1088,6 @@ function genMountItem(){
 
 
 /* ── ๓. หีบสังสารวัฏข้ามชาติ (Past Life Reliquary - ฝาก ๑ ชิ้น & จ่ายปุญแลก) ── */
-
-const VAULT_KEY = 'lanka_gold_vault_v1';
-function getVaultGold(){
-  try { return parseInt(localStorage.getItem(VAULT_KEY) || '0'); } catch(e){ return 0; }
-}
-function saveVaultGold(amt){
-  try { localStorage.setItem(VAULT_KEY, String(amt)); } catch(e){}
-}
-
 const STASH_KEY = 'lanka_stash_v1';
 
 function getStashItem(){
@@ -1960,17 +1928,33 @@ const MANTRAS={
   vajra:{n:'วัชระ',mp:12,ic:'⌁',d:'สายฟ้าพระอินทร์ โจมตีรุนแรง'},
 };
 const FOES=[
+  // ชั้น ๑-๔: เปรต, ค้างคาว, อสุรกาย, กิ้งก่าเงา
   {id:'preta',name:'เปรต',sprite:'preta',hp:8,atk:4,def:0,xp:6,g:3,min:1,max:7},
-  {id:'asura',name:'อสุรกาย',sprite:'asura',hp:14,atk:6,def:1,xp:11,g:5,min:2,max:12},
-  {id:'naga',name:'นาคพิษ',sprite:'naga',hp:12,atk:5,def:1,xp:13,g:6,min:3,max:13,ranged:true},
-  {id:'rakshasa',name:'รากษส',sprite:'rakshasa',hp:22,atk:8,def:2,xp:19,g:9,min:6,max:16},
-  {id:'yaksha',name:'ยักษ์ทวารบาล',sprite:'yaksha',hp:32,atk:10,def:3,xp:27,g:13,min:9,max:18},
+  {id:'bat',name:'ค้างคาวผี',sprite:'bat',hp:10,atk:5,def:0,xp:8,g:4,min:1,max:8,lifesteal:true},
+  {id:'asura',name:'อสุรกาย',sprite:'asura',hp:16,atk:7,def:1,xp:12,g:5,min:2,max:12},
+  {id:'chameleon',name:'กิ้งก่าจำแลง',sprite:'chameleon',hp:14,atk:8,def:1,xp:14,g:6,min:3,max:10,stealth:true},
+
+  // ชั้น ๕-๑๑: นาคพิษ, เปรตเพลิง, แมงป่อง, รากษส, หมอผี
+  {id:'naga',name:'นาคพิษ',sprite:'naga',hp:14,atk:6,def:1,xp:15,g:6,min:4,max:13,ranged:true},
+  {id:'kamikaze',name:'เปรตเพลิง',sprite:'kamikaze',hp:12,atk:6,def:0,xp:16,g:6,min:5,max:12,explodes:true},
+  {id:'scorpion',name:'แมงป่องหิมพานต์',sprite:'scorpion',hp:20,atk:7,def:4,xp:18,g:7,min:6,max:14,poison:true},
+  {id:'rakshasa',name:'รากษส',sprite:'rakshasa',hp:26,atk:9,def:2,xp:22,g:9,min:6,max:16},
+  {id:'shaman',name:'รากษสหมอผี',sprite:'shaman',hp:22,atk:7,def:1,xp:25,g:10,min:7,max:16,healer:true,ranged:true},
+
+  // ชั้น ๑๒-๑๘+: แมงมุมใย, กินนร, ภูตลวงตา, ยักษ์, ทวารบาลหิน, ยักษ์ขวานคู่
+  {id:'spider',name:'แมงมุมใยอาคม',sprite:'spider',hp:24,atk:8,def:2,xp:26,g:10,min:10,max:18,webSpit:true,ranged:true},
+  {id:'kinnara',name:'กินนรจอมเวหา',sprite:'kinnara',hp:25,atk:10,def:2,xp:28,g:11,min:11,max:18,flyer:true},
+  {id:'wraith',name:'ภูตผีลวงตา',sprite:'wraith',hp:28,atk:9,def:1,xp:30,g:12,min:12,max:19,splitter:true},
+  {id:'yaksha',name:'ยักษ์ทวารบาล',sprite:'yaksha',hp:38,atk:12,def:3,xp:35,g:14,min:12,max:20},
+  {id:'golem',name:'ทวารบาลหินศิลา',sprite:'golem',hp:45,atk:13,def:5,xp:40,g:16,min:14,max:25,stomp:true},
+  {id:'berserker',name:'ยักษ์ขวานคู่',sprite:'berserker',hp:42,atk:14,def:2,xp:42,g:18,min:15,max:25,berserk:true}
 ];
+
 const BOSSES={
-  5:{name:'พญาขร',title:'นายทัพหน้าแห่งลงกา',sprite:'rakshasa',hp:120,atk:10,def:4,xp:100,g:45},
-  10:{name:'มารีศ',title:'อสูรจำแลงกวางทอง',sprite:'asura',hp:200,atk:14,def:5,xp:150,g:70},
-  15:{name:'กุมภกรรณ',title:'พญายักษ์หอกโมกขศักดิ์',sprite:'yaksha',hp:320,atk:17,def:7,xp:220,g:100},
-  20:{name:'ทศกัณฐ์',title:'พญายักษ์ ๑๐ หน้า ๒๐ กร จ้าวแห่งลงกา',sprite:'boss',hp:550,atk:22,def:9,xp:0,g:150},
+  5:{name:'พญาขร',title:'นายทัพหน้าแห่งลงกา',sprite:'rakshasa',hp:140,atk:10,def:4,xp:100,g:60},
+  10:{name:'มารีศ',title:'อสูรจำแลงกวางทอง',sprite:'asura',hp:220,atk:14,def:5,xp:180,g:90},
+  15:{name:'กุมภกรรณ',title:'พญายักษ์หอกโมกขศักดิ์',sprite:'yaksha',hp:350,atk:18,def:7,xp:260,g:140},
+  20:{name:'ทศกัณฐ์',title:'พญายักษ์ ๑๐ หน้า ๒๐ กร จ้าวแห่งลงกา',sprite:'boss',hp:550,atk:22,def:9,xp:0,g:250},
 };
 const WEAPONS=[null,{n:'ขรรค์เหล็ก',a:2},{n:'ขรรค์อัคนี',a:4},{n:'ตรีศูล',a:7},
   {n:'วัชระ',a:10},{n:'จักรสุทรรศน์',a:14}];
@@ -2556,8 +2540,8 @@ function openDilemmaModal(n){
     player.sparedAsura = true;
     n.resolved = true;
     n.used = true;
-    npcs = npcs.filter(o => o !== n); // อสูรคำนับแล้วลุกเดินจากไป ไม่ขวางทางเดินหรือบันได ๑๐๐%
-    msg('✦ เจ้าสละยาอมฤตช่วยชีวิตอสูร! อสูรคำนับขอบคุณแล้วเร้นกายจากไป ปุญบารมีเพิ่มขึ้น +๓๕', 'good');
+    npcs = npcs.filter(o => o !== n); // สลายตัวออกจากช่องทางเดิน ไม่ขวางบันได
+    msg('✦ เจ้าสละยาอมฤตช่วยชีวิตอสูร! ปุญบารมีเพิ่มขึ้น +๓๕ อย่างยิ่งใหญ่', 'good');
     floats.push({x: player.x, y: player.y, t: 'เมตตาบารมี +๓๕', c: '#2ec4a6', life: 2});
     sfx.level(); flash = 0.5;
     unlockAch('karma_mercy');
@@ -2569,7 +2553,7 @@ function openDilemmaModal(n){
     hide(ov);
     n.resolved = true;
     n.used = true;
-    npcs = npcs.filter(o => o !== n); // สลายร่างเป็นกลุ่มควัน ไม่ขวางทางเดิน ๑๐๐%
+    npcs = npcs.filter(o => o !== n); // สลายตัวออกจากช่องทางเดิน ไม่ขวางบันได
     player.xp += 50;
     player.gold += 35;
     player.sin = (player.sin || 0) + 1;
@@ -2694,7 +2678,6 @@ function genFloor(fl){
   const fr=rooms[0],lr=rooms[rooms.length-1];
   player.x=fr.cx;player.y=fr.cy;player.prevX=fr.cx;player.prevY=fr.cy;
   stairs={x:lr.cx,y:lr.cy,locked:!!getBoss(fl)};
-  map[stairs.y*W+stairs.x]=2;
   traps=[];
   for(const r of rooms.slice(1,-1)){
     // เทวาลัย (ลดอัตราเกิดให้หายากและมีค่า)
@@ -2775,7 +2758,7 @@ function genFloor(fl){
   }
   // ทางแยกแห่งกรรม: อสูรบาดเจ็บ (ชั้น ๔, ๘, ๑๒, ๑๖)
   if(fl % 4 === 0 && fl <= 16){
-    const r = pick(rooms.slice(1, -1)); // ห้ามเกิดในห้องแรกหรือห้องบันไดเด็ดขาด
+    const r = rooms[Math.floor(floorR()*rooms.length)];
     npcs.push({type:'dilemma_asura', x:r.cx, y:r.cy, sprite:'asura', resolved:false, used:false});
   }
   // แท่นศิลาถวายคำสัตย์แห่งพระอินทร์ (ชั้น ๓, ๗, ๑๑)
@@ -2881,12 +2864,12 @@ function genFloor(fl){
     player.asuraHelped = true;
     const bFoe = enemies.find(e => e.boss);
     if(bFoe){
-      const aDmg = Math.max(15, Math.floor(bFoe.maxhp * 0.18));
-      bFoe.hp = Math.max(1, bFoe.hp - aDmg);
+      const assistDmg = Math.floor(bFoe.maxhp * 0.20);
+      bFoe.hp = Math.max(1, bFoe.hp - assistDmg);
       bFoe.flash = 6;
       triggerSlash(bFoe.x, bFoe.y, '#2ec4a6');
       shake = 8; sfx.level();
-      msg('✦ อสูรที่เจ้าเคยเมตตาช่วยเหลือไว้ ปรากฏกายตอบแทนคุณ! พุ่งเสียบเปิดแผลใส่ ' + bFoe.name + ' -' + thaiNum(aDmg) + ' HP!', 'good');
+      msg('✦ อสูรที่เจ้าเคยเมตตาช่วยเหลือไว้ ปรากฏกายตอบแทนคุณ! พุ่งเสียบเปิดแผลใส่ ' + bFoe.name + ' -' + thaiNum(assistDmg) + ' HP!', 'good');
     }
   }
 
@@ -2904,14 +2887,16 @@ function genFloor(fl){
   }
     // โลงศิลาโบราณ (สุ่มพบบนชั้น ๔, ๘, ๑๒, ๑๖ หรือ ๒๐% ต่อชั้น)
   if((fl % 4 === 0 || floorR() < 0.20) && !isBossRushMode){
-    const r = pick(rooms.slice(1, -1)); // โลงศิลาห้ามเกิดทับห้องบันได
+    const r = pick(rooms.slice(1));
     map[(r.y+2)*W + r.x+2] = 15;
   }
-  // 🛡️ ประกันความปลอดภัยขั้นสูงสุด: คืนค่าบันไดทางลงให้คงอยู่ ๑๐๐% เสมอ
+    // บันไดลงสู่ชั้นถัดไป (รับประกันความปลอดภัยสูงสุด ไม่ถูกวัตถุใดทับ ๑๐๐%)
   map[stairs.y * W + stairs.x] = 2;
-  npcs = npcs.filter(o => !(o.x === stairs.x && o.y === stairs.y));
-  enemies = enemies.filter(o => !(o.x === stairs.x && o.y === stairs.y));
-  traps = traps.filter(o => !(o.x === stairs.x && o.y === stairs.y));
+  // ลบศัตรู หรือ NPC ที่บังเอิญเกิดทับบันไดออก
+  enemies = enemies.filter(e => !(e.x === stairs.x && e.y === stairs.y));
+  npcs = npcs.filter(n => !(n.x === stairs.x && n.y === stairs.y));
+  items = items.filter(it => !(it.x === stairs.x && it.y === stairs.y));
+  traps = traps.filter(tr => !(tr.x === stairs.x && tr.y === stairs.y));
   computeFov();
 }
 function spawnFoe(base,x,y){
@@ -3403,6 +3388,57 @@ function openSarcophagus(sx, sy){
   endTurn();
 }
 
+
+/* ── ๒. ระบบสิ่งแวดล้อมทำลายล้าง (Environmental Hazards) ── */
+function triggerEnvironmentalHazard(hx, hy, type){
+  map[hy * W + hx] = 1; // สิ่งแวดล้อมพังทลายกลายเป็นพื้น
+  sfx.boss(); shake = 8; flash = 0.5;
+
+  if(type === 'pillar'){
+    // เสาหินร้าวหักโค่นทับศัตรูรอบตัว 30 ดาเมจ
+    msg('🏛️ เสาหินยักษ์หักโค่นทับแผ่นดินสะเทือน! ทับบดขยี้ทุกชีวิตโดยรอบ!', 'warn');
+    const dirs = [[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
+    for(const [dx, dy] of dirs){
+      const tx = hx + dx, ty = hy + dy;
+      triggerSlash(tx, ty, '#7a4a22');
+      const foe = enemyAt(tx, ty);
+      if(foe){
+        foe.hp -= 30; foe.flash = 8;
+        floats.push({x: tx, y: ty, t: 'เสาทับ -๓๐', c: '#f5c542', life: 1.5});
+        if(foe.hp <= 0) killFoe(foe);
+      }
+    }
+  } else if(type === 'lantern'){
+    // โคมไฟระย้าหล่นระเบิดเพลิง 3x3
+    msg('🏮 โคมไฟระย้าทองเหลืองร่วงกระแทกพื้น! เปลวเพลิงน้ำมันระเบิดตูม ๓×๓ ช่อง!', 'warn');
+    for(let dy=-1; dy<=1; dy++) for(let dx=-1; dx<=1; dx++){
+      const tx = hx + dx, ty = hy + dy;
+      if(canWalk(tx, ty)){
+        if(!fireTiles.some(f => f.x === tx && f.y === ty)) fireTiles.push({x: tx, y: ty, turns: 4});
+        triggerSlash(tx, ty, '#ff8b1f');
+        const foe = enemyAt(tx, ty);
+        if(foe){
+          foe.hp -= 16; foe.burn = (foe.burn||0) + 3; foe.flash = 6;
+          floats.push({x: tx, y: ty, t: 'ไฟลวก -๑๖', c: '#ff8b1f', life: 1.2});
+          if(foe.hp <= 0) killFoe(foe);
+        }
+      }
+    }
+  } else if(type === 'beehive'){
+    // รังต่อหิมพานต์แตกรัง
+    msg('🐝 รังต่อหิมพานต์แตกฮือ! ฝูงต่อสวรรค์รุมต่อยมอนสเตอร์ในห้องจนติดพิษและเตลิด!', 'warn');
+    for(const foe of enemies){
+      if(vis[foe.y * W + foe.x]){
+        foe.poison = (foe.poison||0) + 4; foe.stun = 2; foe.flash = 5;
+        triggerSlash(foe.x, foe.y, '#43b05c');
+        floats.push({x: foe.x, y: foe.y, t: 'ผึ้งต่อย!', c: '#43b05c', life: 1.5});
+      }
+    }
+  }
+  updateHud();
+  endTurn();
+}
+
 /* ── การกระทำของผู้เล่น ── */
 function canWalk(x,y){return x>=0&&y>=0&&x<W&&y<H&&map[y*W+x]!==0}
 function enemyAt(x,y){return enemies.find(e=>e.x===x&&e.y===y&&e.hp>0)}
@@ -3487,6 +3523,22 @@ function tryMove(dx,dy){
       show($('stairsOv'));
     }
   }else if(map[ny*W+nx]===3){show($('altarOv'));}
+    else if(map[ny*W+nx]===16){
+    openYantraModal(nx, ny);
+    return;
+  }
+  else if(map[ny*W+nx]===17){
+    triggerEnvironmentalHazard(nx, ny, 'pillar');
+    return;
+  }
+  else if(map[ny*W+nx]===18){
+    triggerEnvironmentalHazard(nx, ny, 'lantern');
+    return;
+  }
+  else if(map[ny*W+nx]===19){
+    triggerEnvironmentalHazard(nx, ny, 'beehive');
+    return;
+  }
   else if(map[ny*W+nx]===15){
     openSarcophagus(nx, ny);
     return;
@@ -3574,10 +3626,10 @@ function attackFoe(e, dirX=0, dirY=0){
   }
   if(crit) d <<= 1;
   if(e.boss){
-    const maxCap = Math.max(12, Math.floor(e.maxhp * 0.28));
-    if(d > maxCap){
-      d = maxCap;
-      floats.push({x: e.x, y: e.y - 0.5, t: 'กายาสิทธิ์ต้านทาน!', c: '#f5c542', life: 1});
+    const maxBossCap = Math.max(12, Math.floor(e.maxhp * 0.25));
+    if(d > maxBossCap){
+      d = maxBossCap;
+      msg('🛡️ ร่างกายพญามารหนาแน่นดุจภูผา! บรรเทาดาเมจเหลือ ' + d, 'warn');
     }
   }
   e.hp -= d; e.awake = true; e.flash = 5;
@@ -3769,6 +3821,22 @@ function attackFoe(e, dirX=0, dirY=0){
 }
 function killFoe(e){
   // สลายร่างเป็นกลุ่มควันวิญญาณ ไม่ทิ้งซากศพเกะกะ
+  
+  if(e.explodes){
+    msg('💣 เปรตเพลิงระเบิดชีพแตกดับ! เปลวเพลิงนรกระเบิดตูม ๓×๓ ช่อง!', 'warn');
+    shake = 9; flash = 0.6; sfx.boss();
+    for(let dy=-1; dy<=1; dy++) for(let dx=-1; dx<=1; dx++){
+      const exx = e.x + dx, eyy = e.y + dy;
+      if(canWalk(exx, eyy)){
+        triggerSlash(exx, eyy, '#ff8b1f');
+        if(!fireTiles.some(f => f.x === exx && f.y === eyy)) fireTiles.push({x: exx, y: eyy, turns: 3});
+        const nFoe = enemyAt(exx, eyy);
+        if(nFoe && nFoe !== e){ nFoe.hp -= 14; nFoe.flash = 5; if(nFoe.hp <= 0) killFoe(nFoe); }
+        if(player.x === exx && player.y === eyy) hurtPlayer(12, 'แรงระเบิดเพลิง');
+      }
+    }
+  }
+
   for(let spk=0; spk<8; spk++){
     sparks.push({
       x: e.x * T + 8, y: e.y * T + 8,
@@ -3950,6 +4018,49 @@ function enemiesAct(){
       let d=Math.max(1,eAtkVal+R(3)-((player.def+playerArmDef)>>1));
       if(rng()<.08){d<<=1;msg(e.name+'จู่โจมเข้าจุดตาย!','warn');}
       hurtPlayer(d,e.name,e);
+
+    // ๑. ค้างคาวผี: ดูดเลือดฟื้นฟูตนเอง
+    if(e.lifesteal && dist === 1){
+      const lDrain = Math.max(1, Math.floor(d * 0.5));
+      e.hp = Math.min(e.maxhp, e.hp + lDrain);
+      floats.push({x: e.x, y: e.y - 0.4, t: '+' + lDrain + ' ดูดเลือด', c: '#d43d2a', life: 0.9});
+    }
+
+    // ๒. แมงป่องหิมพานต์: พิษร้ายแรง
+    if(e.poison && dist === 1){
+      player.poison = (player.poison || 0) + 4;
+      floats.push({x: player.x, y: player.y, t: 'พิษแมงป่อง!', c: '#43b05c', life: 1});
+    }
+
+    // ๓. รากษสหมอผี: ฮีลพวกพ้องรอบตัว
+    if(e.healer && time % 3 === 0){
+      const woundedAlly = enemies.find(o => o !== e && o.hp > 0 && o.hp < o.maxhp && Math.max(Math.abs(o.x-e.x), Math.abs(o.y-e.y)) <= 3);
+      if(woundedAlly){
+        woundedAlly.hp = Math.min(woundedAlly.maxhp, woundedAlly.hp + 12);
+        woundedAlly.flash = 4;
+        triggerSlash(woundedAlly.x, woundedAlly.y, '#2ec4a6');
+        floats.push({x: woundedAlly.x, y: woundedAlly.y, t: '+๑๒ ฮีล', c: '#2ec4a6', life: 1});
+        msg('🔮 รากษสหมอผีร่ายมนต์รักษาบาดแผลให้ ' + woundedAlly.name + '!', 'warn');
+      }
+    }
+
+    // ๔. ทวารบาลหินศิลา: กระทืบพื้นสตั๊น
+    if(e.stomp && dist === 1 && rng() < 0.35){
+      player.stun = 1;
+      shake = 8;
+      floats.push({x: player.x, y: player.y, t: 'มึนงง!', c: '#f5c542', life: 1.2});
+      msg('🗿 ทวารบาลหินศิลากระทืบพื้นสะเทือน! เจ้าติดสตั๊น ๑ เทิร์น!', 'warn');
+    }
+
+    // ๕. พญาแมงมุมใยอาคม: พ่นใยตรึงขา
+    if(e.webSpit && dist <= 4 && dist > 1 && rng() < 0.40){
+      player.immobilized = 2;
+      triggerSlash(player.x, player.y, '#8d55c9');
+      floats.push({x: player.x, y: player.y, t: 'ใยตรึงขา!', c: '#8d55c9', life: 1.2});
+      msg('🕷️ พญาแมงมุมพ่นใยอาคมเหนียวหนึบตรึงขาเจ้า ๒ เทิร์น!', 'warn');
+      continue;
+    }
+
       continue;
     }
     if(e.ranged&&dist<=5&&dist>1&&los(e.x,e.y,player.x,player.y)){
@@ -4111,18 +4222,6 @@ function endTurn(){
     }
   }
 
-    // ทหารเอกวานรรับจ้างช่วยรบ
-  if(player.mercenaryTurns > 0){
-    const nearFoe = enemies.find(e => vis[e.y*W+e.x] && Math.max(Math.abs(e.x-player.x), Math.abs(e.y-player.y)) <= 2);
-    if(nearFoe){
-      const mDmg = 10 + R(4);
-      nearFoe.hp -= mDmg; nearFoe.flash = 4;
-      triggerSlash(nearFoe.x, nearFoe.y, '#ffe9a3');
-      floats.push({x: nearFoe.x, y: nearFoe.y, t: 'วานรฟัน -' + mDmg, c: '#ffe9a3', life: 1});
-      msg('🐒 ทหารเอกวานรตวัดกระบองทุบใส่ ' + nearFoe.name + ' -' + mDmg, 'good');
-      if(nearFoe.hp <= 0) killFoe(nearFoe);
-    }
-  }
   // ทหารวานรช่วยสู้
   if(player.summons > 0){
     const nearFoe = enemies.find(e => vis[e.y*W+e.x] && Math.max(Math.abs(e.x-player.x), Math.abs(e.y-player.y)) <= 3);
@@ -4195,6 +4294,20 @@ function endTurn(){
     }
     if(player.isAwakened === 0){
       msg('ร่างอวตารคลายมนตร์… กลับคืนสู่สภาพเดิม');
+    }
+  }
+
+  
+  // สหายร่วมรบ (Companion) โจมตีศัตรู
+  if(player.companion && player.companion.hp > 0){
+    const cFoe = enemies.find(e => Math.max(Math.abs(e.x-player.x), Math.abs(e.y-player.y)) <= 2);
+    if(cFoe){
+      const cd = player.companion.atk + R(3);
+      cFoe.hp -= cd; cFoe.flash = 4;
+      triggerSlash(cFoe.x, cFoe.y, '#f5c542');
+      floats.push({x: cFoe.x, y: cFoe.y, t: 'สหายฟัน -' + cd, c: '#f5c542', life: 1});
+      msg('⚔ ' + player.companion.name + ' ปราดเข้าฟัน ' + cFoe.name + ' -' + cd, 'good');
+      if(cFoe.hp <= 0) killFoe(cFoe);
     }
   }
 
@@ -4623,41 +4736,27 @@ function renderShop(n){
   svcBox.style.marginBottom = '10px';
   svcBox.innerHTML = '<h4 style="margin:0 0 6px;color:var(--gold);font-size:13px">🔨 บริการช่างตีดาบ & ช่างทอง</h4>';
 
-  // บริการตีบวก +1 (จำกัด ๑ ครั้งต่อร้าน และราคาเพิ่มตามระดับอาวุธ)
-  const currentPlus = (player.wpn && player.wpn.plus) || 0;
-  const maxPlus = Math.min(5, 1 + Math.floor(floor / 3)); // ชั้น 1-3 = +2, ชั้น 4-6 = +3, ชั้น 10+ = +5
-  const upgradeCost = 40 + (currentPlus * 35) + (floor * 4);
-  const isMaxPlus = currentPlus >= maxPlus && floor <= 20;
-  const alreadyUpgraded = n.upgradedOnce || false;
+  // บริการตีบวก +1 (จำกัด ๑ ครั้งต่อร้าน และคำนวณราคาตามระดับบวกจริง)
+  const currentPlus = (player.wpn ? player.wpn.plus || 0 : 0);
+  const upgradeCost = 50 + currentPlus * 45;
+  const maxAllowedPlus = (floor > 20) ? 99 : 5; // ในวิหารปกติจำกัดที่ +๕
+  const isPlusCapped = currentPlus >= maxAllowedPlus;
 
   const rUpg = document.createElement('div'); rUpg.className = 'row';
-  let upgStatusText = '🔨 <b>ตีบวกอาวุธ (+๑)</b> <small class="dim">(' + (player.wpn?player.wpn.name:'ไม่มี') + ')</small>';
-  if(alreadyUpgraded) upgStatusText += ' <span class="teal">(ขัดเกลาแล้ว)</span>';
-  else if(isMaxPlus) upgStatusText += ' <span class="gold">(เต็มขั้นชั้นนี้)</span>';
-  rUpg.innerHTML = '<span>' + upgStatusText + '</span>';
-
+  rUpg.innerHTML = '<span>🔨 <b>ตีบวกอาวุธ (+๑)</b> <small class="dim">(บวกอยู่ ' + currentPlus + '/' + maxAllowedPlus + ' · รับได้ ๑ ครั้ง/ร้าน)</small></span>';
   const bUpg = document.createElement('button'); bUpg.className = 'mini-btn';
-  if(alreadyUpgraded){
-    bUpg.textContent = '✓ สำเร็จแล้ว';
-    bUpg.disabled = true;
-  } else if(isMaxPlus){
-    bUpg.textContent = '★ ขีดจำกัด +' + thaiNum(maxPlus);
-    bUpg.disabled = true;
-  } else {
-    bUpg.textContent = '◉ ' + upgradeCost;
-    bUpg.disabled = player.gold < upgradeCost || !player.wpn;
-    bUpg.onclick = () => {
-      n.upgradedOnce = true;
-      player.gold -= upgradeCost;
-      player.wpn.plus = currentPlus + 1;
-      player.wpn.v += 2;
-      player.wpn.name = player.wpn.baseName + ' +' + thaiNum(player.wpn.plus) + (player.wpn.afName ? ' [' + player.wpn.afName + ']' : '');
-      sfx.level(); flash = 0.5;
-      msg('🔨 วาณิชขัดเกลาคมดาบ «' + player.wpn.name + '» พลังโจมตีเพิ่มเป็น ' + player.wpn.v + '!', 'good');
-      floats.push({x: player.x, y: player.y, t: 'ตีบวก +๑!', c: '#f5c542', life: 1.8});
-      updateHud(); renderShop(n);
-    };
-  }
+  bUpg.textContent = isPlusCapped ? '★ เต็ม' : (n.blacksmithUsed ? '✓ ตีแล้ว' : '◉ ' + upgradeCost);
+  bUpg.disabled = player.gold < upgradeCost || !player.wpn || n.blacksmithUsed || isPlusCapped;
+  bUpg.onclick = () => {
+    player.gold -= upgradeCost;
+    n.blacksmithUsed = true;
+    player.wpn.plus = (player.wpn.plus || 0) + 1;
+    player.wpn.v += 2;
+    player.wpn.name = player.wpn.baseName + ' +' + thaiNum(player.wpn.plus) + (player.wpn.afName ? ' [' + player.wpn.afName + ']' : '');
+    sfx.level(); flash = 0.5;
+    msg('🔨 วาณิชตีบวก «' + player.wpn.name + '» สำเร็จ! พลังโจมตีเพิ่มเป็น ' + player.wpn.v + '!', 'good');
+    updateHud(); renderShop(n);
+  };
   rUpg.appendChild(bUpg); svcBox.appendChild(rUpg);
 
   // บริการสกัดถอดอัญมณี
@@ -4673,54 +4772,33 @@ function renderShop(n){
     updateHud(); renderShop(n);
   };
   rUnsocket.appendChild(bUnsocket); svcBox.appendChild(rUnsocket);
-  
-  // บริการตู้เซฟฝากทองข้ามชาติ
-  const curVault = getVaultGold();
-  const rVault = document.createElement('div'); rVault.className = 'row';
-  rVault.innerHTML = '<span>🏦 <b>ตู้เซฟสังสารวัฏ (ฝาก ๕๐ ◉)</b> <small class="teal">(ในเซฟมี ' + curVault + ' ◉)</small></span>';
-  const bVault = document.createElement('button'); bVault.className = 'mini-btn';
-  bVault.textContent = 'ฝาก ๕๐ ◉';
-  bVault.disabled = player.gold < 50 || curVault >= 200;
-  bVault.onclick = () => {
-    player.gold -= 50;
-    saveVaultGold(curVault + 50);
-    sfx.gold();
-    msg('🏦 ฝากเหรียญ ◉๕๐ ลงตู้เซฟแล้ว! ในชาติถัดไปจะเริ่มต้นด้วยทองก้อนนี้', 'good');
-    updateHud(); renderShop(n);
-  };
-  rVault.appendChild(bVault); svcBox.appendChild(rVault);
 
-  // บริการจ้างทหารเอกวานรคุ้มกัน
-  const rMerc = document.createElement('div'); rMerc.className = 'row';
-  rMerc.innerHTML = '<span>🐒 <b>จ้างทหารเอกวานรคุ้มกัน</b> <small class="dim">(ช่วยรบ ๓ ชั้น)</small></span>';
-  const bMerc = document.createElement('button'); bMerc.className = 'mini-btn';
-  bMerc.textContent = '◉ ๖๐';
-  bMerc.disabled = player.gold < 60 || (player.mercenaryTurns > 0);
-  bMerc.onclick = () => {
-    player.gold -= 60;
-    player.mercenaryTurns = 3;
-    sfx.level(); flash = 0.4;
-    msg('🐒 ทหารเอกวานรรับสินจ้าง! ติดตามคุ้มกันเจ้าตลอด ๓ ชั้นถัดไป!', 'good');
-    updateHud(); renderShop(n);
-  };
-  rMerc.appendChild(bMerc); svcBox.appendChild(rMerc);
-
-  // บริการคัมภีร์บรรลุปัญญาญาณ (+1 พรสวรรค์)
+  // บริการคัมภีร์ปัญญาญาณ (+๑ แต้มพรสวรรค์)
   const rTome = document.createElement('div'); rTome.className = 'row';
-  rTome.innerHTML = '<span>📖 <b>คัมภีร์บรรลุปัญญาญาณ</b> <small class="gold">(รับ +๑ แต้มพรสวรรค์)</small></span>';
+  rTome.innerHTML = '<span>📜 <b>คัมภีร์ปัญญาญาณ</b> <small class="gold">(+๑ แต้มพรสวรรค์ทันที)</small></span>';
   const bTome = document.createElement('button'); bTome.className = 'mini-btn';
-  bTome.textContent = '◉ ๑๒๐';
-  bTome.disabled = player.gold < 120 || n.boughtTome;
+  bTome.textContent = n.tomeSold ? '✓ ซื้อแล้ว' : '◉ ๑๒๐';
+  bTome.disabled = player.gold < 120 || n.tomeSold;
   bTome.onclick = () => {
-    n.boughtTome = true;
-    player.gold -= 120;
+    player.gold -= 120; n.tomeSold = true;
     player.talentPoints = (player.talentPoints || 0) + 1;
     sfx.level(); flash = 0.6;
-    msg('📖 เจ้าศึกษาคัมภีร์ปัญญาญาณ! ได้รับ +๑ แต้มวิชาพรสวรรค์ทันที!', 'good');
-    updateHud(); renderShop(n);
-    triggerTalentChoice();
+    msg('📜 เจ้าศึกษาคัมภีร์ปัญญาญาณ! ได้รับ +๑ แต้มวิชาพรสวรรค์!', 'good');
+    triggerTalentChoice(); updateHud(); renderShop(n);
   };
   rTome.appendChild(bTome); svcBox.appendChild(rTome);
+
+  // บริการจ้างทหารรับจ้างวานร
+  const rMerc = document.createElement('div'); rMerc.className = 'row';
+  rMerc.innerHTML = '<span>🐒 <b>จ้างทหารรับจ้างวานร</b> <small class="teal">(ร่วมรบช่วยฟัน ๓ ชั้น)</small></span>';
+  const bMerc = document.createElement('button'); bMerc.className = 'mini-btn';
+  bMerc.textContent = player.companion ? '✓ มีสหายแล้ว' : '◉ ๕๐';
+  bMerc.disabled = player.gold < 50 || !!player.companion;
+  bMerc.onclick = () => {
+    hireMercenary(50);
+    renderShop(n);
+  };
+  rMerc.appendChild(bMerc); svcBox.appendChild(rMerc);
 
   s.appendChild(svcBox);
 
@@ -4768,50 +4846,37 @@ function renderShop(n){
   }
   s.appendChild(sellBox);
 }
-function pray(mode){
+function pray(free){
   hide($('altarOv'));
   if(isNaN(player.gold)) player.gold = 0;
+  let offerAmt = 20;
+  if(!free){
+    if(player.gold >= 100) offerAmt = 100;
+    else if(player.gold >= 50) offerAmt = 50;
+    else if(player.gold >= 20) offerAmt = 20;
+    else { msg('เหรียญไม่พอถวาย… (ต้องการอย่างน้อย ๒๐ ◉)','warn'); return; }
+  }
   const idx = player.y * W + player.x;
   map[idx] = 4; // เทวาลัยมอดดับลงทันที ใช้ได้ครั้งเดียวเท่านั้น!
-
-  if(mode === 'big'){
-    if(player.gold < 60){ msg('เหรียญไม่พอถวายมหาทาน…', 'warn'); return; }
-    player.gold -= 60;
-    player.punya += 35;
-    player.hp = player.mhp; player.mp = player.mmp;
-    const s = ['atk', 'def', 'mhp'][R(3)];
-    if(s === 'atk') player.atk += 2;
-    else if(s === 'def') player.def += 2;
-    else { player.mhp += 10; player.hp += 10; }
-    sfx.level(); flash = 0.8;
-    msg('🛕 มหาทานบารมีสำแดงฤทธิ์! ปุญ +๓๕, เลือด/มนตร์ฟื้นเต็ม, และ ' + (s==='atk'?'โจมตีถาวร +๒':s==='def'?'ป้องกันถาวร +๒':'เลือดสูงสุด +๑๐') + '!', 'good');
-    floats.push({x: player.x, y: player.y, t: 'มหาเทวพรสถิต!', c: '#f5c542', life: 2.2});
-  } else if(mode === 'small' || mode === false){
-    if(player.gold < 20){ msg('เหรียญไม่พอถวาย…','warn'); return; }
-    player.gold -= 20; player.punya += 10;
-    player.hp = Math.min(player.mhp, player.hp + Math.floor(player.mhp * 0.6));
-    player.mp = player.mmp;
-    sfx.level(); flash = 0.5;
-    msg('🛕 เจ้าถวายเครื่องสักการะ ปุญ +๑๐ และฟื้นฟูกายาเต็มเปี่ยม!', 'good');
-    floats.push({x: player.x, y: player.y, t: 'ปุญบารมี +๑๐', c: '#2ec4a6', life: 1.8});
-  } else {
-    // สวดฟรี
-    const luck = rng() + Math.min(0.25, player.punya / 200);
-    if(luck > 0.65){
-      player.hp = Math.min(player.mhp, player.hp + 15);
-      msg('🛕 แสงศักดิ์สิทธิ์ส่องประกาย ฟื้นเลือด +๑๕', 'good'); sfx.level();
-    } else {
-      msg('🛕 จิตสงบนิ่ง… ไม่มีสิ่งใดเกิดขึ้น');
-    }
+  if(!free){
+    player.gold -= offerAmt;
+    const pGain = Math.floor(offerAmt * 0.6);
+    player.punya += pGain;
+    msg('เจ้าถวายเครื่องสักการะมหาบารมี ◉' + offerAmt + ' ปุญ +' + pGain, 'good');
   }
-  updateHud(); endTurn();
+  const luck=rng()+Math.min(.25,player.punya/200);
+  if(luck>.8){const s=['atk','def','mhp'][R(3)];
+    if(s==='atk')player.atk++;else if(s==='def')player.def++;else{player.mhp+=5;player.hp+=5;}
+    msg('🛕 เทพประทานพร! '+(s==='atk'?'โจมตี':s==='def'?'ป้องกัน':'เลือดสูงสุด')+' +ถาวร','good');sfx.level();}
+  else if(luck>.45){player.hp=player.mhp;player.mp=player.mmp;
+    msg('🛕 แสงศักดิ์สิทธิ์ชำระกาย — ฟื้นเต็ม!','good');sfx.level();}
+  else if(luck>.12){msg('🛕 เทพนิ่งเงียบ… ไม่มีสิ่งใดเกิดขึ้น');}
+  else{player.hp-=6;msg('🛕 คำสาปจากวิหาร! -๖ เลือด','warn');sfx.hurt();
+    if(player.hp<=0){die();return;}}
+  updateHud();endTurn();
 }
 function descend(){
   checkFloorBountyComplete();
-  if(player.mercenaryTurns > 0){
-    player.mercenaryTurns--;
-    if(player.mercenaryTurns === 0) msg('สัญญาจ้างทหารเอกวานรสิ้นสุดลงแล้ว… วานรคำนับแล้วจากไป');
-  }
   // ตรวจสอบความสำเร็จแห่งคำสัตย์ปฏิญาณ
   if(player.vow && (floor + 1) >= player.vow.endFloor){
     player.punya += 30;
@@ -5088,12 +5153,6 @@ function startRun(cls, forcedSeed = 0){
   
   const karma = getKarma();
   player.gold += (karma.goldLvl || 0) * 20;
-  const vGold = getVaultGold();
-  if(vGold > 0){
-    player.gold += vGold;
-    saveVaultGold(0);
-    msg('🏦 เจ้าเบิกเหรียญ ◉' + vGold + ' จากตู้เซฟสังสารวัฏที่ฝากไว้จากชาติก่อน!', 'good');
-  }
   player.bagMax = 10 + (karma.bagLvl || 0);
   player.mhp += (karma.hpLvl || 0) * 5; player.hp = player.mhp;
   player.mmp += (karma.mpLvl || 0) * 4; player.mp = player.mmp;
@@ -5276,6 +5335,24 @@ function drawTile(mx, my, sx, sy){
     const flk = 0.2 + 0.2 * Math.sin(time * 0.25 + mx);
     ctx.fillStyle = 'rgba(141,85,201,' + flk.toFixed(2) + ')';
     ctx.fillRect(px + 6, py + 5, 4, 6);
+  }
+  else if(t === 16){ // แท่นสักยันต์
+    ctx.drawImage(TILEC[16][0], px, py);
+    const flk = 0.3 + 0.3 * Math.sin(time * 0.3 + mx);
+    ctx.fillStyle = 'rgba(245,197,66,' + flk.toFixed(2) + ')';
+    ctx.fillRect(px + 6, py + 6, 4, 4);
+  }
+  else if(t === 17){ // เสาหินร้าว
+    ctx.drawImage(TILEC[17][0], px, py);
+  }
+  else if(t === 18){ // โคมไฟเพดาน
+    ctx.drawImage(TILEC[18][0], px, py);
+    const flk = 0.3 + 0.2 * Math.sin(time * 0.35 + mx);
+    ctx.fillStyle = 'rgba(255,139,31,' + flk.toFixed(2) + ')';
+    ctx.fillRect(px + 4, py + 4, 8, 8);
+  }
+  else if(t === 19){ // รังต่อหิมพานต์
+    ctx.drawImage(TILEC[19][0], px, py);
   }
 }
 
