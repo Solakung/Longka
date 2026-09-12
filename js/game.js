@@ -437,17 +437,204 @@ const SPRD={
   "................",
   "................"
 ],
-  "bibhek": [".....ffwwff.....", "....ffffffff....", "....ffggggff....", "....gseeeesg....", "...gse00ee0esg..", "...gseeeeeeesg..", "..gwwwwwwwwwwg..", ".gwwwwwwwwwwwwg.", ".gw.wwwwwwww.wg.", "....wwwwwwww....", "....wwwwwwww....", "...wwdd..ddww...", "...dd......dd...", "..ddd......ddd..", "..ddd......ddd..", "................"],
-  "garuda": ["....ff....ff....", "...ffff..ffff...", "..ffggffffggff..", "..ffg00ff00gff..", "..ffffggggffff..", "...ffooooooff...", ".ffffooooooffff.", "fffoooooooooofff", "ff.oooooooooo.ff", "....oooooooo....", "....oooooooo....", "...ffff..ffff...", "...ff......ff...", "..fff......fff..", "..fff......fff..", "................"],
-  "ration": ["................", ".....eeee.......", "....eeeeee......", "...eegggeee.....", "..eeggggggee....", ".eegffffgggee...", ".eegffffffgge...", "..gggggggggg....", "...dddddddd.....", "..dddddddddd....", "..dddddddddd....", "..dddddddddd....", "...dddddddd.....", "....dddddd......", "................", "................"],
-  "gem": ["................", ".....ffffff.....", "....fttttttf....", "...fttttttttf...", "..fttwwwwwwttf..", "..ftwwwwwwwwtf..", "...twwwwwwwwt...", "....twwwwwwt....", ".....twwwwt.....", "......twwt......", ".......tt.......", "........t.......", "................", "................", "................", "................"],
-  "ore": ["................", ".....ddddd......", "....dddddddd....", "...ddddgggddd...", "..ddddgggggddd..", "..dddggfffggdd..", ".ddddgffffggddd.", ".dddddgggdddddd.", ".dddddddddddddd.", "..dddddddddddd..", "...dddddddddd...", "....dddddddd....", ".....dddddd.....", "................", "................", "................"],
-  "egg": ["................", "......ffff......", ".....ffffff.....", "....ffooffff....", "...ffffffffgf...", "...ffffgffffg...", "..ffffffgffffg..", "..ffffffoffffg..", "..ffffffffffff..", "..ffffgfffffff..", "...ffffffffffff.", "...ffffffffffff.", "....ffffffffff..", ".....ffffffff...", "................", "................"],
-  "head": [".......ff.......", "......ffff......", ".....fggggf.....", ".....fggggf.....", "....ffggggff....", "...fffggggfff...", "...fgggrrgggf...", "..fggggrrggggf..", "..gggggttggggg..", ".ggggggttgggggg.", ".ggggggrrgggggg.", "..gggggffggggg..", "...gggggggggg...", "....ffffffff....", "................", "................"],
-  "scroll_tac": ["....rrrrrrrr....", "...rwwwwwwwwr...", "..rwwwwwwwwwwr..", "..rwwwwwwwwwr...", "..rwwkkkkkkr....", "..rwwrrrrrrwwr..", "..rwwrrrrrrwwr..", "...rwwwwwwwwwr..", "....rwwwwwwwwr..", ".....rrrrrrrr...", "................", "................", "................", "................", "................", "................"],
-  "player_tool": ["................", "....ww....ww....", "...wwww..wwww...", "..wwwwwwwwwwww..", "..wwkkwwwwkkww..", "...wkkkkkkkkw...", "....kkkkkkkk....", "....rrrrrrrr....", "....rrrrrrrr....", "....kkkkkkkk....", "...wkkkkkkkkw...", "..wwkkwwwwkkww..", "..wwwwwwwwwwww..", "...wwww..wwww...", "....ww....ww....", "................"],
-  "relic": ["................", ".....gggggg.....", "....gggggggg....", "...gggg..gggg...", "...ggg....ggg...", "....gg....gg....", ".....gg..gg.....", "......gggg......", ".....fffftt.....", "....fffftttt....", "....fffftttt....", ".....fffftt.....", "......ffff......", "................", "................", "................"],
-  "elixir": ["......wwww......", "......wwww......", ".....tttttt.....", "....tfttttttt...", "...tfffttttttt..", "..tfffftttttttt.", "..tfffftttttttt.", "..tfffftttttttt.", "...tfffttttttt..", "....tttttttt....", ".....tttttt.....", "................", "................", "................", "................", "................"]
+  "bibhek": [
+  ".....ffwwff.....",
+  "....ffffffff....",
+  "....ffggggff....",
+  "....gseeeesg....",
+  "...gse00ee0esg..",
+  "...gseeeeeeesg..",
+  "..gwwwwwwwwwwg..",
+  ".gwwwwwwwwwwwwg.",
+  ".gw.wwwwwwww.wg.",
+  "....wwwwwwww....",
+  "....wwwwwwww....",
+  "...wwdd..ddww...",
+  "...dd......dd...",
+  "..ddd......ddd..",
+  "..ddd......ddd..",
+  "................"
+],
+  "garuda": [
+  "....ff....ff....",
+  "...ffff..ffff...",
+  "..ffggffffggff..",
+  "..ffg00ff00gff..",
+  "..ffffggggffff..",
+  "...ffooooooff...",
+  ".ffffooooooffff.",
+  "fffoooooooooofff",
+  "ff.oooooooooo.ff",
+  "....oooooooo....",
+  "....oooooooo....",
+  "...ffff..ffff...",
+  "...ff......ff...",
+  "..fff......fff..",
+  "..fff......fff..",
+  "................"
+],
+  "ration": [
+  "................",
+  ".....eeee.......",
+  "....eeeeee......",
+  "...eegggeee.....",
+  "..eeggggggee....",
+  ".eegffffgggee...",
+  ".eegffffffgge...",
+  "..gggggggggg....",
+  "...dddddddd.....",
+  "..dddddddddd....",
+  "..dddddddddd....",
+  "..dddddddddd....",
+  "...dddddddd.....",
+  "....dddddd......",
+  "................",
+  "................"
+],
+  "gem": [
+  "................",
+  ".....ffffff.....",
+  "....fttttttf....",
+  "...fttttttttf...",
+  "..fttwwwwwwttf..",
+  "..ftwwwwwwwwtf..",
+  "...twwwwwwwwt...",
+  "....twwwwwwt....",
+  ".....twwwwt.....",
+  "......twwt......",
+  ".......tt.......",
+  "........t.......",
+  "................",
+  "................",
+  "................",
+  "................"
+],
+  "ore": [
+  "................",
+  ".....ddddd......",
+  "....dddddddd....",
+  "...ddddgggddd...",
+  "..ddddgggggddd..",
+  "..dddggfffggdd..",
+  ".ddddgffffggddd.",
+  ".dddddgggdddddd.",
+  ".dddddddddddddd.",
+  "..dddddddddddd..",
+  "...dddddddddd...",
+  "....dddddddd....",
+  ".....dddddd.....",
+  "................",
+  "................",
+  "................"
+],
+  "egg": [
+  "................",
+  "......ffff......",
+  ".....ffffff.....",
+  "....ffooffff....",
+  "...ffffffffgf...",
+  "...ffffgffffg...",
+  "..ffffffgffffg..",
+  "..ffffffoffffg..",
+  "..ffffffffffff..",
+  "..ffffgfffffff..",
+  "...ffffffffffff.",
+  "...ffffffffffff.",
+  "....ffffffffff..",
+  ".....ffffffff...",
+  "................",
+  "................"
+],
+  "head": [
+  ".......ff.......",
+  "......ffff......",
+  ".....fggggf.....",
+  ".....fggggf.....",
+  "....ffggggff....",
+  "...fffggggfff...",
+  "...fgggrrgggf...",
+  "..fggggrrggggf..",
+  "..gggggttggggg..",
+  ".ggggggttgggggg.",
+  ".ggggggrrgggggg.",
+  "..gggggffggggg..",
+  "...gggggggggg...",
+  "....ffffffff....",
+  "................",
+  "................"
+],
+  "scroll_tac": [
+  "....rrrrrrrr....",
+  "...rwwwwwwwwr...",
+  "..rwwwwwwwwwwr..",
+  "..rwwwwwwwwwr...",
+  "..rwwkkkkkkr....",
+  "..rwwrrrrrrwwr..",
+  "..rwwrrrrrrwwr..",
+  "...rwwwwwwwwwr..",
+  "....rwwwwwwwwr..",
+  ".....rrrrrrrr...",
+  "................",
+  "................",
+  "................",
+  "................",
+  "................",
+  "................"
+],
+  "player_tool": [
+  "................",
+  "....ww....ww....",
+  "...wwww..wwww...",
+  "..wwwwwwwwwwww..",
+  "..wwkkwwwwkkww..",
+  "...wkkkkkkkkw...",
+  "....kkkkkkkk....",
+  "....rrrrrrrr....",
+  "....rrrrrrrr....",
+  "....kkkkkkkk....",
+  "...wkkkkkkkkw...",
+  "..wwkkwwwwkkww..",
+  "..wwwwwwwwwwww..",
+  "...wwww..wwww...",
+  "....ww....ww....",
+  "................"
+],
+  "relic": [
+  "................",
+  ".....gggggg.....",
+  "....gggggggg....",
+  "...gggg..gggg...",
+  "...ggg....ggg...",
+  "....gg....gg....",
+  ".....gg..gg.....",
+  "......gggg......",
+  ".....fffftt.....",
+  "....fffftttt....",
+  "....fffftttt....",
+  ".....fffftt.....",
+  "......ffff......",
+  "................",
+  "................",
+  "................"
+],
+  "elixir": [
+  "......wwww......",
+  "......wwww......",
+  ".....tttttt.....",
+  "....tfttttttt...",
+  "...tfffttttttt..",
+  "..tfffftttttttt.",
+  "..tfffftttttttt.",
+  "..tfffftttttttt.",
+  "...tfffttttttt..",
+  "....tttttttt....",
+  ".....tttttt.....",
+  "................",
+  "................",
+  "................",
+  "................",
+  "................"
+]
 
 };
 const SPR={};
@@ -2669,7 +2856,7 @@ function genFloor(fl){
   fireTiles = [];
   // โลงศิลาโบราณ (สุ่มพบบนชั้น ๔, ๘, ๑๒, ๑๖ หรือ ๒๐% ต่อชั้น)
   if((fl % 4 === 0 || floorR() < 0.20) && !isBossRushMode){
-    const r = pick(rooms.slice(1, -1)); // โลงศิลาห้ามเกิดทับห้องบันได
+    const r = pick(rooms.slice(1));
     map[(r.y+2)*W + r.x+2] = 15;
   }
   if(rooms.length > 1){
@@ -3924,7 +4111,6 @@ function endTurn(){
     }
   }
 
-  // ทหารวานรช่วยสู้
     // ทหารเอกวานรรับจ้างช่วยรบ
   if(player.mercenaryTurns > 0){
     const nearFoe = enemies.find(e => vis[e.y*W+e.x] && Math.max(Math.abs(e.x-player.x), Math.abs(e.y-player.y)) <= 2);
@@ -3937,6 +4123,7 @@ function endTurn(){
       if(nearFoe.hp <= 0) killFoe(nearFoe);
     }
   }
+  // ทหารวานรช่วยสู้
   if(player.summons > 0){
     const nearFoe = enemies.find(e => vis[e.y*W+e.x] && Math.max(Math.abs(e.x-player.x), Math.abs(e.y-player.y)) <= 3);
     if(nearFoe){
@@ -6282,4 +6469,3 @@ window.addEventListener('resize',fitCanvas);
 /* ── เริ่มระบบ ── */
 buildClassCards();setupInput();refreshTitle();fitCanvas();
 requestAnimationFrame(loop);
-
