@@ -941,12 +941,12 @@ let arenaWave = 1;
 let arenaMaxWaves = 8;
 
 function startBossRushMode(cls){
-  isBossRushMode = true;
   arenaWave = 1;
   initAudio();
   startRun(cls, 888888);
+  isBossRushMode = true;   // ย้ายมาไว้ตรงนี้ หลัง startRun
   genArenaWave(1);
-}
+ }
 
 function genArenaWave(waveNum){
   arenaWave = waveNum;
@@ -3991,7 +3991,7 @@ function attackFoe(e, dirX=0, dirY=0){
     sfx.boss(); shake = 9; flash = 0.6;
     if(floor === 5){
       msg('☠ พญาขรคำรามก้องวิหาร! สรรพกำลังเปรตผุดขึ้นจากธรณี!', 'warn');
-      const wallMax = (fl === 1) ? 1 : 2;
+      const wallMax = (floor === 1) ? 1 : 2;
   for(let s=0; s<wallMax; s++){
         const ptx = e.x + (s===0?1:-1), pty = e.y;
         if(canWalk(ptx, pty) && !enemyAt(ptx, pty)) enemies.push(spawnFoe(FOES[0], ptx, pty));
