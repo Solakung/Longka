@@ -1189,31 +1189,31 @@ function calculateStashCost(it){
   const t = it.tier || 1;
   const plus = it.plus || 0;
 
-  // ฐานแต้มปุญตามระดับชั้นเทียร์
-  let cost = 50;
-  if(t === 2) cost = 90;
-  else if(t === 3) cost = 150;
-  else if(t === 4) cost = 240;
-  else if(t >= 5) cost = 350;
+  // ฐานแต้มบารมีตามระดับชั้นเทียร์ (สมดุลกับแต้มบารมีสะสมข้ามชาติ)
+  let cost = 15;
+  if(t === 2) cost = 25;
+  else if(t === 3) cost = 40;
+  else if(t === 4) cost = 60;
+  else if(t >= 5) cost = 80;
 
-  // ยิ่งของมาจากชั้นลึก ยิ่งใช้แต้มบุญมหาศาล (+๑๒ ปุญ ต่อชั้นความลึกที่พบ!)
-  cost += fl * 12;
+  // ยิ่งของมาจากชั้นลึก ยิ่งใช้บารมี (+๑ บารมี ต่อชั้นที่พบ สูงสุด +๒๐)
+  cost += Math.min(20, fl);
 
-  // อาวุธตีบวก (+๕๐ ปุญ ต่อระดับบวก!)
-  cost += plus * 50;
+  // อาวุธตีบวก (+๘ บารมี ต่อระดับบวก)
+  cost += plus * 8;
 
   // ของระดับตำนาน / เทวะ
-  if(it.r === 'legendary') cost += 60;
-  else if(it.r === 'mythic') cost += 120;
+  if(it.r === 'legendary') cost += 15;
+  else if(it.r === 'mythic') cost += 30;
 
   // มีพลังแฝงพิเศษ
-  if(it.affix) cost += 40;
+  if(it.affix) cost += 10;
 
-  // มีอัญมณีฝังอยู่ (+๕๐ ปุญ ต่อเม็ด)
-  if(it.gems && it.gems.length) cost += it.gems.length * 50;
+  // มีอัญมณีฝังอยู่ (+๑๐ บารมี ต่อเม็ด)
+  if(it.gems && it.gems.length) cost += it.gems.length * 10;
 
-  // อุปกรณ์ต้องสาปมหาพลัง (+๘๐ ปุญ)
-  if(it.cursed) cost += 80;
+  // อุปกรณ์ต้องสาป (+๑๕ บารมี)
+  if(it.cursed) cost += 15;
 
   return cost;
 }
@@ -1230,24 +1230,27 @@ function openStashModal(){
 
   const stashData = getStashData();
   const itemsList = stashData.items || [];
-  const curPunya = player ? player.punya : 0;
+  const k = getKarma();
+  const curKarmaPts = k.pts || 0;
   const hasClaimed = player ? !!player.stashClaimed : false;
 
   let html = '<div class="panel" style="max-width:440px;border-color:var(--gold);box-shadow:0 0 28px rgba(245,197,66,.45);text-align:center">';
   html += '<div class="deva">संस्कार</div>';
   html += '<h2 style="font-family:Chakra Petch;color:var(--gold);margin:2px 0 4px;font-size:22px">🪷 หีบสังสารวัฏข้ามชาติ</h2>';
-  html += '<p style="font-size:12px;color:var(--ink);margin:0 0 10px">รวบรวมของวิเศษทั้งหมดจากชาติก่อน สละแต้มปุญมหาศาลเพื่อเบิกมาใช้ <b class="gold">(จำกัด ๑ ชิ้นต่อภพชาตินี้)</b></p>';
+  html += '<p style="font-size:12px;color:var(--ink);margin:0 0 10px">รวบรวมของวิเศษทั้งหมดจากชาติก่อน สละแต้มบารมีสะสมเพื่อเบิกมาใช้ <b class="gold">(จำกัด ๑ ชิ้นต่อภพชาตินี้)</b></p>';
 
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;background:#180b18;padding:6px 12px;border:1px solid var(--line);border-radius:4px;margin-bottom:10px">';
+  html += '<span class="teal" style="font-size:12.5px">✦ แต้มบารมีสะสม: <b>' + curKarmaPts + '</b></span>';
   if(player){
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;background:#180b18;padding:6px 12px;border:1px solid var(--line);border-radius:4px;margin-bottom:10px">';
-    html += '<span class="teal" style="font-size:12.5px">✦ ปุญบารมีปัจจุบัน: <b>' + curPunya + '</b></span>';
     if(hasClaimed){
       html += '<span style="color:#ff8b1f;font-size:11px;font-weight:700">✓ เบิกครบ ๑ ชิ้นแล้ว</span>';
     } else {
       html += '<span class="gold" style="font-size:11px">พร้อมเบิก ๑ ชิ้น</span>';
     }
-    html += '</div>';
+  } else {
+    html += '<span class="dim" style="font-size:11px">ดูคลังหน้าเมนู</span>';
   }
+  html += '</div>';
 
   if(itemsList.length === 0){
     html += '<div class="row dim" style="justify-content:center;padding:16px;margin-bottom:12px">ยังไม่มีของวิเศษจากชาติก่อนในหีบ…<br><small>(เมื่อจบการเดินทางในแต่ละรอบ ของทั้งหมดจะถูกส่งมาเก็บไว้ที่นี่)</small></div>';
@@ -1256,7 +1259,7 @@ function openStashModal(){
     itemsList.forEach((it, idx) => {
       const cost = calculateStashCost(it);
       const rCol = RARITY_COLORS[it.r || 'common'] || '#fff';
-      const canAfford = player && curPunya >= cost && !hasClaimed;
+      const canAfford = curKarmaPts >= cost && !hasClaimed;
       const sType = it.slotType || (it.t === 'wpn' ? 'อาวุธ' : (it.t === 'arm' ? 'ชุดเกราะ' : 'ของวิเศษ'));
 
       html += '<div style="background:#190c19;border:1px solid ' + rCol + ';padding:8px;border-radius:4px">';
@@ -1269,13 +1272,13 @@ function openStashModal(){
       html += '</div>';
 
       html += '<div style="text-align:right;flex-shrink:0">';
-      html += '<div style="color:var(--gold);font-weight:700;font-size:12px">✦ ' + cost + ' ปุญ</div>';
+      html += '<div style="color:var(--gold);font-weight:700;font-size:12px">✦ ' + cost + ' บารมี</div>';
       if(!player){
         html += '<button class="mini-btn" disabled style="margin-top:4px">เริ่มเกมก่อนเบิก</button>';
       } else if(hasClaimed){
         html += '<button class="mini-btn" disabled style="margin-top:4px">เบิกครบแล้ว</button>';
-      } else if(curPunya < cost){
-        html += '<button class="mini-btn" disabled style="margin-top:4px;font-size:10px">ปุญไม่พอ</button>';
+      } else if(curKarmaPts < cost){
+        html += '<button class="mini-btn" disabled style="margin-top:4px;font-size:10px">บารมีไม่พอ</button>';
       } else {
         html += '<button class="mini-btn" style="background:#158574;border-color:#2ec4a6;color:#fff;margin-top:4px" onclick="reclaimStashItem(' + idx + ')">เบิกมาใช้</button>';
       }
@@ -1300,12 +1303,14 @@ function reclaimStashItem(idx){
   const it = stashData.items[idx];
   if(!it) return;
   const cost = calculateStashCost(it);
-  if(player.punya < cost){
-    msg('แต้มปุญบารมีไม่พอ… (ต้องการ ' + cost + ' ปุญ / มี ' + player.punya + ')', 'warn');
+  const k = getKarma();
+  if((k.pts || 0) < cost){
+    msg('แต้มบารมีสะสมไม่พอ… (ต้องการ ' + cost + ' บารมี / มี ' + (k.pts || 0) + ')', 'warn');
     return;
   }
 
-  player.punya -= cost;
+  k.pts = (k.pts || 0) - cost;
+  saveKarma(k);
   player.stashClaimed = true;
 
   if(player.inv.length < (player.bagMax || 10)){
@@ -1318,7 +1323,7 @@ function reclaimStashItem(idx){
   saveStashData(stashData);
 
   sfx.level(); flash = 0.7; shake = 6;
-  msg('🪷 มหาบารมีข้ามภพ! สละ ' + cost + ' ปุญ เบิก «' + it.name + '» จากชาติก่อนมาใช้สำเร็จ! (จำกัด ๑ ชิ้นต่อภพชาตินี้)', 'good');
+  msg('🪷 มหาบารมีข้ามภพ! สละ ' + cost + ' แต้มบารมี เบิก «' + it.name + '» จากชาติก่อนมาใช้สำเร็จ! (จำกัด ๑ ชิ้นต่อภพชาตินี้)', 'good');
   floats.push({x: player.x, y: player.y, t: 'เบิกของข้ามชาติสำเร็จ!', c: '#f5c542', life: 2.2});
 
   hide($('stashOv'));
