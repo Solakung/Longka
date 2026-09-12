@@ -4130,13 +4130,15 @@ function attackFoe(e, dirX=0, dirY=0){
     msg('🦅 พญาครุฑกรงเล็บสังหารนาคิน ดาเมจทวีคูณ!', 'good');
   }
   if(isStealthAmbush){
-    msg('🌿 ซุ่มโจมตีจากกอเถาวัลย์! คมขรรค์แทงจุดตายวิกฤต ๑๐๐%! -' + d, 'good');
-  } else if(e.hp <= 0){
+  msg('🌿 ซุ่มโจมตีจากกอเถาวัลย์! คมขรรค์แทงจุดตายวิกฤต ๑๐๐%! -' + d, 'good');
+}
+  if(e.hp <= 0){
     killFoe(e);
-  } else {
-    msg((crit?'✦ คมขรรค์ฟันจุดตาย! ':'')+'เจ้าฟัน'+e.name+' -'+d);
+  } else if(!isStealthAmbush){
+  msg((crit?'✦ คมขรรค์ฟันจุดตาย! ':'')+'เจ้าฟัน'+e.name+' -'+d);
   }
 }
+
 function killFoe(e){
   // สลายร่างเป็นกลุ่มควันวิญญาณ ไม่ทิ้งซากศพเกะกะ
   
@@ -4498,7 +4500,7 @@ function endTurn(){
       }
     } else if(player.pet.type === 'naga' && time % 2 === 0){
       // ลูกพญานาคพ่นพิษใส่ศัตรู
-      const visFoe = enemies.find(e => vis[e.y*W+e.x] && Math.max(Math.abs(e.x-player.x), Math.abs(e.y-player.y)) <= 4);
+      const visFoe = enemies.find(e => e.hp > 0 && vis[e.y*W+e.x] && Math.max(Math.abs(e.x-player.x), Math.abs(e.y-player.y)) <= 4);
       if(visFoe){
         visFoe.poison = (visFoe.poison || 0) + 2; visFoe.flash = 3;
         triggerSlash(visFoe.x, visFoe.y, '#43b05c');
