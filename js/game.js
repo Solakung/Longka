@@ -1232,7 +1232,19 @@ function openStashModal(){
   const itemsList = stashData.items || [];
   const k = getKarma();
   const curKarmaPts = k.pts || 0;
-  const hasClaimed = player ? !!player.stashClaimed : false;
+
+  // ตรวจสอบสถานะการเล่น
+  const activeSaveRaw = localStorage.getItem(SAVE_KEY);
+  let hasActiveSave = false, saveObj = null;
+  if(activeSaveRaw){
+    try {
+      saveObj = JSON.parse(activeSaveRaw);
+      hasActiveSave = !!(saveObj && saveObj.player);
+    } catch(e){}
+  }
+
+  const inDungeon = !!(player && state === 'play');
+  const hasClaimed = inDungeon ? !!player.stashClaimed : (hasActiveSave && saveObj.player.stashClaimed);
 
   let html = '<div class="panel" style="max-width:440px;border-color:var(--gold);box-shadow:0 0 28px rgba(245,197,66,.45);text-align:center">';
   html += '<div class="deva">संस्कार</div>';
@@ -1241,14 +1253,14 @@ function openStashModal(){
 
   html += '<div style="display:flex;justify-content:space-between;align-items:center;background:#180b18;padding:6px 12px;border:1px solid var(--line);border-radius:4px;margin-bottom:10px">';
   html += '<span class="teal" style="font-size:12.5px">✦ แต้มบารมีสะสม: <b>' + curKarmaPts + '</b></span>';
-  if(player){
-    if(hasClaimed){
-      html += '<span style="color:#ff8b1f;font-size:11px;font-weight:700">✓ เบิกครบ ๑ ชิ้นแล้ว</span>';
-    } else {
-      html += '<span class="gold" style="font-size:11px">พร้อมเบิก ๑ ชิ้น</span>';
-    }
+  if(hasClaimed){
+    html += '<span style="color:#ff8b1f;font-size:11px;font-weight:700">✓ ชาตินี้เบิกครบ ๑ ชิ้นแล้ว</span>';
+  } else if(inDungeon){
+    html += '<span class="gold" style="font-size:11px">✦ กำลังผจญภัย (พร้อมเบิกเข้าตัว)</span>';
+  } else if(hasActiveSave){
+    html += '<span class="teal" style="font-size:11px">✦ มีเซฟที่เล่นอยู่ (เบิกเข้าเซฟ)</span>';
   } else {
-    html += '<span class="dim" style="font-size:11px">ดูคลังหน้าเมนู</span>';
+    html += '<span class="gold" style="font-size:11px">✦ พร้อมเบิกนำเข้าเล่นรอบใหม่</span>';
   }
   html += '</div>';
 
@@ -1273,17 +1285,18 @@ function openStashModal(){
 
       html += '<div style="text-align:right;flex-shrink:0">';
       html += '<div style="color:var(--gold);font-weight:700;font-size:12px">✦ ' + cost + ' บารมี</div>';
-      if(!player){
-        html += '<button class="mini-btn" disabled style="margin-top:4px">เริ่มเกมก่อนเบิก</button>';
-      } else if(hasClaimed){
+
+      if(hasClaimed){
         html += '<button class="mini-btn" disabled style="margin-top:4px">เบิกครบแล้ว</button>';
       } else if(curKarmaPts < cost){
         html += '<button class="mini-btn" disabled style="margin-top:4px;font-size:10px">บารมีไม่พอ</button>';
       } else {
-        html += '<button class="mini-btn" style="background:#158574;border-color:#2ec4a6;color:#fff;margin-top:4px" onclick="reclaimStashItem(' + idx + ')">เบิกมาใช้</button>';
+        let btnLabel = 'เบิกมาใช้';
+        if(!inDungeon && hasActiveSave) btnLabel = 'เบิกเข้าเซฟ';
+        else if(!inDungeon) btnLabel = 'เบิกนำเข้าเล่น';
+        html += '<button class="mini-btn" style="background:#158574;border-color:#2ec4a6;color:#fff;margin-top:4px;padding:3px 8px" onclick="reclaimStashItem(' + idx + ')">' + btnLabel + '</button>';
       }
       html += '</div>';
-
       html += '</div></div>';
     });
     html += '</div>';
@@ -1298,7 +1311,6 @@ function openStashModal(){
 }
 
 function reclaimStashItem(idx){
-  if(!player || player.stashClaimed) return;
   const stashData = getStashData();
   const it = stashData.items[idx];
   if(!it) return;
@@ -1309,25 +1321,72 @@ function reclaimStashItem(idx){
     return;
   }
 
-  k.pts = (k.pts || 0) - cost;
-  saveKarma(k);
-  player.stashClaimed = true;
+  // กรณี ๑: กำลังเล่นอยู่ในดันเจี้ยนจริง (inDungeon)
+  if(player && state === 'play'){
+    if(player.stashClaimed) return;
+    k.pts = (k.pts || 0) - cost;
+    saveKarma(k);
+    player.stashClaimed = true;
 
-  if(player.inv.length < (player.bagMax || 10)){
-    player.inv.push(it);
-  } else {
-    items.push({ x: player.x, y: player.y, ...it });
+    if(player.inv.length < (player.bagMax || 10)){
+      player.inv.push(it);
+    } else {
+      items.push({ x: player.x, y: player.y, ...it });
+    }
+
+    stashData.items.splice(idx, 1);
+    saveStashData(stashData);
+
+    sfx.level(); flash = 0.7; shake = 6;
+    msg('🪷 มหาบารมีข้ามภพ! สละ ' + cost + ' แต้มบารมี เบิก «' + it.name + '» จากชาติก่อนมาใช้สำเร็จ! (จำกัด ๑ ชิ้นต่อภพชาตินี้)', 'good');
+    floats.push({x: player.x, y: player.y, t: 'เบิกของข้ามชาติสำเร็จ!', c: '#f5c542', life: 2.2});
+
+    hide($('stashOv'));
+    updateHud();
+    saveGame();
+    return;
   }
 
+  // กรณี ๒: เบิกจากหน้าเมนูหลัก (Title Menu)
+  const activeSaveRaw = localStorage.getItem(SAVE_KEY);
+  if(activeSaveRaw){
+    try {
+      const sav = JSON.parse(activeSaveRaw);
+      if(sav && sav.player){
+        if(sav.player.stashClaimed){
+          alert('เซฟการเดินทางปัจจุบันได้เบิกของข้ามชาติครบ ๑ ชิ้นแล้ว!');
+          return;
+        }
+        k.pts = (k.pts || 0) - cost;
+        saveKarma(k);
+        sav.player.inv = sav.player.inv || [];
+        sav.player.inv.push(it);
+        sav.player.stashClaimed = true;
+        localStorage.setItem(SAVE_KEY, JSON.stringify(sav));
+
+        stashData.items.splice(idx, 1);
+        saveStashData(stashData);
+
+        sfx.level();
+        alert('🪷 เบิก «' + it.name + '» สำเร็จ! ไอเทมถูกส่งเข้าไปในถุงผ้าของเซฟปัจจุบันเรียบร้อยแล้ว กด "เดินทางต่อ" เพื่อผจญภัยต่อได้ทันที!');
+        hide($('stashOv'));
+        openStashModal();
+        return;
+      }
+    } catch(e){}
+  }
+
+  // กรณี ๓: เบิกเป็นไอเทมเริ่มต้นสำหรับรอบเล่นใหม่ (Pre-Run Starter Item)
+  k.pts = (k.pts || 0) - cost;
+  saveKarma(k);
+  localStorage.setItem('lanka_pending_stash_claim', JSON.stringify(it));
   stashData.items.splice(idx, 1);
   saveStashData(stashData);
 
-  sfx.level(); flash = 0.7; shake = 6;
-  msg('🪷 มหาบารมีข้ามภพ! สละ ' + cost + ' แต้มบารมี เบิก «' + it.name + '» จากชาติก่อนมาใช้สำเร็จ! (จำกัด ๑ ชิ้นต่อภพชาตินี้)', 'good');
-  floats.push({x: player.x, y: player.y, t: 'เบิกของข้ามชาติสำเร็จ!', c: '#f5c542', life: 2.2});
-
+  sfx.level();
+  alert('🪷 เบิก «' + it.name + '» สำเร็จ! ไอเทมนี้จะติดตัวไปกับเจ้าทันทีในการเดินทางรอบใหม่');
   hide($('stashOv'));
-  updateHud();
+  show($('classSel'));
 }
 
 
@@ -5454,7 +5513,17 @@ function startRun(cls, forcedSeed = 0){
   player.mmp += (karma.mpLvl || 0) * 4; player.mp = player.mmp;
 
   genFloor(1);state='play';
-  hideAll();updateHud();setControlsHint();saveGame();
+  hideAll();  const pendingStash = localStorage.getItem('lanka_pending_stash_claim');
+  if(pendingStash){
+    try {
+      const pIt = JSON.parse(pendingStash);
+      player.inv.push(pIt);
+      player.stashClaimed = true;
+      localStorage.removeItem('lanka_pending_stash_claim');
+      msg('🪷 เจ้าเบิก «' + pIt.name + '» จากชาติก่อนติดตัวมาด้วย!', 'good');
+    } catch(e){}
+  }
+  updateHud();setControlsHint();saveGame();
 }
 
 /* ── การแสดงผล ── */
@@ -6521,7 +6590,7 @@ function renderInv(){
   // ๑. แผงแสดงอุปกรณ์สวมใส่ ๔ ชิ้นส่วน (Head, Weapon, Armor, Relic)
   let equipHtml = '<div style="background:#130612;border:2px solid var(--gold);padding:8px;border-radius:4px;margin-bottom:10px;box-shadow:0 0 14px rgba(245,197,66,.25)">';
   equipHtml += '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed var(--line);padding-bottom:4px;margin-bottom:6px">';
-  equipHtml += '<div style="display:flex;align-items:center;gap:6px"><span style="color:var(--gold);font-weight:700;font-size:13px">🛡️ อุปกรณ์สวมใส่ (๔ ช่อง)</span><button class="mini-btn" style="padding:2px 6px;font-size:10px;background:#241220;border-color:var(--gold);color:var(--gold)" onclick="openStatusModal()">👤 ดูสเตตัส</button></div>';
+  equipHtml += '<div style="display:flex;align-items:center;gap:6px"><span style="color:var(--gold);font-weight:700;font-size:13px">🛡️ อุปกรณ์สวมใส่ (๔ ช่อง)</span><button class="mini-btn" style="padding:2px 6px;font-size:10px;background:#241220;border-color:var(--gold);color:var(--gold)" onclick="openStatusModal()">👤 ดูสเตตัส</button><button class="mini-btn" style="padding:2px 6px;font-size:10px;background:#1a0818;border-color:var(--teal);color:var(--teal)" onclick="openStashModal()">🪷 หีบข้ามชาติ</button></div>';
   equipHtml += '<span style="font-size:11px;color:var(--teal)">🍖 กาย: ' + player.hunger + '% · ✦ ปุญ: ' + player.punya + '</span>';
   equipHtml += '</div>';
 
