@@ -2919,8 +2919,8 @@ function genFloor(fl){
     // ตลาดมืดอสูร (13) สุ่มพบบนชั้น ๗, ๑๔ หรือชั้นอเวจี
     if((fl === 7 || fl === 14 || (fl > 20 && floorR() < 0.18))){map[(r.y+1)*W+r.x+2]=13;}
     // แท่นสักยันต์ครูโบราณ (16) สุ่มพบบนชั้น ๓, ๗, ๑๓
-    if((fl === 3 || fl === 7 || fl === 13) && !player.yantras?.length >= 2){
-      map[(r.y+2)*W+r.x+1] = 16;
+    if((fl === 3 || fl === 7 || fl === 13) && (player.yantras?.length || 0) < 2){
+    map[(r.y+2)*W+r.x+1] = 16;
     }
     // สุ่มเสาหินร้าว (17), โคมไฟระย้า (18), หรือรังต่อหิมพานต์ (19)
     if(floorR() < 0.25){
@@ -3370,15 +3370,17 @@ function genGroundItem(){
   if(r<.23) return genPlayerTool(); // กับดักผู้เล่น
   if(r<.27) return genOre(); // แร่ขุดศักดิ์สิทธิ์
   if(r<.35) return {t:'mana', name:'น้ำโสม', mana:10+floor*2, r:'common', lore:'น้ำสกัดจากโสมพันปี ฟื้นฟูพลังมนตร์'};
-  if(r<.44) return {t:'gold', amt:8+Math.floor(floorR()*(10+floor*3))};
-  if(r<.48) return genTacticalScroll(); // คัมภีร์ยุทธวิธี
-  if(r<.56) return genElixir(); // ยาวิเศษ
-  if(r<.66){
-    const th = pick(THROWABLES);
-    return {t:'throw', name: th.name, dmg: th.dmg + Math.floor(floor * 0.8), range: th.range, c: th.c, burn: th.burn||0, r:'common', lore:'อาวุธขว้างโจมตีระยะไกล ' + thaiNum(th.range) + ' ช่อง', price: 20 + floor*2};
+  if(r<.75){
+  const ch = 1 + Math.floor(floorR() * 4);
+
+  return {
+    t: 'lore_scroll',
+    ch: ch,
+    name: 'คัมภีร์ใบลานลงกา (บทที่ ' + thaiNum(ch) + ')',
+    r:'legendary',
+    lore:'คัมภีร์บันทึกประวัติศาสตร์โบราณแห่งกรุงลงกา ศึกษาเพื่อรับปัญญาและพลังถาวร'
+  };
   }
-  if(r<.71) return genScrollUpg(); // คัมภีร์ตีบวก
-  if(r<.75) return { t: 'lore_scroll', ch: 1 + Math.floor(floorR() * 4), name: 'คัมภีร์ใบลานลงกา (บทที่ ' + thaiNum(1 + Math.floor(floorR() * 4)) + ')', r: 'legendary', lore: 'คัมภีร์บันทึกประวัติศาสตร์โบราณแห่งกรุงลงกา ศึกษาเพื่อรับปัญญาและพลังถาวร' };
   if(r<.78) return genRelic(); // เครื่องราง
   if(r<.82) return genHeadgear(); // มงกุฎ/ชฎา
   if(r<.85) return {...TOOL_HOOK};
@@ -3910,23 +3912,46 @@ function attackFoe(e, dirX=0, dirY=0){
     d *= 2;
     msg('👑 ขัตติยมานะสำแดงฤทธิ์! เลือดวิกฤตพลังโจมตีทวีคูณ!', 'warn');
   }
-  if(crit) d <<= 1;
+    if(crit) d <<= 1;
+
+  // โบนัสจากอัญมณี
+  if(wpn.gems && wpn.gems.length){
+    for(const gm of wpn.gems){
+      if(gm.gemId === 'gem_ruby'){
+        d += 5;
+        e.burn = (e.burn || 0) + 3;
+        floats.push({x:e.x,y:e.y-0.5,t:'ทับทิมเพลิง +๕',c:'#ff3b30',life:1});
+      } else if(gm.gemId === 'gem_emerald'){
+        d += 4;
+        e.poison = (e.poison || 0) + 3;
+        floats.push({x:e.x,y:e.y-0.5,t:'มรกตพิษ +๔',c:'#34c759',life:1});
+      } else if(gm.gemId === 'gem_sapphire'){
+        d += 4;
+        e.stun = 1;
+        floats.push({x:e.x,y:e.y-0.5,t:'ไพลินเยือกแข็ง',c:'#007aff',life:1});
+      } else if(gm.gemId === 'gem_moonstone'){
+        player.mp = Math.min(player.mmp, player.mp + 2);
+        floats.push({x:player.x,y:player.y,t:'+๒ MP',c:'#6fe0cd',life:1});
+      } else if(gm.gemId === 'gem_diamond'){
+        d += 6;
+      }
+    }
+  }
+
+  // Boss Cap ต้องคำนวณหลังโบนัสทั้งหมด
   if(e.boss){
     const maxBossCap = Math.max(12, Math.floor(e.maxhp * 0.25));
+
     if(d > maxBossCap){
       d = maxBossCap;
       msg('🛡️ ร่างกายพญามารหนาแน่นดุจภูผา! บรรเทาดาเมจเหลือ ' + d, 'warn');
     }
   }
-  e.hp -= d; e.awake = true; e.flash = 5;
 
-  let slashColor = crit ? '#f5c542' : '#f4ecdc';
-
-  // พลังสังวาลย์นาคราช: ตีติดพิษ
-  if(player.relic && player.relic.id === 'naga_sash'){
-    e.poison = (e.poison || 0) + 3;
-    slashColor = '#43b05c';
-  }
+  // หัก HP หลังคำนวณดาเมจทั้งหมด
+  e.hp -= d;
+  e.awake = true;
+  e.flash = 5;
 
   // เอฟเฟกต์พิเศษของอาวุธ
   if(player.wpn && player.wpn.affix && player.arm && player.arm.affix) unlockAch('affix_full');
@@ -3951,19 +3976,21 @@ function attackFoe(e, dirX=0, dirY=0){
       floats.push({x:e.x, y:e.y-0.4, t:'มึนงง!', c:'#f5c542', life:1.2});
     }
   }
-
-  
-  // ผลกระทบจากอัญมณีที่ฝังในอาวุธ
+   
+    // ผลกระทบจากอัญมณีที่ฝังในอาวุธ
   if(wpn.gems && wpn.gems.length){
     for(const gm of wpn.gems){
       if(gm.gemId === 'gem_ruby'){
-        d += 5; e.burn = (e.burn || 0) + 3;
+        d += 5;
+        e.burn = (e.burn || 0) + 3;
         floats.push({x: e.x, y: e.y - 0.5, t: 'ทับทิมเพลิง +๕', c: '#ff3b30', life: 1});
       } else if(gm.gemId === 'gem_emerald'){
-        d += 4; e.poison = (e.poison || 0) + 3;
+        d += 4;
+        e.poison = (e.poison || 0) + 3;
         floats.push({x: e.x, y: e.y - 0.5, t: 'มรกตพิษ +๔', c: '#34c759', life: 1});
       } else if(gm.gemId === 'gem_sapphire'){
-        d += 4; e.stun = 1;
+        d += 4;
+        e.stun = 1;
         floats.push({x: e.x, y: e.y - 0.5, t: 'ไพลินเยือกแข็ง', c: '#007aff', life: 1});
       } else if(gm.gemId === 'gem_moonstone'){
         player.mp = Math.min(player.mmp, player.mp + 2);
@@ -3973,6 +4000,11 @@ function attackFoe(e, dirX=0, dirY=0){
       }
     }
   }
+
+  // หัก HP หลังคำนวณโบนัสความเสียหายทั้งหมดแล้ว
+  e.hp -= d;
+  e.awake = true;
+  e.flash = 5;
 
   triggerSlash(e.x, e.y, slashColor);
   floats.push({x:e.x, y:e.y, t:'-'+d, c:crit?'#f5c542':'#ffffff', life:1});
@@ -5504,7 +5536,7 @@ function startRun(cls, forcedSeed = 0){
     facing:1,prevX:0,prevY:0,pet:null,stashClaimed:false,usedCursedAltar:false,hasDeliveryScroll:false,deliveryDone:false,
     sparedAsura:false,asuraHelped:false,sin:0,vow:null};
   for(const s of C.mantras){if(!s.includes('@'))player.mantras.push(s);}
-  rng=Math.random;time=0;endless=false;floats=[];logs=[];slashes=[];sparks=[];
+  time=0;endless=false;floats=[];logs=[];slashes=[];sparks=[];
   
   const karma = getKarma();
   player.gold += (karma.goldLvl || 0) * 20;
