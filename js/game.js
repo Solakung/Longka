@@ -111,25 +111,33 @@ function toggleSound(){
 /* ── สไปรต์ 8 บิต (ปรับสัดส่วนให้หนาแน่น ทรงพลัง ไม่ก้าง) ── */
 const PAL={k:'#14080f',w:'#f4ecdc',g:'#f5c542',o:'#ff8b1f',r:'#d43d2a',t:'#2ec4a6',
   b:'#3a6ea5',p:'#8d55c9',s:'#e8b06a',d:'#7a4a22',f:'#ffe9a3',e:'#43b05c',
-  m:'#8f2438',E:'#7fae7a',c:'#c9a86a','0':'#000000'};
+  m:'#8f2438',E:'#7fae7a',c:'#c9a86a','0':'#000000',
+  n:'#c9915a',h:'#5c3413',x:'#7a3b2e','1':'#ffffff',y:'#ffe27a'};
+// ── ขนาดต้นฉบับของสไปรท์ที่มีรายละเอียดสูงกว่าปกติ (ค่าเริ่มต้น 16 ถ้าไม่ระบุ) ──
+const SPR_SIZE={ warrior: 20 };
 const SPRD={
 "warrior": [
-  "......ffff......",
-  ".....fggggf.....",
-  "....fggggggf....",
-  "....gssssssg....",
-  "...gssk00kssg...",
-  "...gssssssssg...",
-  "..ggrrrrrrrrg...",
-  ".ggggrrrrrrgggg.",
-  ".ggg.rrrrrr.ggg.",
-  ".....rrrrrr.....",
-  "....gwwwwwwg....",
-  "....gwwwwwwg....",
-  "...dd.wwww.dd...",
-  "...dd......dd...",
-  "..ddd......ddd..",
-  "................"
+  "........gggg........",
+  "......gggggggg......",
+  "....gggggffggggg....",
+  "....ggssssssssgg....",
+  "....ggshhsshhsgg....",
+  "....ggs10ss01sgg....",
+  "....ggssnnnnssgg....",
+  "....ggsnsxxsnsgg....",
+  ".....ggssssssgg.....",
+  "........ssss........",
+  ".ggggrrrrrrrrrrgggg.",
+  "..ggggrrrrrrrrgggg..",
+  ".gggrrrrrrrrrrrrggg.",
+  "..ggrrrrryyrrrrrgg..",
+  "...ggrrrrrrrrrrgg...",
+  "....dddddddddddd....",
+  ".....dddd..dddd.....",
+  "......ddd..ddd......",
+  "....ddddd..ddddd....",
+  "....................",
+  "...................."
 ],
 "brahmin": [
   ".....fwwwwf.....",
@@ -5838,8 +5846,11 @@ function render(){
       ctx.restore();
     }
 
-    // ๒. วาดสไปรต์ตัวละครหลัก
-    drawSpr(player.sprite, px, py + pBob, 16, 16, flipP, 0);
+    // ๒. วาดสไปรต์ตัวละครหลัก (รองรับสไปรท์ความละเอียดสูงกว่าปกติผ่าน SPR_SIZE)
+    const pSprSize = SPR_SIZE[player.sprite] || 16;
+    const pSprDX = (16 - pSprSize) / 2; // จัดกึ่งกลางแนวนอนเทียบกับช่องปกติ 16px
+    const pSprDY = 16 - pSprSize;       // ยึดเท้าไว้ที่ขอบล่างช่องเดิม ส่วนหัว/ไหล่ที่ใหญ่ขึ้นล้นขึ้นด้านบน
+    drawSpr(player.sprite, px + pSprDX, py + pBob + pSprDY, pSprSize, pSprSize, flipP, 0);
 
     // ๓. สวมเกราะ: ลายเกราะมรกต/ทองคำประกายบนแผ่นอก
     if(player.arm && player.arm.tier > 1){
