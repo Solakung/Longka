@@ -1597,9 +1597,10 @@ const SET_DEFINITIONS = {
     name: 'เซ็ตพญาวานรชาญสมร',
     color: '#ffe9a3',
     icon: '🐒',
-    items: ['กรงเล็บหนุมาน', 'กรงเล็บวานร', 'หน้ากากวานรเผือก', 'กำไลพญาวานร'],
+    items: ['กรงเล็บหนุมาน', 'กรงเล็บวานร', 'หน้ากากวานรเผือก', 'กำไลพญาวานร', 'เกราะขนวานรเทพ'],
     bonus2: 'อัตราการหลบหลีกถาวร +๒๕%',
-    bonus3: 'เมื่อหลบหลีกสำเร็จ จะแยกร่างเงาวานรออกมาช่วยฟันฟรี ๑ ครั้ง!'
+    bonus3: 'เมื่อหลบหลีกสำเร็จ จะแยกร่างเงาวานรออกมาช่วยฟันฟรี ๑ ครั้ง!',
+    bonus4: 'สวมครบทั้ง ๔ ชิ้น! หลบหลีก +๔๐% และร่างเงาวานรฟันสวนกลับเต็มแรงพร้อมฟื้นเลือด +๓'
   }
 };
 
@@ -1624,6 +1625,11 @@ function getActiveSetBonuses(){
     }
   }
   return active;
+}
+// ★ คืนจำนวนชิ้นที่สวมครบของเซ็ตที่ระบุ (0 หากยังไม่ถึงเกณฑ์ขั้นต่ำ ๒ ชิ้น) ใช้เชื่อมโบนัสเซ็ตเข้าสูตรคำนวณจริงทั่วเกม
+function getSetTier(key){
+  const s = getActiveSetBonuses().find(x => x.key === key);
+  return s ? s.count : 0;
 }
 
 
@@ -2209,7 +2215,7 @@ function castMantraFusion(fusionId){
         if(isGrass(tx, ty)) igniteGrass(tx, ty);
         const foe = enemyAt(tx, ty);
         if(foe){
-          const d = 14 + player.lvl * 3;
+          const d = Math.round((14 + player.lvl * 3) * mBoostMult());
           foe.hp -= d; foe.burn = (foe.burn||0) + 3; foe.flash = 6;
           floats.push({x: tx, y: ty, t: 'พายุเพลิง -' + d, c: '#ff8b1f', life: 1.2});
           if(foe.hp <= 0) killFoe(foe);
@@ -2221,7 +2227,7 @@ function castMantraFusion(fusionId){
     // ผ่าศัตรูทุกตัวในห้อง
     for(const foe of enemies.slice()){
       if(vis[foe.y * W + foe.x]){
-        const d = 18 + player.lvl * 3;
+        const d = Math.round((18 + player.lvl * 3) * mBoostMult());
         foe.hp -= d; foe.stun = 1; foe.flash = 6;
         triggerSlash(foe.x, foe.y, '#f5c542');
         floats.push({x: foe.x, y: foe.y, t: 'อัสนีบาต -' + d, c: '#f5c542', life: 1.5});
@@ -2231,18 +2237,19 @@ function castMantraFusion(fusionId){
     }
     msg('⛈️ มหาอาคม «พายุอัสนีบาต» สายฟ้าฟาดผ่ากระหน่ำศัตรูทั้งห้อง!', 'good');
   } else if(f.id === 'static_barrier'){
-    const h = 20 + player.lvl * 2;
+    const h = Math.round((20 + player.lvl * 2) * mBoostMult());
     player.hp = Math.min(player.mhp, player.hp + h);
     player.buffStaticBarrier = 10;
     floats.push({x: player.x, y: player.y, t: '+' + h + ' HP & เกราะสายฟ้า!', c: '#2ec4a6', life: 2});
     msg('🛡️ มหาอาคม «เกราะสายฟ้าศักดิ์สิทธิ์» ฟื้นฟู ' + h + ' HP และสร้างม่านไฟฟ้าสะท้อนช็อตศัตรู ๑๐ เทิร์น!', 'good');
   } else if(f.id === 'phoenix_flame'){
-    const h = 16 + player.lvl * 2;
+    const h = Math.round((16 + player.lvl * 2) * mBoostMult());
     player.hp = Math.min(player.mhp, player.hp + h);
     for(const foe of enemies.slice()){
       if(Math.max(Math.abs(foe.x-player.x), Math.abs(foe.y-player.y)) <= 2){
-        foe.hp -= 10; foe.flash = 4;
-        floats.push({x: foe.x, y: foe.y, t: '-๑๐', c: '#ff7a5c', life: 1});
+        const aoeD = Math.round(10 * mBoostMult());
+        foe.hp -= aoeD; foe.flash = 4;
+        floats.push({x: foe.x, y: foe.y, t: '-' + thaiNum(aoeD), c: '#ff7a5c', life: 1});
         if(foe.hp <= 0) killFoe(foe);
       }
     }
@@ -2747,6 +2754,8 @@ const WEAPON_BASE = [
   { n: 'กระบองยักษ์ทวารบาล', type: 'mace', a: 12, r: 'legendary', tier: 3, lore: 'กระบองยักษ์สลักยันต์ ทุบกระเด็นสะเทือนปฐพี' },
   { n: 'ขวานรามสูร', type: 'cleave', a: 11, r: 'legendary', tier: 3, lore: 'ขวานศักดิ์สิทธิ์ที่เคยสะบัดฟันล่อแก้วมณีเมขลา' },
   { n: 'แส้อัคคีวายุ', type: 'whip', a: 10, r: 'legendary', tier: 3, lore: 'แส้เพลิงสายลมของนางยักษ์ตบะกล้า ฟาดกระตุกดึงศัตรูจากระยะ ๒ ช่องเข้าประชิด' },
+  { n: 'กรงเล็บวานรทอง', type: 'claw', a: 10, r: 'legendary', tier: 3, lore: 'กรงเล็บทองคำที่หนุมานประทานแก่ผู้กล้า เปล่งประกายดุจแสงจันทร์ยามราตรี (ชิ้นส่วนเซ็ตพญาวานรชาญสมร)' },
+  { n: 'พัดวายุสลายมาร', type: 'fan', a: 9, r: 'legendary', tier: 3, lore: 'พัดศักดิ์สิทธิ์สานจากขนหางครุฑ โบกครั้งใดคลื่นวายุพัดสลายทัพมารกระเจิดกระเจิง' },
 
   // Tier 4 (Epic / Mythic)
   { n: 'ขรรค์เพชรจุติ', type: 'dagger', a: 13, r: 'mythic', tier: 4, lore: 'กริชประกายเพชร ตัดเกราะมารได้ดุจตัดกระดาษ' },
@@ -2767,6 +2776,7 @@ const ARMOR_BASE = [
   { n: 'ผ้ามัสลิน', d: 1, r: 'common', tier: 1, lore: 'ผ้าฝ้ายทอเนื้อบาง สวมสบายคล่องตัว' },
   { n: 'เกราะหนังจามรี', d: 3, r: 'common', tier: 2, lore: 'เกราะหนังหนาเย็บสองชั้น ป้องกันคมดาบเบื้องต้น' },
   { n: 'เกราะขนนกครุฑ', d: 4, r: 'rare', tier: 2, affix: 'dodge', lore: 'เกราะทอจากขนปีกพญาครุฑ เบาสบายดุจไร้น้ำหนัก ช่วยหลบหลีกได้คล่องแคล่ว' },
+  { n: 'เกราะขนวานรเทพ', d: 8, r: 'legendary', tier: 4, affix: 'dodge', lore: 'เกราะถักจากขนวานรเทพผู้ภักดี เบากายว่องไว (ชิ้นส่วนเซ็ตพญาวานรชาญสมร)' },
   { n: 'เกราะโซ่ถัก', d: 5, r: 'rare', tier: 3, lore: 'เกราะห่วงเหล็กกล้าถักเหนียวแน่น ป้องกันการแทง' },
   { n: 'เกราะเกล็ดนาค', d: 8, r: 'legendary', tier: 4, lore: 'เกราะเกล็ดนาคเขียวมรกต แข็งแกร่งและเบาสบาย' },
   { n: 'เกราะหนามพญานาคราช', d: 9, r: 'legendary', tier: 4, affix: 'thorns', lore: 'เกราะเกล็ดนาคราชมีหนามแหลมคมรายรอบตัว ผู้ใดฟันเข้าใส่จะถูกสะท้อนคืนทันที' },
@@ -4161,9 +4171,16 @@ function triggerTrap(tr){
     msg('⚠ เปลวเพลิงพวยพุ่งขึ้นจากพื้น! ติดไฟ ๓ เทิร์น', 'warn');
     floats.push({x:player.x, y:player.y, t:'ติดไฟ!', c:'#ff8b1f', life:1});
   } else if(tr.type === 'poison'){
-    player.poison = (player.poison||0) + 4;
-    msg('⚠ ควันพิษนาคราชระเบิด! ติดพิษ ๔ เทิร์น', 'warn');
-    floats.push({x:player.x, y:player.y, t:'ติดพิษ!', c:'#43b05c', life:1});
+    if(getSetTier('naga') >= 2){ // ★ เซ็ตนาคราชบาดาล: ต้านทานพิษ ๑๐๐% แปลงเป็นพลังชีวิตแทน
+      const healBack = 3;
+      player.hp = Math.min(player.mhp, player.hp + healBack);
+      msg('🐍 เซ็ตนาคราชบาดาลต้านควันพิษนาคราช! แปลงเป็นพลังชีวิต +' + healBack, 'good');
+      floats.push({x:player.x, y:player.y, t:'ต้านพิษ! +' + healBack, c:'#2ec4a6', life:1.2});
+    } else {
+      player.poison = (player.poison||0) + 4;
+      msg('⚠ ควันพิษนาคราชระเบิด! ติดพิษ ๔ เทิร์น', 'warn');
+      floats.push({x:player.x, y:player.y, t:'ติดพิษ!', c:'#43b05c', life:1});
+    }
   } else if(tr.type === 'warp'){
     msg('🌀 ค่ายกลย้ายมิติทำงาน! เจ้าถูกวาร์ปไปยังอีกห้องหนึ่ง', 'good');
     player.x = 2 + Math.floor(rng()*(W-4));
@@ -4546,6 +4563,26 @@ function tryMove(dx,dy){
   const n=npcAt(nx,ny);
   if(n){interact(n);return;}
   player.prevX=player.x;player.prevY=player.y;player.x=nx;player.y=ny;
+  // ★ คำสาปกระบองมารพญายม (sluggish): ตัวหนักอึ้งทุกๆ ๓ ก้าว ศัตรูฉวยจังหวะขยับ/โจมตีเพิ่ม
+  if(player.wpn && player.wpn.cursed === 'sluggish'){
+    player.sluggishSteps = (player.sluggishSteps || 0) + 1;
+    if(player.sluggishSteps >= 3){
+      player.sluggishSteps = 0;
+      msg('⚖️ น้ำหนักมหาศาลของ «' + player.wpn.name + '» ถ่วงให้เจ้าก้าวช้าลงชั่วขณะ!', 'warn');
+      floats.push({x:player.x, y:player.y, t:'หนักอึ้ง!', c:'#7a4a22', life:1});
+      enemiesAct();
+      if(player.hp<=0) return;
+    }
+  }
+  // ★ เซ็ตนาคราชบาดาล (๓ ชิ้นขึ้นไป): ก้าวเดินทิ้งรอยน้ำพิษ ศัตรูใกล้ตัวเหยียบติดพิษ
+  if(getSetTier('naga') >= 3){
+    for(const fe of enemies){
+      if(fe.hp > 0 && Math.max(Math.abs(fe.x-player.x), Math.abs(fe.y-player.y)) <= 1){
+        fe.poison = (fe.poison || 0) + 2;
+        floats.push({x: fe.x, y: fe.y, t: 'ร่องรอยพิษ!', c: '#43b05c', life: 0.8});
+      }
+    }
+  }
   const gi=items.findIndex(i=>i.x===nx&&i.y===ny);
   
   if(gi>=0)pickup(gi);
@@ -4649,6 +4686,9 @@ function attackFoe(e, dirX=0, dirY=0){
   if(wpn.type === 'dagger') critRate += 0.20; // มีดสั้นคริติคอลสูง
   if(wpn.affix === 'sharp') critRate += 0.15;
   if(player.relic && player.relic.id === 'diamond_ring') critRate += 0.15 + (player.relic.plus || 0) * 0.01;
+  if(player.head && player.head.crit) critRate += player.head.crit / 100; // ★ เชื่อมค่าคริติคอลของมงกุฎ/ชฎาเข้าสูตรจริง (เดิมมีแต่โชว์ผล ไม่มีผลจริง)
+  const ramaSetTier = getSetTier('rama');
+  if(ramaSetTier >= 2) critRate += 0.25; // เซ็ตพระรามมหาจักรพรรดิ: คริติคอล +๒๕%
   const crit = rng() < critRate;
 
   // คำนวณดาเมจพื้นฐาน (กระบองหนักเจาะเกราะ 50%)
@@ -4658,7 +4698,7 @@ function attackFoe(e, dirX=0, dirY=0){
     d *= 2;
     msg('👑 ขัตติยมานะสำแดงฤทธิ์! เลือดวิกฤตพลังโจมตีทวีคูณ!', 'warn');
   }
-    if(crit) d <<= 1;
+    if(crit) d = Math.floor(d * (ramaSetTier >= 2 ? 2.5 : 2)); // เซ็ตพระราม: ความรุนแรงคริติคอล +๕๐%
 
   // โบนัสจากอัญมณี
   if(wpn.gems && wpn.gems.length){
@@ -5183,6 +5223,8 @@ function checkLevel(){
   }
 }
 const xpNeed=l=>l*25+(l-1)*(l-1)*5;
+// ★ ตัวคูณพลังคาถาจากค่า mBoost ของมงกุฎ/ชฎา (เดิมมีแต่โชว์ผล ไม่มีผลจริงกับดาเมจ/ฟื้นฟูของคาถา)
+function mBoostMult(){ return 1 + ((player.head && player.head.mBoost) || 0) / 100; }
 function hurtPlayer(d,src,attacker=null){
   if(player.invuln > 0){
     floats.push({x:player.x, y:player.y, t:'อมตะ!', c:'#f5c542', life:1});
@@ -5192,16 +5234,26 @@ function hurtPlayer(d,src,attacker=null){
   if(player.wpn && player.wpn.cursed === 'no_dodge') dodgeRate = 0; // คำสาปหอกวิญญาณสถิต
   if(player.relic && player.relic.id === 'vanara_bangle') dodgeRate += 25 + (player.relic.plus || 0);
   if(player.arm && player.arm.affix === 'dodge') dodgeRate += 15;
+  if(player.head && player.head.dodge) dodgeRate += player.head.dodge; // ★ เชื่อมค่าหลบหลีกของมงกุฎ/ชฎาเข้าสูตรจริง (เดิมมีแต่โชว์ผล ไม่มีผลจริง)
+  const hanumanSetTier = getSetTier('hanuman');
+  if(hanumanSetTier >= 4) dodgeRate += 40; // เซ็ตพญาวานรชาญสมร (ครบ ๔ ชิ้น)
+  else if(hanumanSetTier >= 2) dodgeRate += 25; // เซ็ตพญาวานรชาญสมร (๒ ชิ้นขึ้นไป)
   if(rng()*100 < dodgeRate){
     msg('เจ้าพลิกตัวหลบ'+src+'ได้!');
     floats.push({x:player.x,y:player.y,t:'พลาด!',c:'#2ec4a6',life:1});
-    if(attacker && !attacker._reaped && player.talents.some(t => t.id === 'v_counter')){
+    const hanumanCounterProc = hanumanSetTier >= 3 && !player.talents.some(t => t.id === 'v_counter');
+    if(attacker && !attacker._reaped && (player.talents.some(t => t.id === 'v_counter') || hanumanCounterProc)){
       const _wv = (player.wpn && !isNaN(player.wpn.v)) ? player.wpn.v : 0; // ★ กันไม่มีอาวุธ (มือเปล่า) แล้ว crash
-      const cDmg = Math.max(2, Math.floor((player.atk + _wv) * 0.8));
+      const counterMult = hanumanSetTier >= 4 ? 1.0 : 0.8;
+      const cDmg = Math.max(2, Math.floor((player.atk + _wv) * counterMult));
       attacker.hp -= cDmg; attacker.flash = 4;
       triggerSlash(attacker.x, attacker.y, '#2ec4a6');
-      floats.push({x:attacker.x, y:attacker.y, t:'เหยียบหัวสวน -'+cDmg, c:'#2ec4a6', life:1.2});
-      msg('🐒 ลิงลมเหยียบหัวสวนกลับใส่ ' + attacker.name + ' -' + cDmg, 'good');
+      floats.push({x:attacker.x, y:attacker.y, t:(hanumanCounterProc?'ร่างเงาวานร -':'เหยียบหัวสวน -')+cDmg, c:'#2ec4a6', life:1.2});
+      if(hanumanSetTier >= 4){
+        player.hp = Math.min(player.mhp, player.hp + 3);
+        floats.push({x:player.x, y:player.y, t:'+๓ HP', c:'#2ec4a6', life:1});
+      }
+      msg((hanumanCounterProc ? '🐒 ร่างเงาวานรจากเซ็ตพญาวานรชาญสมรแยกร่างฟันสวนกลับใส่ ' : '🐒 ลิงลมเหยียบหัวสวนกลับใส่ ') + attacker.name + ' -' + cDmg, 'good');
       if(attacker.hp <= 0) killFoe(attacker);
     }
     return;
@@ -5343,8 +5395,14 @@ function enemiesAct(){
 
     // ๒. แมงป่องหิมพานต์: พิษร้ายแรง
     if(e.poison && dist === 1){
-      player.poison = (player.poison || 0) + 4;
-      floats.push({x: player.x, y: player.y, t: 'พิษแมงป่อง!', c: '#43b05c', life: 1});
+      if(getSetTier('naga') >= 2){ // ★ เซ็ตนาคราชบาดาล: ต้านทานพิษ ๑๐๐% แปลงเป็นพลังชีวิตแทน
+        const healBack = 3;
+        player.hp = Math.min(player.mhp, player.hp + healBack);
+        floats.push({x: player.x, y: player.y, t: 'ต้านพิษ! +' + healBack, c: '#2ec4a6', life: 1});
+      } else {
+        player.poison = (player.poison || 0) + 4;
+        floats.push({x: player.x, y: player.y, t: 'พิษแมงป่อง!', c: '#43b05c', life: 1});
+      }
     }
 
     // ๓. รากษสหมอผี: ฮีลพวกพ้องรอบตัว
@@ -5784,7 +5842,15 @@ function useItem(i){
   }
   else if(it.t==='head'){
     const oldHead = player.head;
+    if(oldHead && oldHead.mp){ // ★ ถอดค่ามานาสูงสุดของมงกุฎ/ชฎาเดิมออกก่อนสวมใหม่
+      player.mmp = Math.max(1, player.mmp - oldHead.mp);
+      player.mp = Math.min(player.mmp, player.mp);
+    }
     player.head = it;
+    if(it.mp){ // ★ เชื่อมค่ามานาของมงกุฎ/ชฎาเข้าสูตรจริง (เดิมมีแต่โชว์ผล ไม่มีผลจริง)
+      player.mmp += it.mp;
+      player.mp += it.mp;
+    }
     player.inv.splice(i, 1);
     if(oldHead) player.inv.push(oldHead);
     msg('สวมมงกุฎ/ชฎา «' + it.name + '» ' + it.desc, 'good');
@@ -5918,7 +5984,7 @@ function castMantra(key){
       .sort((a,b)=>(Math.abs(a.x-player.x)+Math.abs(a.y-player.y))-(Math.abs(b.x-player.x)+Math.abs(b.y-player.y)));
     if(!visF.length){msg('ไม่มีศัตรูในระยะมองเห็น','warn');return;}
     const t=visF[0];
-    const d=key==='agni'?6+player.lvl*2:12+player.lvl*3;
+    const d=Math.round((key==='agni'?6+player.lvl*2:12+player.lvl*3) * mBoostMult());
     t.hp-=d;t.flash=6;
         if(isGrass(t.x, t.y)){
       igniteGrass(t.x, t.y);
@@ -5945,7 +6011,7 @@ function castMantra(key){
       killFoe(t);
     }
   }else if(key==='heal'){
-    const h=10+player.lvl*2;player.hp=Math.min(player.mhp,player.hp+h);
+    const h=Math.round((10+player.lvl*2) * mBoostMult());player.hp=Math.min(player.mhp,player.hp+h);
     msg('✚ อมฤตชำระกาย ฟื้นเลือด +'+h,'good');
     floats.push({x:player.x,y:player.y,t:'+'+h,c:'#2ec4a6',life:1});
     for(let i=0;i<8;i++){
@@ -5955,7 +6021,7 @@ function castMantra(key){
     let hitAny=false;
     for(const e of enemies.slice()){
       if(Math.max(Math.abs(e.x-player.x),Math.abs(e.y-player.y))<=2){
-        const d=5+player.lvl;e.hp-=d;e.flash=5;hitAny=true;
+        const d=Math.round((5+player.lvl) * mBoostMult());e.hp-=d;e.flash=5;hitAny=true;
         triggerSlash(e.x,e.y,'#2ec4a6');
         floats.push({x:e.x,y:e.y,t:'-'+d,c:'#2ec4a6',life:1});
         if(e.hp<=0)killFoe(e);
@@ -7170,12 +7236,17 @@ function openStatusModal(){
   let totalDodge = player.dodge;
   if(player.arm && player.arm.affix === 'dodge') totalDodge += 15;
   if(player.relic && player.relic.id === 'vanara_bangle') totalDodge += 25 + (player.relic.plus || 0);
+  if(player.head && player.head.dodge) totalDodge += player.head.dodge;
+  const hanumanTierDisp = getSetTier('hanuman');
+  if(hanumanTierDisp >= 4) totalDodge += 40; else if(hanumanTierDisp >= 2) totalDodge += 25;
 
   let totalCrit = 15;
   if(player.wpn && player.wpn.type === 'dagger') totalCrit += 20;
   if(player.wpn && player.wpn.affix === 'sharp') totalCrit += 15;
   if(player.relic && player.relic.id === 'diamond_ring') totalCrit += 15 + (player.relic.plus || 0);
   if(player.talents.some(t => t.id === 'v_crit')) totalCrit += 20;
+  if(player.head && player.head.crit) totalCrit += player.head.crit;
+  if(getSetTier('rama') >= 2) totalCrit += 25;
 
   // โบนัสปุญฤทธิ์ของฤๅษี
   if(player.talents.some(t => t.id === 'r_punya')){
@@ -7247,7 +7318,7 @@ function openStatusModal(){
     activeSets.forEach(st => {
       html += '<div style="background:#1a0814;padding:6px 8px;border-left:3px solid ' + st.color + ';font-size:12px">';
       html += '<b style="color:' + st.color + '">' + st.icon + ' ' + st.name + ' (' + thaiNum(st.count) + ' ชิ้น):</b> ';
-      html += '<span style="color:#fff">' + (st.count >= 3 ? st.bonus3 : st.bonus2) + '</span>';
+      html += '<span style="color:#fff">' + ((st.count >= 4 && st.bonus4) ? st.bonus4 : (st.count >= 3 ? st.bonus3 : st.bonus2)) + '</span>';
       html += '</div>';
     });
     html += '</div>';
