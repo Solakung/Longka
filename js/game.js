@@ -2191,7 +2191,7 @@ const MANTRA_FUSIONS = [
 function castMantraFusion(fusionId){
   const f = MANTRA_FUSIONS.find(x => x.id === fusionId);
   if(!f) return;
-  const reqMp = (player.relic && player.relic.id === 'beads') ? Math.max(1, Math.ceil(f.mp / 2)) : f.mp;
+  const reqMp = (player.relic && player.relic.id === 'beads') ? Math.max(1, Math.ceil(f.mp * Math.max(0.4, 0.5 - (player.relic.plus || 0) * 0.02))) : f.mp;
   if(player.mp < reqMp){
     msg('พลังมนตร์ไม่พอผสานอาคม… (ต้องการ ' + reqMp + ' MP)', 'warn');
     return;
@@ -2836,7 +2836,7 @@ const MANTRAS={
   vaju:{n:'วายุ',mp:8,ic:'❋',d:'พายุรอบตัว รัศมี ๒ ช่อง'},
   vajra:{n:'วัชระ',mp:12,ic:'⌁',d:'สายฟ้าพระอินทร์ โจมตีรุนแรง'},
 };
-const UPG_CAP = { wpn:5, arm:8, head:8 };   // ★ เพดานตีบวกแยกตามช่อง คงที่ทุกชั้น ไม่เปิดทางบวกทะลุหลังชั้น ๒๐
+const UPG_CAP = { wpn:5, arm:5, head:5, relic:5 };   // ★ เพดานตีบวกแยกตามช่อง คงที่ทุกชั้น (อาวุธ/เกราะ/มงกุฎ/สร้อย ทั้งหมด +๕ เท่ากัน)
 const FOES=[
   // ชั้น ๑-๔: เปรต, ค้างคาว, อสุรกาย, กิ้งก่าเงา
   {id:'preta',name:'เปรต',sprite:'preta',hp:8,atk:4,def:0,xp:6,g:3,min:1,max:7},
@@ -3897,7 +3897,7 @@ function genW(tier){
   const t = clamp(tier || (1 + Math.floor(floorR() * maxT)), 1, 5);
   const pool = WEAPON_BASE.filter((_, idx) => Math.floor(idx / 4) + 1 === t);
   const base = pick(pool.length ? pool : WEAPON_BASE);
-  const plus = floor > 20 ? Math.floor((floor - 20) / 3) + 1 : 0;
+  const plus = floor > 20 ? Math.min(UPG_CAP.wpn, Math.floor((floor - 20) / 3) + 1) : 0; // ★ clamp กัน plus ทะลุเพดาน +๕
   const pName = plus ? ' +' + thaiNum(plus) : '';
 
   const it = {
@@ -3938,7 +3938,7 @@ function genA(tier){
 
   const t = clamp(tier || (1 + Math.floor(floorR() * maxT)), 1, ARMOR_BASE.length);
   const base = ARMOR_BASE[t - 1] || ARMOR_BASE[0];
-  const plus = floor > 20 ? Math.floor((floor - 20) / 3) + 1 : 0;
+  const plus = floor > 20 ? Math.min(UPG_CAP.arm, Math.floor((floor - 20) / 3) + 1) : 0; // ★ clamp กัน plus ทะลุเพดาน +๕
   const pName = plus ? ' +' + thaiNum(plus) : '';
 
   const it = {
@@ -4039,6 +4039,8 @@ function genRelic(){
     t: 'relic',
     id: base.id,
     name: base.name,
+    baseName: base.name,
+    plus: 0,
     icon: base.icon,
     r: base.r,
     desc: base.desc,
@@ -4150,8 +4152,9 @@ function triggerTrap(tr){
   
   // ตรวจสอบมณีโมกษะ (ชุบชีวิตฟื้นคืนชีพ 1 ครั้ง)
   if(player.hp <= 0 && player.relic && player.relic.id === 'ankh'){
+    const _ankhPlus = player.relic.plus || 0;
     player.relic = null;
-    player.hp = Math.floor(player.mhp * 0.8);
+    player.hp = Math.floor(player.mhp * (0.8 + _ankhPlus * 0.02));
     player.mp = player.mmp;
     player.poison = 0; player.burn = 0;
     flash = 0.8; sfx.level();
@@ -4620,7 +4623,7 @@ function attackFoe(e, dirX=0, dirY=0){
   let critRate = isStealthAmbush ? 1.0 : 0.15;
   if(wpn.type === 'dagger') critRate += 0.20; // มีดสั้นคริติคอลสูง
   if(wpn.affix === 'sharp') critRate += 0.15;
-  if(player.relic && player.relic.id === 'diamond_ring') critRate += 0.15;
+  if(player.relic && player.relic.id === 'diamond_ring') critRate += 0.15 + (player.relic.plus || 0) * 0.01;
   const crit = rng() < critRate;
 
   // คำนวณดาเมจพื้นฐาน (กระบองหนักเจาะเกราะ 50%)
@@ -4673,9 +4676,9 @@ function attackFoe(e, dirX=0, dirY=0){
 
   let slashColor = crit ? '#f5c542' : '#f4ecdc';
 
-  // พลังสังวาลย์นาคราช: ตีติดพิษ
+  // พลังสังวาลย์นาคราช: ตีติดพิษ (ยิ่งบวกยิ่งพิษแรง)
   if(player.relic && player.relic.id === 'naga_sash'){
-    e.poison = (e.poison || 0) + 3;
+    e.poison = (e.poison || 0) + 3 + (player.relic.plus || 0);
     slashColor = '#43b05c';
   }
 
@@ -4835,6 +4838,45 @@ function attackFoe(e, dirX=0, dirY=0){
     msg((crit?'✦ คมขรรค์ฟันจุดตาย! ':'')+'เจ้าฟัน'+e.name+' -'+d);
   }
 }
+// ★ หาช่องอุปกรณ์ถัดไปที่ยังตีบวกไม่เต็มเพดาน ไล่ลำดับ อาวุธ → เกราะ → มงกุฎ/ชฎา → สร้อย(เครื่องราง)
+// ใช้ร่วมกันทั้งคัมภีร์ประสิทธิ์ประสาทและบริการช่างตีดาบในร้านค้า
+function nextUpgradeTarget(){
+  if(player.wpn && (player.wpn.plus || 0) < UPG_CAP.wpn) return 'wpn';
+  if(player.arm && (player.arm.plus || 0) < UPG_CAP.arm) return 'arm';
+  if(player.head && (player.head.plus || 0) < UPG_CAP.head) return 'head';
+  if(player.relic && (player.relic.plus || 0) < UPG_CAP.relic) return 'relic';
+  return null;
+}
+
+// ★ ตีบวกช่องอุปกรณ์ที่ระบุ +๑ อย่างถาวร คืนรายละเอียดไว้ให้ผู้เรียกไปแสดงผล/ข้อความเอง
+function applyUpgradePlus(slot){
+  if(slot === 'wpn'){
+    player.wpn.plus = (player.wpn.plus || 0) + 1;
+    player.wpn.v += 2;
+    player.wpn.name = player.wpn.baseName + ' +' + thaiNum(player.wpn.plus) + (player.wpn.afName ? ' [' + player.wpn.afName + ']' : '');
+    return { name: player.wpn.name, statLabel: 'พลังโจมตี', statVal: player.wpn.v, slotLabel: 'อาวุธ', floatMsg: 'อัปเกรดอาวุธ +๑!', color: '#f5c542' };
+  }
+  if(slot === 'arm'){
+    player.arm.plus = (player.arm.plus || 0) + 1;
+    player.arm.v += 2;
+    player.arm.name = player.arm.baseName + ' +' + thaiNum(player.arm.plus) + (player.arm.afName ? ' [' + player.arm.afName + ']' : '');
+    return { name: player.arm.name, statLabel: 'ป้องกัน', statVal: player.arm.v, slotLabel: 'เกราะ', floatMsg: 'อัปเกรดเกราะ +๑!', color: '#43b05c' };
+  }
+  if(slot === 'head'){
+    player.head.plus = (player.head.plus || 0) + 1;
+    player.head.def = (player.head.def || 0) + 2;
+    player.head.name = player.head.baseName + ' +' + thaiNum(player.head.plus);
+    return { name: player.head.name, statLabel: 'ป้องกัน', statVal: player.head.def, slotLabel: 'มงกุฎ/ชฎา', floatMsg: 'อัปเกรดมงกุฎ +๑!', color: '#8d55c9' };
+  }
+  if(slot === 'relic'){
+    player.relic.baseName = player.relic.baseName || player.relic.name;
+    player.relic.plus = (player.relic.plus || 0) + 1;
+    player.relic.name = player.relic.baseName + ' +' + thaiNum(player.relic.plus);
+    return { name: player.relic.name, statLabel: 'อานุภาพ', statVal: player.relic.plus, slotLabel: 'สร้อย', floatMsg: 'อัปเกรดสร้อย +๑!', color: '#d43dc9' };
+  }
+  return null;
+}
+
 function killFoe(e){
   // ★ กันเรียกซ้ำ: ถ้ามอนตัวนี้ถูก "เก็บเกี่ยว" รางวัลไปแล้วครั้งหนึ่ง (เช่นเกราะหนามกับสวนกลับ
   // ทริกเกอร์ใส่ตัวเดียวกันในเทิร์นเดียว) ห้ามคำนวณเหรียญ/ดรอป/เควสต์/ปลดล็อกบันไดซ้ำอีก
@@ -4877,8 +4919,9 @@ function killFoe(e){
   if(player.awakenGauge < player.maxAwaken){ player.awakenGauge = Math.min(player.maxAwaken, player.awakenGauge + 8); }
   checkHeroTitle();
     if(player.relic && player.relic.id === 'heart_ravana'){
-    player.hp = Math.min(player.mhp, player.hp + 5);
-    floats.push({x: player.x, y: player.y, t: '+๕ ดวงใจมาร', c: '#ff7a5c', life: 1});
+    const healAmt = 5 + (player.relic.plus || 0);
+    player.hp = Math.min(player.mhp, player.hp + healAmt);
+    floats.push({x: player.x, y: player.y, t: '+' + thaiNum(healAmt) + ' ดวงใจมาร', c: '#ff7a5c', life: 1});
   }
   unlockAch('first_blood');
   if(player.killsTotal >= 50) unlockAch('slayer_50');
@@ -4900,8 +4943,8 @@ function killFoe(e){
   }
 
   let g = (e.g !== undefined && e.g !== null && !isNaN(e.g)) ? e.g + R(Math.max(1, e.g)) : 8;
-  if(player.relic && player.relic.id === 'diamond_ring') g = Math.floor(g * 1.5);
-  if(player.relic && player.relic.id === 'ring_greed') g = Math.floor(g * 2.5);
+  if(player.relic && player.relic.id === 'diamond_ring') g = Math.floor(g * (1.5 + (player.relic.plus || 0) * 0.05));
+  if(player.relic && player.relic.id === 'ring_greed') g = Math.floor(g * (2.5 + (player.relic.plus || 0) * 0.1));
   player.gold = (!isNaN(player.gold) ? player.gold : 0) + g;
   msg(e.name+'แตกดับ! +'+e.xp+' ประสบการณ์ +'+g+' เหรียญ');
   const r=rng();
@@ -4971,7 +5014,7 @@ function hurtPlayer(d,src,attacker=null){
   }
   let dodgeRate = player.dodge;
   if(player.wpn && player.wpn.cursed === 'no_dodge') dodgeRate = 0; // คำสาปหอกวิญญาณสถิต
-  if(player.relic && player.relic.id === 'vanara_bangle') dodgeRate += 25;
+  if(player.relic && player.relic.id === 'vanara_bangle') dodgeRate += 25 + (player.relic.plus || 0);
   if(player.arm && player.arm.affix === 'dodge') dodgeRate += 15;
   if(rng()*100 < dodgeRate){
     msg('เจ้าพลิกตัวหลบ'+src+'ได้!');
@@ -5001,9 +5044,10 @@ function hurtPlayer(d,src,attacker=null){
   }
   player.hp -= d; flash = .4; shake = 6; sfx.hurt();
   player.tookDamageThisFloor = true;
-    // คำสาปธำมรงค์คนโลภ: ทำเหรียญทองหล่นตามดาเมจที่โดนตี
+    // คำสาปธำมรงค์คนโลภ: ทำเหรียญทองหล่นตามดาเมจที่โดนตี (ยิ่งบวกยิ่งลดคำสาปนี้ลง)
   if(player.relic && player.relic.id === 'ring_greed' && player.gold > 0){
-    const lostG = Math.min(player.gold, d * 2);
+    const curseMult = Math.max(1.25, 2 - (player.relic.plus || 0) * 0.15);
+    const lostG = Math.min(player.gold, Math.floor(d * curseMult));
     player.gold -= lostG;
     floats.push({x: player.x, y: player.y, t: '-' + lostG + ' ◉', c: '#f5c542', life: 1});
     msg('💰 เจ้าทำเหรียญทองหล่นกระจาย! -' + lostG + ' ◉', 'warn');
@@ -5024,8 +5068,9 @@ function hurtPlayer(d,src,attacker=null){
   
   // ตรวจสอบมณีโมกษะ (ชุบชีวิตฟื้นคืนชีพ 1 ครั้ง)
   if(player.hp <= 0 && player.relic && player.relic.id === 'ankh'){
+    const _ankhPlus = player.relic.plus || 0;
     player.relic = null;
-    player.hp = Math.floor(player.mhp * 0.8);
+    player.hp = Math.floor(player.mhp * (0.8 + _ankhPlus * 0.02));
     player.mp = player.mmp;
     player.poison = 0; player.burn = 0;
     flash = 0.8; sfx.level();
@@ -5060,7 +5105,7 @@ function enemiesAct(){
       // ศัตรูพุ่งกระแทกเข้าหาผู้เล่น
       e.bumpX = Math.sign(dx)*6; e.bumpY = Math.sign(dy)*6;
       let eAtkVal = e.atk;
-      if(player.relic && player.relic.id === 'heart_ravana') eAtkVal = Math.floor(eAtkVal * 1.25);
+      if(player.relic && player.relic.id === 'heart_ravana') eAtkVal = Math.floor(eAtkVal * Math.max(1.1, 1.25 - (player.relic.plus || 0) * 0.02));
       let d=Math.max(1,eAtkVal+R(3)-((player.def+playerArmDef)>>1));
       if(rng()<.08){d<<=1;msg(e.name+'จู่โจมเข้าจุดตาย!','warn');}
       hurtPlayer(d,e.name,e);
@@ -5160,7 +5205,7 @@ function enemiesAct(){
     if(e.ranged&&dist<=5&&dist>1&&los(e.x,e.y,player.x,player.y)){
       // พ่นพิษคิดเกราะป้องกันด้วย
       let eRAtkVal = e.atk;
-      if(player.relic && player.relic.id === 'heart_ravana') eRAtkVal = Math.floor(eRAtkVal * 1.25);
+      if(player.relic && player.relic.id === 'heart_ravana') eRAtkVal = Math.floor(eRAtkVal * Math.max(1.1, 1.25 - (player.relic.plus || 0) * 0.02));
       const d=Math.max(1,eRAtkVal+R(2)-((player.def+playerArmDef)>>1));
       hurtPlayer(d,e.name+' (พ่นพิษ)',e);
       if(e.hp<=0) continue;
@@ -5670,41 +5715,26 @@ function useItem(i){
     return;
   }
   else if(it.t==='upg'){
-    // คัมภีร์ตีบวก — อาวุธจำกัดที่ +๕, เกราะ/มงกุฎที่ +๘ เสมอทุกชั้น (ดู UPG_CAP ด้านบนไฟล์)
-    // ถ้าอาวุธเต็มเพดานแล้ว ไล่ไปเสริมเกราะ แล้วมงกุฎ/ชฎาแทน กันสเกลดาเมจล้นจากอาวุธอย่างเดียว
-    if(player.wpn && (player.wpn.plus || 0) < UPG_CAP.wpn){
-      player.wpn.plus = (player.wpn.plus || 0) + 1;
-      player.wpn.v += 2;
-      player.wpn.name = player.wpn.baseName + ' +' + thaiNum(player.wpn.plus) + (player.wpn.afName ? ' [' + player.wpn.afName + ']' : '');
-      player.inv.splice(i, 1);
-      sfx.level(); flash = 0.5;
-      floats.push({x:player.x, y:player.y, t:'อัปเกรดอาวุธ +๑!', c:'#f5c542', life:1.6}); unlockAch('upgrade_plus');
-      msg('✦ คัมภีร์ประสิทธิ์ประสาท! «' + player.wpn.name + '» พลังโจมตีเพิ่มขึ้นเป็น ' + player.wpn.v + ' อย่างถาวร!', 'good');
-    } else if(player.arm && (player.arm.plus || 0) < UPG_CAP.arm){
-      player.arm.plus = (player.arm.plus || 0) + 1;
-      player.arm.v += 2;
-      player.arm.name = player.arm.baseName + ' +' + thaiNum(player.arm.plus) + (player.arm.afName ? ' [' + player.arm.afName + ']' : '');
-      player.inv.splice(i, 1);
-      sfx.level(); flash = 0.5;
-      floats.push({x:player.x, y:player.y, t:'อัปเกรดเกราะ +๑!', c:'#43b05c', life:1.6});
-      msg('✦ คัมภีร์ประสิทธิ์ประสาท! อาวุธบวกเต็มแล้ว จึงเสริมเกราะ «' + player.arm.name + '» ป้องกันเพิ่มขึ้นเป็น ' + player.arm.v + ' อย่างถาวร!', 'good');
-    } else if(player.head && (player.head.plus || 0) < UPG_CAP.head){
-      player.head.plus = (player.head.plus || 0) + 1;
-      player.head.def = (player.head.def || 0) + 2;
-      player.head.name = player.head.baseName + ' +' + thaiNum(player.head.plus);
-      player.inv.splice(i, 1);
-      sfx.level(); flash = 0.5;
-      floats.push({x:player.x, y:player.y, t:'อัปเกรดมงกุฎ +๑!', c:'#8d55c9', life:1.6});
-      msg('✦ คัมภีร์ประสิทธิ์ประสาท! อาวุธและเกราะบวกเต็มแล้ว จึงเสริมมงกุฎ/ชฎา «' + player.head.name + '» ป้องกันเพิ่มขึ้นเป็น ' + player.head.def + ' อย่างถาวร!', 'good');
-    } else if(!player.wpn && !player.arm && !player.head){
-      msg('ไม่มีอาวุธ เกราะ หรือมงกุฎที่จะตีบวก…', 'warn'); return;
-    } else {
+    // คัมภีร์ตีบวก — อาวุธ/เกราะ/มงกุฎ/สร้อย จำกัดที่ +๕ เท่ากันทุกช่อง (ดู UPG_CAP ด้านบนไฟล์)
+    // ไล่ลำดับ อาวุธ → เกราะ → มงกุฎ/ชฎา → สร้อย กันสเกลดาเมจล้นจากอาวุธอย่างเดียว
+    const slot = nextUpgradeTarget();
+    if(!slot){
+      if(!player.wpn && !player.arm && !player.head && !player.relic){
+        msg('ไม่มีอาวุธ เกราะ มงกุฎ หรือสร้อยที่จะตีบวก…', 'warn'); return;
+      }
       // ทุกชิ้นที่มีอยู่บวกเต็มเพดานหมดแล้ว แปลงเป็นปุญบารมีแทนไม่ให้เสียของ
       player.punya = (player.punya || 0) + 8;
       player.inv.splice(i, 1);
       sfx.level(); flash = 0.5;
       floats.push({x:player.x, y:player.y, t:'ปุญบารมี +๘', c:'#f5c542', life:1.6});
       msg('✦ คัมภีร์ประสิทธิ์ประสาท! อุปกรณ์ทุกชิ้นบวกเต็มเพดานแล้ว จึงแปลงเป็นปุญบารมีแทน!', 'good');
+    } else {
+      const res = applyUpgradePlus(slot);
+      player.inv.splice(i, 1);
+      sfx.level(); flash = 0.5;
+      floats.push({x:player.x, y:player.y, t:res.floatMsg, c:res.color, life:1.6});
+      if(slot === 'wpn') unlockAch('upgrade_plus');
+      msg('✦ คัมภีร์ประสิทธิ์ประสาท! «' + res.name + '» ' + res.statLabel + 'เพิ่มขึ้นเป็น ' + res.statVal + ' อย่างถาวร!', 'good');
     }
   }
   else if(it.t==='scr'){
@@ -5717,7 +5747,7 @@ function useItem(i){
 function castMantra(key){
   if(state!=='play')return;
   const m=MANTRAS[key];
-  const reqMp = (player.relic && player.relic.id === 'beads') ? Math.max(1, Math.ceil(m.mp / 2)) : m.mp;
+  const reqMp = (player.relic && player.relic.id === 'beads') ? Math.max(1, Math.ceil(m.mp * Math.max(0.4, 0.5 - (player.relic.plus || 0) * 0.02))) : m.mp;
   if(player.mp < reqMp){msg('พลังมนตร์ไม่พอ… (ต้องการ '+reqMp+')','warn');return;}
   let used=true;
   if(key==='agni'||key==='vajra'){
@@ -5778,7 +5808,7 @@ function castMantra(key){
   if(used){
   let used=true;
   if(player.relic && player.relic.id === 'skull_rosary'){
-    const hpCost = Math.max(2, Math.ceil(m.mp * 0.75));
+    const hpCost = Math.max(2, Math.ceil(m.mp * Math.max(0.5, 0.75 - (player.relic.plus || 0) * 0.05)));
     player.hp -= hpCost; flash = 0.5; shake = 4; sfx.hurt();
     floats.push({x: player.x, y: player.y, t: '-' + hpCost + ' HP', c: '#d43d2a', life: 1});
     msg('📿 ประคำกระดูกมารสูบไอโลหิต ' + hpCost + ' HP ร่ายอาคม!', 'warn');
@@ -5882,25 +5912,27 @@ function renderShop(n){
   svcBox.style.marginBottom = '10px';
   svcBox.innerHTML = '<h4 style="margin:0 0 6px;color:var(--gold);font-size:13px">🔨 บริการช่างตีดาบ & ช่างทอง</h4>';
 
-  // บริการตีบวก +1 (จำกัด ๑ ครั้งต่อร้าน และคำนวณราคาตามระดับบวกจริง)
-  const currentPlus = (player.wpn ? player.wpn.plus || 0 : 0);
+  // บริการตีบวก +1 (จำกัด ๑ ครั้งต่อร้าน) — ไล่ช่องถัดไปที่ยังไม่เต็มเพดาน: อาวุธ → เกราะ → มงกุฎ/ชฎา → สร้อย
+  const upgSlot = nextUpgradeTarget();
+  const slotNameMap = { wpn:'อาวุธ', arm:'เกราะ', head:'มงกุฎ/ชฎา', relic:'สร้อย' };
+  const currentPlus = upgSlot ? ((player[upgSlot].plus) || 0) : 0;
   const upgradeCost = 50 + currentPlus * 45;
-  const maxAllowedPlus = UPG_CAP.wpn; // ๕ เสมอทุกชั้น ไม่เปิดทางบวกทะลุหลังชั้น ๒๐
-  const isPlusCapped = currentPlus >= maxAllowedPlus;
+  const maxAllowedPlus = upgSlot ? UPG_CAP[upgSlot] : 5; // ๕ เสมอทุกช่อง ทุกชั้น ไม่เปิดทางบวกทะลุหลังชั้น ๒๐
 
   const rUpg = document.createElement('div'); rUpg.className = 'row';
-  rUpg.innerHTML = '<span>🔨 <b>ตีบวกอาวุธ (+๑)</b> <small class="dim">(บวกอยู่ ' + currentPlus + '/' + maxAllowedPlus + ' · รับได้ ๑ ครั้ง/ร้าน)</small></span>';
+  rUpg.innerHTML = upgSlot
+    ? '<span>🔨 <b>ตีบวก' + slotNameMap[upgSlot] + ' (+๑)</b> <small class="dim">(บวกอยู่ ' + currentPlus + '/' + maxAllowedPlus + ' · รับได้ ๑ ครั้ง/ร้าน)</small></span>'
+    : '<span>🔨 <b>บริการตีบวก</b> <small class="dim">(อาวุธ เกราะ มงกุฎ และสร้อยบวกเต็มเพดานหมดแล้ว)</small></span>';
   const bUpg = document.createElement('button'); bUpg.className = 'mini-btn';
-  bUpg.textContent = isPlusCapped ? '★ เต็ม' : (n.blacksmithUsed ? '✓ ตีแล้ว' : '◉ ' + upgradeCost);
-  bUpg.disabled = player.gold < upgradeCost || !player.wpn || n.blacksmithUsed || isPlusCapped;
+  bUpg.textContent = !upgSlot ? '★ เต็ม' : (n.blacksmithUsed ? '✓ ตีแล้ว' : '◉ ' + upgradeCost);
+  bUpg.disabled = !upgSlot || player.gold < upgradeCost || n.blacksmithUsed;
   bUpg.onclick = () => {
+    if(!upgSlot) return;
     player.gold -= upgradeCost;
     n.blacksmithUsed = true;
-    player.wpn.plus = (player.wpn.plus || 0) + 1;
-    player.wpn.v += 2;
-    player.wpn.name = player.wpn.baseName + ' +' + thaiNum(player.wpn.plus) + (player.wpn.afName ? ' [' + player.wpn.afName + ']' : '');
+    const res = applyUpgradePlus(upgSlot);
     sfx.level(); flash = 0.5;
-    msg('🔨 วาณิชตีบวก «' + player.wpn.name + '» สำเร็จ! พลังโจมตีเพิ่มเป็น ' + player.wpn.v + '!', 'good');
+    msg('🔨 วาณิชตีบวก «' + res.name + '» สำเร็จ! ' + res.statLabel + 'เพิ่มเป็น ' + res.statVal + '!', 'good');
     updateHud(); renderShop(n);
   };
   rUpg.appendChild(bUpg); svcBox.appendChild(rUpg);
@@ -6246,6 +6278,10 @@ function clampUpgradeCaps(){
     player.head.def = Math.max(0, (player.head.def || 0) - over * 2);
     player.head.plus = UPG_CAP.head;
     player.head.name = player.head.baseName + ' +' + thaiNum(player.head.plus);
+  }
+  if(player.relic && (player.relic.plus || 0) > UPG_CAP.relic){
+    player.relic.plus = UPG_CAP.relic;
+    player.relic.name = (player.relic.baseName || player.relic.name) + ' +' + thaiNum(player.relic.plus);
   }
 }
 
@@ -6977,12 +7013,12 @@ function openStatusModal(){
   if(player.buffIronskin > 0) totalDef += 10; // บัฟยาผิวเหล็กไหล
   let totalDodge = player.dodge;
   if(player.arm && player.arm.affix === 'dodge') totalDodge += 15;
-  if(player.relic && player.relic.id === 'vanara_bangle') totalDodge += 25;
+  if(player.relic && player.relic.id === 'vanara_bangle') totalDodge += 25 + (player.relic.plus || 0);
 
   let totalCrit = 15;
   if(player.wpn && player.wpn.type === 'dagger') totalCrit += 20;
   if(player.wpn && player.wpn.affix === 'sharp') totalCrit += 15;
-  if(player.relic && player.relic.id === 'diamond_ring') totalCrit += 15;
+  if(player.relic && player.relic.id === 'diamond_ring') totalCrit += 15 + (player.relic.plus || 0);
   if(player.talents.some(t => t.id === 'v_crit')) totalCrit += 20;
 
   // โบนัสปุญฤทธิ์ของฤๅษี
