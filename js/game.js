@@ -2836,6 +2836,7 @@ const MANTRAS={
   vaju:{n:'วายุ',mp:8,ic:'❋',d:'พายุรอบตัว รัศมี ๒ ช่อง'},
   vajra:{n:'วัชระ',mp:12,ic:'⌁',d:'สายฟ้าพระอินทร์ โจมตีรุนแรง'},
 };
+const UPG_CAP = { wpn:5, arm:8, head:8 };   // ★ เพดานตีบวกแยกตามช่อง คงที่ทุกชั้น ไม่เปิดทางบวกทะลุหลังชั้น ๒๐
 const FOES=[
   // ชั้น ๑-๔: เปรต, ค้างคาว, อสุรกาย, กิ้งก่าเงา
   {id:'preta',name:'เปรต',sprite:'preta',hp:8,atk:4,def:0,xp:6,g:3,min:1,max:7},
@@ -2862,7 +2863,7 @@ const FOES=[
   {id:'peacock',name:'มยุรเทวะ',sprite:'peacock',hp:28,atk:8,def:2,xp:30,g:12,min:9,max:18,reflectMagic:true,featherIllusion:true,ranged:true},
   {id:'preta_bat',name:'ค้างคาวผีอเวจี',sprite:'bat',hp:22,atk:9,def:1,xp:24,g:9,min:11,max:22,lifesteal:true,flyer:true},
   {id:'berserker',name:'ยักษ์ขวานคู่',sprite:'berserker',hp:42,atk:14,def:2,xp:42,g:18,min:15,max:25,berserk:true},
-  {id:'vetala',name:'เวตาลจอมขโมย',sprite:'vetala',hp:18,atk:4,def:1,xp:20,g:0,min:6,max:16,thief:true,moveSpeed:2}
+  {id:'vetala',name:'เวตาลจอมขโมย',sprite:'vetala',hp:18,atk:4,def:1,xp:20,g:0,min:6,max:99,thief:true,moveSpeed:2}
 ];
 
 const BOSSES={
@@ -4175,9 +4176,12 @@ function openCursedAltarModal(ax, ay){
   }
 
   // สังเวย "เลือดสูงสุด" (Max HP) ถาวร + แสตทบางส่วน แทนการเสียแค่เลือดปัจจุบันที่ฟื้นคืนได้ง่าย
-  const wpnMhpCost = Math.max(8, Math.floor(player.mhp * 0.12));
+  // ★ ราคาเพิ่มขึ้นตามจำนวนครั้งที่เคยสังเวยในรอบนี้ กันผู้เล่นที่เจอแท่นบูชาหลายจุดได้ราคาถูกซ้ำๆ
+  const sacTimes = player.sacrificeCount || 0;
+  const sacMult = 1 + sacTimes * 0.35;
+  const wpnMhpCost = Math.round(Math.max(8, Math.floor(player.mhp * 0.12)) * sacMult);
   const wpnDefCost = 2;
-  const goldMhpCost = Math.max(4, Math.floor(player.mhp * 0.06));
+  const goldMhpCost = Math.round(Math.max(4, Math.floor(player.mhp * 0.06)) * sacMult);
   const goldDefCost = 1;
   const canAffordWpn = (player.mhp - wpnMhpCost) >= 15;
   const canAffordGold = (player.mhp - goldMhpCost) >= 15;
@@ -4205,6 +4209,7 @@ function openCursedAltarModal(ax, ay){
     player.def = Math.max(0, player.def - wpnDefCost);
     player.hp = Math.min(player.hp, player.mhp);
     player.usedCursedAltar = true;
+    player.sacrificeCount = (player.sacrificeCount || 0) + 1;
     const godWpn = genW(5); // อาวุธเทวะระดับ ๕ ต้องสาปทรงพลัง
     if(player.inv.length < (player.bagMax||10)) player.inv.push(godWpn);
     else items.push({x:player.x, y:player.y, ...godWpn});
@@ -4222,6 +4227,7 @@ function openCursedAltarModal(ax, ay){
     player.def = Math.max(0, player.def - goldDefCost);
     player.hp = Math.min(player.hp, player.mhp);
     player.usedCursedAltar = true;
+    player.sacrificeCount = (player.sacrificeCount || 0) + 1;
     player.gold += 150;
     msg('🩸 เลือดถูกสูบสังเวย! ได้รับเหรียญทอง ◉๑๕๐ จากแท่นบูชาบาป! (เลือดสูงสุด -' + goldMhpCost + ', ป้องกัน -' + goldDefCost + ' ถาวร)', 'good');
     updateHud();
@@ -4830,6 +4836,11 @@ function attackFoe(e, dirX=0, dirY=0){
   }
 }
 function killFoe(e){
+  // ★ กันเรียกซ้ำ: ถ้ามอนตัวนี้ถูก "เก็บเกี่ยว" รางวัลไปแล้วครั้งหนึ่ง (เช่นเกราะหนามกับสวนกลับ
+  // ทริกเกอร์ใส่ตัวเดียวกันในเทิร์นเดียว) ห้ามคำนวณเหรียญ/ดรอป/เควสต์/ปลดล็อกบันไดซ้ำอีก
+  if(e._reaped) return;
+  e._reaped = true;
+
   // ลบออกจากเกมเป็นอันดับแรกเสมอ — ถ้าโค้ดคำนวณรางวัล/ไอเทมด้านล่าง error ขึ้นมา
   // (เช่น จากมอนหรือไอเทมชนิดใหม่ที่ยังไม่ครบทุก field) จะไม่ทำให้ศัตรูค้างในเกมอีกต่อไป
   enemies = enemies.filter(o => o !== e);
@@ -4873,7 +4884,22 @@ function killFoe(e){
   if(player.killsTotal >= 50) unlockAch('slayer_50');
   if(player.killsTotal >= 100) unlockAch('slayer_100');
   discoverFoe(e.id);kills[e.id]=(kills[e.id]||0)+1;
-  const g = (e.g !== undefined && e.g !== null && !isNaN(e.g)) ? e.g + R(Math.max(1, e.g)) : 8;
+
+  // ★ ย้ายบล็อกบอสขึ้นมาก่อนการคำนวณเหรียญ กันไม่ให้ throw ระหว่างคิดเงิน
+  // (เช่นจาก const g เดิม) บล็อกไม่ให้ stairs.locked=false ทำงาน จนตันบันไดชั้น ๑๕
+  if(e.boss){
+    if(floor === 5) unlockAch('boss_khara');
+    if(floor === 10) unlockAch('boss_maricha');
+    if(floor === 15) unlockAch('boss_kumbha');
+    if(floor === 20) unlockAch('victory_moksha');
+    if(floor===FINAL && !endless){victory();return;}
+    stairs.locked=false;sfx.stairs();
+    msg('ผนึกบันไดสลายแล้ว! ทางลงเปิดออก…','good');
+    items.push({x:e.x,y:e.y,...genGroundItem()});
+    player.gold+=30+floor*2;
+  }
+
+  let g = (e.g !== undefined && e.g !== null && !isNaN(e.g)) ? e.g + R(Math.max(1, e.g)) : 8;
   if(player.relic && player.relic.id === 'diamond_ring') g = Math.floor(g * 1.5);
   if(player.relic && player.relic.id === 'ring_greed') g = Math.floor(g * 2.5);
   player.gold = (!isNaN(player.gold) ? player.gold : 0) + g;
@@ -4903,17 +4929,6 @@ function killFoe(e){
   if(e.elite){
     msg('👑 ล้มจอม' + e.name + 'สำเร็จ! หีบสมบัติล้ำค่าหล่นลงพื้น!', 'good');
     items.push({ x: e.x, y: e.y, ...genW(clamp(Math.floor(floor/4)+1, 1, 4)) });
-  }
-  if(e.boss){
-    if(floor === 5) unlockAch('boss_khara');
-    if(floor === 10) unlockAch('boss_maricha');
-    if(floor === 15) unlockAch('boss_kumbha');
-    if(floor === 20) unlockAch('victory_moksha');
-    if(floor===FINAL && !endless){victory();return;}
-    stairs.locked=false;sfx.stairs();
-    msg('ผนึกบันไดสลายแล้ว! ทางลงเปิดออก…','good');
-    items.push({x:e.x,y:e.y,...genGroundItem()});
-    player.gold+=30+floor*2;
   }
   checkLevel();
   } catch(err){
@@ -4950,6 +4965,10 @@ function checkLevel(){
 }
 const xpNeed=l=>l*25+(l-1)*(l-1)*5;
 function hurtPlayer(d,src,attacker=null){
+  if(player.invuln > 0){
+    floats.push({x:player.x, y:player.y, t:'อมตะ!', c:'#f5c542', life:1});
+    return;
+  }
   let dodgeRate = player.dodge;
   if(player.wpn && player.wpn.cursed === 'no_dodge') dodgeRate = 0; // คำสาปหอกวิญญาณสถิต
   if(player.relic && player.relic.id === 'vanara_bangle') dodgeRate += 25;
@@ -4957,8 +4976,9 @@ function hurtPlayer(d,src,attacker=null){
   if(rng()*100 < dodgeRate){
     msg('เจ้าพลิกตัวหลบ'+src+'ได้!');
     floats.push({x:player.x,y:player.y,t:'พลาด!',c:'#2ec4a6',life:1});
-    if(attacker && player.talents.some(t => t.id === 'v_counter')){
-      const cDmg = Math.max(2, Math.floor((player.atk + player.wpn.v) * 0.8));
+    if(attacker && !attacker._reaped && player.talents.some(t => t.id === 'v_counter')){
+      const _wv = (player.wpn && !isNaN(player.wpn.v)) ? player.wpn.v : 0; // ★ กันไม่มีอาวุธ (มือเปล่า) แล้ว crash
+      const cDmg = Math.max(2, Math.floor((player.atk + _wv) * 0.8));
       attacker.hp -= cDmg; attacker.flash = 4;
       triggerSlash(attacker.x, attacker.y, '#2ec4a6');
       floats.push({x:attacker.x, y:attacker.y, t:'เหยียบหัวสวน -'+cDmg, c:'#2ec4a6', life:1.2});
@@ -4993,7 +5013,7 @@ function hurtPlayer(d,src,attacker=null){
   msg(src+'ทำร้ายเจ้า -'+d, 'warn');
 
   // เกราะหนามสะท้อนกลับ
-  if(attacker && player.arm && player.arm.affix === 'thorns'){
+  if(attacker && !attacker._reaped && player.arm && player.arm.affix === 'thorns'){
     const ref = 3 + Math.floor(floor * 0.2);
     attacker.hp -= ref; attacker.flash = 4;
     floats.push({x:attacker.x, y:attacker.y, t:'หนาม -'+ref, c:'#e5482e', life:1});
@@ -5035,7 +5055,7 @@ function enemiesAct(){
           &&!(player.x===e.x+d[0]&&player.y===e.y+d[1])){e.x+=d[0];e.y+=d[1];}}
       continue;
     }
-    const playerArmDef = player.arm ? player.arm.v : 0;
+    const playerArmDef = (player.arm ? player.arm.v : 0) + (player.head ? (player.head.def || 0) : 0); // ★ รวมค่ามงกุฎ/ชฎาเข้าสูตรลดดาเมจจริง ไม่ใช่แค่โชว์บน HUD
     if(dist===1){
       // ศัตรูพุ่งกระแทกเข้าหาผู้เล่น
       e.bumpX = Math.sign(dx)*6; e.bumpY = Math.sign(dy)*6;
@@ -5050,7 +5070,7 @@ function enemiesAct(){
 
     // 👻 เวตาลจอมขโมย: ขโมยเงินแล้วรีบเผ่นหนี (ฆ่าได้ไอเทมแต่เงินที่ขโมยไปแล้วจะไม่คืน)
     if(e.thief && !e.hasStolen && player.gold > 0){
-      const stolen = Math.min(player.gold, 8 + Math.floor(player.gold * 0.08) + R(6));
+      const stolen = Math.min(player.gold, Math.max(25, Math.floor(player.gold * 0.12))); // ★ ขโมย ๑๒% (อย่างน้อย ๒๕) ไม่เกิน ๑๕% ตามคำแนะนำ
       player.gold -= stolen;
       e.hasStolen = true;
       triggerSlash(player.x, player.y, '#f5c542');
@@ -5171,6 +5191,7 @@ function endTurn(){
   enemiesAct();
   if(player.hp<=0)return;
   time++;
+  if(player.invuln > 0) player.invuln--;
 
   // ประมวลผลสถานะติดไฟ / ติดพิษ ของผู้เล่น
   if(player.poison > 0){
@@ -5649,10 +5670,9 @@ function useItem(i){
     return;
   }
   else if(it.t==='upg'){
-    // คัมภีร์ตีบวก — อาวุธจำกัดที่ +๕ เท่ากับเพดานของช่างตีดาบ (เกินชั้น ๒๐ ไม่จำกัด)
+    // คัมภีร์ตีบวก — อาวุธจำกัดที่ +๕, เกราะ/มงกุฎที่ +๘ เสมอทุกชั้น (ดู UPG_CAP ด้านบนไฟล์)
     // ถ้าอาวุธเต็มเพดานแล้ว ไล่ไปเสริมเกราะ แล้วมงกุฎ/ชฎาแทน กันสเกลดาเมจล้นจากอาวุธอย่างเดียว
-    const plusCap = (floor > 20) ? 99 : 5;
-    if(player.wpn && (player.wpn.plus || 0) < plusCap){
+    if(player.wpn && (player.wpn.plus || 0) < UPG_CAP.wpn){
       player.wpn.plus = (player.wpn.plus || 0) + 1;
       player.wpn.v += 2;
       player.wpn.name = player.wpn.baseName + ' +' + thaiNum(player.wpn.plus) + (player.wpn.afName ? ' [' + player.wpn.afName + ']' : '');
@@ -5660,7 +5680,7 @@ function useItem(i){
       sfx.level(); flash = 0.5;
       floats.push({x:player.x, y:player.y, t:'อัปเกรดอาวุธ +๑!', c:'#f5c542', life:1.6}); unlockAch('upgrade_plus');
       msg('✦ คัมภีร์ประสิทธิ์ประสาท! «' + player.wpn.name + '» พลังโจมตีเพิ่มขึ้นเป็น ' + player.wpn.v + ' อย่างถาวร!', 'good');
-    } else if(player.arm && (player.arm.plus || 0) < plusCap){
+    } else if(player.arm && (player.arm.plus || 0) < UPG_CAP.arm){
       player.arm.plus = (player.arm.plus || 0) + 1;
       player.arm.v += 2;
       player.arm.name = player.arm.baseName + ' +' + thaiNum(player.arm.plus) + (player.arm.afName ? ' [' + player.arm.afName + ']' : '');
@@ -5668,7 +5688,7 @@ function useItem(i){
       sfx.level(); flash = 0.5;
       floats.push({x:player.x, y:player.y, t:'อัปเกรดเกราะ +๑!', c:'#43b05c', life:1.6});
       msg('✦ คัมภีร์ประสิทธิ์ประสาท! อาวุธบวกเต็มแล้ว จึงเสริมเกราะ «' + player.arm.name + '» ป้องกันเพิ่มขึ้นเป็น ' + player.arm.v + ' อย่างถาวร!', 'good');
-    } else if(player.head && (player.head.plus || 0) < plusCap){
+    } else if(player.head && (player.head.plus || 0) < UPG_CAP.head){
       player.head.plus = (player.head.plus || 0) + 1;
       player.head.def = (player.head.def || 0) + 2;
       player.head.name = player.head.baseName + ' +' + thaiNum(player.head.plus);
@@ -5865,7 +5885,7 @@ function renderShop(n){
   // บริการตีบวก +1 (จำกัด ๑ ครั้งต่อร้าน และคำนวณราคาตามระดับบวกจริง)
   const currentPlus = (player.wpn ? player.wpn.plus || 0 : 0);
   const upgradeCost = 50 + currentPlus * 45;
-  const maxAllowedPlus = (floor > 20) ? 99 : 5; // ในวิหารปกติจำกัดที่ +๕
+  const maxAllowedPlus = UPG_CAP.wpn; // ๕ เสมอทุกชั้น ไม่เปิดทางบวกทะลุหลังชั้น ๒๐
   const isPlusCapped = currentPlus >= maxAllowedPlus;
 
   const rUpg = document.createElement('div'); rUpg.className = 'row';
@@ -6075,11 +6095,12 @@ function offerRevive(cost){
     player.gold -= cost;
     player.hp = Math.max(1, Math.floor(player.mhp * 0.5));
     player.reviveCost = cost * 2;
+    player.invuln = 3; // ★ กัน "จ่ายแล้วตายซ้ำทันที" ให้อมตะ ๓ เทิร์นหลังฟื้น
     hide(ov);
     state = 'play';
     flash = 0.6; shake = 6; sfx.level();
-    msg('💰 เจ้าจ่ายทอง ◉' + cost + ' ไถ่ชีวิตกลับมาจากยมโลก! (เลือดฟื้นครึ่งหนึ่ง)', 'good');
-    floats.push({x:player.x, y:player.y, t:'ฟื้นคืนชีพ!', c:'#f5c542', life:2});
+    msg('💰 เจ้าจ่ายทอง ◉' + cost + ' ไถ่ชีวิตกลับมาจากยมโลก! (เลือดฟื้นครึ่งหนึ่ง และอมตะชั่วคราว ๓ เทิร์น)', 'good');
+    floats.push({x:player.x, y:player.y, t:'ฟื้นคืนชีพ! (อมตะ ๓ เทิร์น)', c:'#f5c542', life:2});
     updateHud();
     saveGame();
   };
@@ -6198,10 +6219,34 @@ function loadGame(){
         :FOES.find(f=>f.id===sav.id);
       return{...base,id:sav.id,x:sav.x,y:sav.y,hp:sav.hp,maxhp:base.hp+floor,awake:sav.awake,flash:0,bumpX:0,bumpY:0};
     }).filter(e=>e.id);
+    if(player.invuln === undefined) player.invuln = 0;
+    clampUpgradeCaps(); // ★ ดึงค่าตีบวกที่เคยทะลุ +๕/+๘ (จากบั๊กเดิม) กลับมาให้ตรงเพดานใหม่
     state='play';isBossRushMode=false;window._selectBossRush=false;computeFov();updateHud();setControlsHint();
     msg('จิตของเจ้ากลับสู่ร่างเดิม… เดินทางต่อ!');
     return true;
   }catch(e){return false;}
+}
+
+// ★ ปรับค่าสถานะย้อนหลังสำหรับเซฟเก่าที่เคยตีบวกทะลุเพดาน (floor > 20 เคยเปิดทางถึง +๙๙)
+function clampUpgradeCaps(){
+  if(player.wpn && (player.wpn.plus || 0) > UPG_CAP.wpn){
+    const over = player.wpn.plus - UPG_CAP.wpn;
+    player.wpn.v = Math.max(1, player.wpn.v - over * 2);
+    player.wpn.plus = UPG_CAP.wpn;
+    player.wpn.name = player.wpn.baseName + ' +' + thaiNum(player.wpn.plus) + (player.wpn.afName ? ' [' + player.wpn.afName + ']' : '');
+  }
+  if(player.arm && (player.arm.plus || 0) > UPG_CAP.arm){
+    const over = player.arm.plus - UPG_CAP.arm;
+    player.arm.v = Math.max(0, player.arm.v - over * 2);
+    player.arm.plus = UPG_CAP.arm;
+    player.arm.name = player.arm.baseName + ' +' + thaiNum(player.arm.plus) + (player.arm.afName ? ' [' + player.arm.afName + ']' : '');
+  }
+  if(player.head && (player.head.plus || 0) > UPG_CAP.head){
+    const over = player.head.plus - UPG_CAP.head;
+    player.head.def = Math.max(0, (player.head.def || 0) - over * 2);
+    player.head.plus = UPG_CAP.head;
+    player.head.name = player.head.baseName + ' +' + thaiNum(player.head.plus);
+  }
 }
 
 
@@ -6334,7 +6379,7 @@ function startRun(cls, forcedSeed = 0){
     pendingTalents:[],
     mantras:[],floor:1,poison:0,burn:0,
     facing:1,prevX:0,prevY:0,pet:null,stashClaimed:false,usedCursedAltar:false,hasDeliveryScroll:false,deliveryDone:false,
-    sparedAsura:false,asuraHelped:false,sin:0,vow:null,reviveCost:100};
+    sparedAsura:false,asuraHelped:false,sin:0,vow:null,reviveCost:100,invuln:0};
   for(const s of C.mantras){if(!s.includes('@'))player.mantras.push(s);}
   time=0;endless=false;floats=[];logs=[];slashes=[];sparks=[];
   
