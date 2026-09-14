@@ -2762,18 +2762,19 @@ const WEAPON_BASE = [
 
 ];
 
+const ARMOR_MAX_TIER = 8; // ★ เพดานเทียร์เกราะคงที่ (เท่าของเดิมก่อนเพิ่มไอเทมใหม่) กันโค้ดจุดอื่นที่ hardcode เลข 6 ผิดเพี้ยน
 const ARMOR_BASE = [
-  { n: 'ผ้ามัสลิน', d: 1, r: 'common', lore: 'ผ้าฝ้ายทอเนื้อบาง สวมสบายคล่องตัว' },
-  { n: 'เกราะหนังจามรี', d: 3, r: 'common', lore: 'เกราะหนังหนาเย็บสองชั้น ป้องกันคมดาบเบื้องต้น' },
-  { n: 'เกราะขนนกครุฑ', d: 4, r: 'rare', affix: 'dodge', lore: 'เกราะทอจากขนปีกพญาครุฑ เบาสบายดุจไร้น้ำหนัก ช่วยหลบหลีกได้คล่องแคล่ว' },
-  { n: 'เกราะโซ่ถัก', d: 5, r: 'rare', lore: 'เกราะห่วงเหล็กกล้าถักเหนียวแน่น ป้องกันการแทง' },
-  { n: 'เกราะเกล็ดนาค', d: 8, r: 'legendary', lore: 'เกราะเกล็ดนาคเขียวมรกต แข็งแกร่งและเบาสบาย' },
-  { n: 'เกราะหนามพญานาคราช', d: 9, r: 'legendary', affix: 'thorns', lore: 'เกราะเกล็ดนาคราชมีหนามแหลมคมรายรอบตัว ผู้ใดฟันเข้าใส่จะถูกสะท้อนคืนทันที' },
-  { n: 'เกราะวัชรัง', d: 11, r: 'legendary', lore: 'เกราะเพชรห่อหุ้มกาย ดาบมารแทงไม่ระคาย' },
-  { n: 'อาภรณ์อมฤตทิพย์', d: 13, r: 'mythic', affix: 'regen', lore: 'อาภรณ์ทอจากสายน้ำอมฤตทิพย์ ซึมซับพลังชีวิตฟื้นฟูกายผู้สวมใส่อยู่เสมอ' },
-  { n: 'เกราะสุริยะเทวะ', d: 15, r: 'mythic', lore: 'เกราะทองคำเปล่งรังสีสุริยเทพ ป้องกันสูงสุดในสามโลก' },
-  { n: 'เกราะกระดูกอสูรทมิฬ', d: 18, r: 'mythic', cursed: 'drain_mp', curseDesc: 'เกราะหนามหาศาล แต่เผาผลาญพลังมนตร์ ๒ MP ทุกเทิร์น', lore: 'เกราะกระดูกของพญามารโบราณ แข็งแกร่งจนดาบแทงไม่ระคายแต่สูบกลืนไอเวท' },
-  { n: 'เสื้อยันต์เพลิงอเวจี', d: 12, r: 'mythic', cursed: 'fire_vuln', curseDesc: 'พลังโจมตี +๖ สะท้อนไฟ แต่รับดาเมจจากไฟและพิษแรงขึ้น ๒ เท่า', lore: 'ผ้ายันต์อาบเปลวเพลิงนรก เพิ่มพลังรุกรานแต่ทำให้ผู้สวมทนไฟและพิษไม่ได้' }
+  { n: 'ผ้ามัสลิน', d: 1, r: 'common', tier: 1, lore: 'ผ้าฝ้ายทอเนื้อบาง สวมสบายคล่องตัว' },
+  { n: 'เกราะหนังจามรี', d: 3, r: 'common', tier: 2, lore: 'เกราะหนังหนาเย็บสองชั้น ป้องกันคมดาบเบื้องต้น' },
+  { n: 'เกราะขนนกครุฑ', d: 4, r: 'rare', tier: 2, affix: 'dodge', lore: 'เกราะทอจากขนปีกพญาครุฑ เบาสบายดุจไร้น้ำหนัก ช่วยหลบหลีกได้คล่องแคล่ว' },
+  { n: 'เกราะโซ่ถัก', d: 5, r: 'rare', tier: 3, lore: 'เกราะห่วงเหล็กกล้าถักเหนียวแน่น ป้องกันการแทง' },
+  { n: 'เกราะเกล็ดนาค', d: 8, r: 'legendary', tier: 4, lore: 'เกราะเกล็ดนาคเขียวมรกต แข็งแกร่งและเบาสบาย' },
+  { n: 'เกราะหนามพญานาคราช', d: 9, r: 'legendary', tier: 4, affix: 'thorns', lore: 'เกราะเกล็ดนาคราชมีหนามแหลมคมรายรอบตัว ผู้ใดฟันเข้าใส่จะถูกสะท้อนคืนทันที' },
+  { n: 'เกราะวัชรัง', d: 11, r: 'legendary', tier: 5, lore: 'เกราะเพชรห่อหุ้มกาย ดาบมารแทงไม่ระคาย' },
+  { n: 'เกราะสุริยะเทวะ', d: 15, r: 'mythic', tier: 6, lore: 'เกราะทองคำเปล่งรังสีสุริยเทพ ป้องกันสูงสุดในสามโลก' },
+  { n: 'อาภรณ์อมฤตทิพย์', d: 13, r: 'mythic', tier: 6, affix: 'regen', lore: 'อาภรณ์ทอจากสายน้ำอมฤตทิพย์ ซึมซับพลังชีวิตฟื้นฟูกายผู้สวมใส่อยู่เสมอ' },
+  { n: 'เกราะกระดูกอสูรทมิฬ', d: 18, r: 'mythic', tier: 7, cursed: 'drain_mp', curseDesc: 'เกราะหนามหาศาล แต่เผาผลาญพลังมนตร์ ๒ MP ทุกเทิร์น', lore: 'เกราะกระดูกของพญามารโบราณ แข็งแกร่งจนดาบแทงไม่ระคายแต่สูบกลืนไอเวท' },
+  { n: 'เสื้อยันต์เพลิงอเวจี', d: 12, r: 'mythic', tier: 8, cursed: 'fire_vuln', curseDesc: 'พลังโจมตี +๖ สะท้อนไฟ แต่รับดาเมจจากไฟและพิษแรงขึ้น ๒ เท่า', lore: 'ผ้ายันต์อาบเปลวเพลิงนรก เพิ่มพลังรุกรานแต่ทำให้ผู้สวมทนไฟและพิษไม่ได้' }
 
 ];
 
@@ -3944,12 +3945,13 @@ function genW(tier){
 }
 function genA(tier){
   let maxT = 3;
-  if(floor >= 19) maxT = ARMOR_BASE.length;
+  if(floor >= 19) maxT = ARMOR_MAX_TIER;
   else if(floor >= 12) maxT = 5;
   else if(floor >= 6) maxT = 4;
 
-  const t = clamp(tier || (1 + Math.floor(floorR() * maxT)), 1, ARMOR_BASE.length);
-  const base = ARMOR_BASE[t - 1] || ARMOR_BASE[0];
+  const t = clamp(tier || (1 + Math.floor(floorR() * maxT)), 1, ARMOR_MAX_TIER);
+  const pool = ARMOR_BASE.filter(a => a.tier === t);
+  const base = pick(pool.length ? pool : ARMOR_BASE);
   const plus = floor > 20 ? Math.min(UPG_CAP.arm, Math.floor((floor - 20) / 3) + 1) : 0; // ★ clamp กัน plus ทะลุเพดาน +๕
   const pName = plus ? ' +' + thaiNum(plus) : '';
 
@@ -4106,7 +4108,7 @@ function genGroundItem(){
   if(r<.85) return {...TOOL_HOOK};
   if(r<.88) return genPetEgg(); // ไข่สัตว์เลี้ยง
   if(r<.94){ const t = clamp(1 + Math.floor((floor-1)/4), 1, 5); return genW(t); }
-  if(r<.98){ const t = clamp(1 + Math.floor((floor-1)/4), 1, ARMOR_BASE.length); return genA(t); }
+  if(r<.98){ const t = clamp(1 + Math.floor((floor-1)/4), 1, ARMOR_MAX_TIER); return genA(t); }
   return genScr();
 }
 
