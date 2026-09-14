@@ -4840,6 +4840,7 @@ function attackFoe(e, dirX=0, dirY=0){
 }
 // ★ หาช่องอุปกรณ์ถัดไปที่ยังตีบวกไม่เต็มเพดาน ไล่ลำดับ อาวุธ → เกราะ → มงกุฎ/ชฎา → สร้อย(เครื่องราง)
 // ใช้ร่วมกันทั้งคัมภีร์ประสิทธิ์ประสาทและบริการช่างตีดาบในร้านค้า
+let shopUpgradeMerchant = null; // ★ ร้านค้าที่กำลังเปิดอยู่ ใช้อ้างอิงตอนเลือกช่องตีบวกในร้าน
 function nextUpgradeTarget(){
   if(player.wpn && (player.wpn.plus || 0) < UPG_CAP.wpn) return 'wpn';
   if(player.arm && (player.arm.plus || 0) < UPG_CAP.arm) return 'arm';
@@ -4875,6 +4876,155 @@ function applyUpgradePlus(slot){
     return { name: player.relic.name, statLabel: 'อานุภาพ', statVal: player.relic.plus, slotLabel: 'สร้อย', floatMsg: 'อัปเกรดสร้อย +๑!', color: '#d43dc9' };
   }
   return null;
+}
+
+// ★ เมนูให้ผู้เล่นเลือกเองว่าจะใช้คัมภีร์ประสิทธิ์ประสาทตีบวกช่องไหน (อาวุธ/เกราะ/มงกุฎ/สร้อย)
+const UPG_SLOT_META = [
+  { key:'wpn', label:'อาวุธ', icon:'⚔️', color:'#f5c542' },
+  { key:'arm', label:'เกราะ', icon:'🛡️', color:'#43b05c' },
+  { key:'head', label:'มงกุฎ/ชฎา', icon:'👑', color:'#8d55c9' },
+  { key:'relic', label:'สร้อย (เครื่องราง)', icon:'📿', color:'#d43dc9' }
+];
+
+function openUpgradeChoiceModal(invIndex){
+  const it = player.inv[invIndex];
+  if(!it || it.t !== 'upg') return;
+
+  const owned = UPG_SLOT_META.filter(s => player[s.key]);
+  if(!owned.length){
+    msg('ไม่มีอาวุธ เกราะ มงกุฎ หรือสร้อยที่จะตีบวก…', 'warn');
+    return;
+  }
+  const allMaxed = owned.every(s => (player[s.key].plus || 0) >= UPG_CAP[s.key]);
+  if(allMaxed){
+    // ทุกชิ้นที่มีอยู่บวกเต็มเพดานหมดแล้ว แปลงเป็นปุญบารมีแทนไม่ให้เสียของ
+    player.punya = (player.punya || 0) + 8;
+    player.inv.splice(invIndex, 1);
+    sfx.level(); flash = 0.5;
+    floats.push({x:player.x, y:player.y, t:'ปุญบารมี +๘', c:'#f5c542', life:1.6});
+    msg('✦ คัมภีร์ประสิทธิ์ประสาท! อุปกรณ์ทุกชิ้นบวกเต็มเพดานแล้ว จึงแปลงเป็นปุญบารมีแทน!', 'good');
+    updateHud(); renderInv();
+    return;
+  }
+
+  let ov = $('upgChoiceOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'upgChoiceOv';
+    ov.className = 'ov';
+    ov.style.zIndex = '360';
+    document.body.appendChild(ov);
+  }
+
+  let html = '<div class="panel" style="max-width:400px;text-align:center;border-color:var(--gold);box-shadow:0 0 24px rgba(245,197,66,.35)">';
+  html += '<div class="deva">शक्ति</div>';
+  html += '<h2 style="font-family:Chakra Petch;color:var(--gold);margin:2px 0 4px;font-size:20px">✦ คัมภีร์ประสิทธิ์ประสาท</h2>';
+  html += '<p class="dim" style="font-size:13px;margin:0 0 12px">เลือกอุปกรณ์ที่จะตีบวก +๑ อย่างถาวร (สูงสุด +๕ ทุกช่อง)</p>';
+  html += '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">';
+
+  owned.forEach(s => {
+    const item = player[s.key];
+    const plus = item.plus || 0;
+    const cap = UPG_CAP[s.key];
+    const maxed = plus >= cap;
+    html += '<button class="mini-btn" style="text-align:left;padding:10px 12px;font-size:13px;' + (maxed ? 'opacity:.5' : 'border-color:' + s.color) + '" ' +
+      (maxed ? 'disabled' : 'onclick="chooseUpgradeSlot(' + invIndex + ',\'' + s.key + '\')"') + '>' +
+      s.icon + ' <b>' + item.name + '</b> <small class="dim">(' + thaiNum(plus) + '/' + thaiNum(cap) + (maxed ? ' · เต็มแล้ว' : '') + ')</small>' +
+      '</button>';
+  });
+
+  html += '</div>';
+  html += '<button class="btn ghost" id="btnCancelUpgChoice">ยกเลิก</button>';
+  html += '</div>';
+
+  ov.innerHTML = html;
+  show(ov);
+  $('btnCancelUpgChoice').onclick = () => hide(ov);
+}
+
+function chooseUpgradeSlot(invIndex, slot){
+  const it = player.inv[invIndex];
+  const ov = $('upgChoiceOv');
+  if(!it || it.t !== 'upg'){ if(ov) hide(ov); return; }
+  const res = applyUpgradePlus(slot);
+  player.inv.splice(invIndex, 1);
+  sfx.level(); flash = 0.5;
+  floats.push({x:player.x, y:player.y, t:res.floatMsg, c:res.color, life:1.6});
+  if(slot === 'wpn') unlockAch('upgrade_plus');
+  msg('✦ คัมภีร์ประสิทธิ์ประสาท! «' + res.name + '» ' + res.statLabel + 'เพิ่มขึ้นเป็น ' + res.statVal + ' อย่างถาวร!', 'good');
+  if(ov) hide(ov);
+  updateHud();
+  renderInv();
+}
+
+// ★ เมนูให้ผู้เล่นเลือกช่องที่จะตีบวกในร้านค้า (จ่ายเป็นเงิน ◉ แทนการใช้คัมภีร์) — จำกัด ๑ ครั้ง/ร้าน
+function openShopUpgradeChoiceModal(){
+  const n = shopUpgradeMerchant;
+  if(!n || n.blacksmithUsed) return;
+
+  const owned = UPG_SLOT_META.filter(s => player[s.key] && (player[s.key].plus || 0) < UPG_CAP[s.key]);
+  if(!owned.length){
+    msg('อาวุธ เกราะ มงกุฎ และสร้อยบวกเต็มเพดานหมดแล้ว วาณิชช่วยอะไรเจ้าไม่ได้แล้ว…', 'warn');
+    return;
+  }
+
+  let ov = $('shopUpgOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'shopUpgOv';
+    ov.className = 'ov';
+    ov.style.zIndex = '360';
+    document.body.appendChild(ov);
+  }
+
+  let html = '<div class="panel" style="max-width:400px;text-align:center;border-color:var(--gold);box-shadow:0 0 24px rgba(245,197,66,.35)">';
+  html += '<div class="deva">शक्ति</div>';
+  html += '<h2 style="font-family:Chakra Petch;color:var(--gold);margin:2px 0 4px;font-size:20px">🔨 บริการตีบวกของวาณิช</h2>';
+  html += '<p class="dim" style="font-size:13px;margin:0 0 12px">เลือกอุปกรณ์ที่จะตีบวก +๑ อย่างถาวร (รับบริการได้ ๑ ครั้ง/ร้าน)</p>';
+  html += '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">';
+
+  owned.forEach(s => {
+    const item = player[s.key];
+    const plus = item.plus || 0;
+    const cap = UPG_CAP[s.key];
+    const cost = 50 + plus * 45;
+    const canAfford = player.gold >= cost;
+    html += '<button class="mini-btn" style="text-align:left;padding:10px 12px;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:8px;' +
+      (canAfford ? 'border-color:' + s.color : 'opacity:.5') + '" ' +
+      (canAfford ? 'onclick="chooseShopUpgradeSlot(\'' + s.key + '\')"' : 'disabled') + '>' +
+      '<span>' + s.icon + ' <b>' + item.name + '</b> <small class="dim">(' + thaiNum(plus) + '/' + thaiNum(cap) + ')</small></span>' +
+      '<b style="color:var(--gold);white-space:nowrap">◉ ' + cost + '</b>' +
+      '</button>';
+  });
+
+  html += '</div>';
+  html += '<button class="btn ghost" id="btnCancelShopUpgChoice">ยกเลิก</button>';
+  html += '</div>';
+
+  ov.innerHTML = html;
+  show(ov);
+  $('btnCancelShopUpgChoice').onclick = () => hide(ov);
+}
+
+function chooseShopUpgradeSlot(slot){
+  const n = shopUpgradeMerchant;
+  const ov = $('shopUpgOv');
+  if(!n || n.blacksmithUsed || !player[slot]){ if(ov) hide(ov); return; }
+  const currentPlus = player[slot].plus || 0;
+  if(currentPlus >= UPG_CAP[slot]){ if(ov) hide(ov); return; }
+  const cost = 50 + currentPlus * 45;
+  if(player.gold < cost){ if(ov) hide(ov); return; }
+
+  player.gold -= cost;
+  n.blacksmithUsed = true;
+  const res = applyUpgradePlus(slot);
+  sfx.level(); flash = 0.5;
+  floats.push({x:player.x, y:player.y, t:res.floatMsg, c:res.color, life:1.6});
+  if(slot === 'wpn') unlockAch('upgrade_plus');
+  msg('🔨 วาณิชตีบวก «' + res.name + '» สำเร็จ! ' + res.statLabel + 'เพิ่มเป็น ' + res.statVal + '!', 'good');
+  if(ov) hide(ov);
+  updateHud();
+  renderShop(n);
 }
 
 function killFoe(e){
@@ -5716,26 +5866,9 @@ function useItem(i){
   }
   else if(it.t==='upg'){
     // คัมภีร์ตีบวก — อาวุธ/เกราะ/มงกุฎ/สร้อย จำกัดที่ +๕ เท่ากันทุกช่อง (ดู UPG_CAP ด้านบนไฟล์)
-    // ไล่ลำดับ อาวุธ → เกราะ → มงกุฎ/ชฎา → สร้อย กันสเกลดาเมจล้นจากอาวุธอย่างเดียว
-    const slot = nextUpgradeTarget();
-    if(!slot){
-      if(!player.wpn && !player.arm && !player.head && !player.relic){
-        msg('ไม่มีอาวุธ เกราะ มงกุฎ หรือสร้อยที่จะตีบวก…', 'warn'); return;
-      }
-      // ทุกชิ้นที่มีอยู่บวกเต็มเพดานหมดแล้ว แปลงเป็นปุญบารมีแทนไม่ให้เสียของ
-      player.punya = (player.punya || 0) + 8;
-      player.inv.splice(i, 1);
-      sfx.level(); flash = 0.5;
-      floats.push({x:player.x, y:player.y, t:'ปุญบารมี +๘', c:'#f5c542', life:1.6});
-      msg('✦ คัมภีร์ประสิทธิ์ประสาท! อุปกรณ์ทุกชิ้นบวกเต็มเพดานแล้ว จึงแปลงเป็นปุญบารมีแทน!', 'good');
-    } else {
-      const res = applyUpgradePlus(slot);
-      player.inv.splice(i, 1);
-      sfx.level(); flash = 0.5;
-      floats.push({x:player.x, y:player.y, t:res.floatMsg, c:res.color, life:1.6});
-      if(slot === 'wpn') unlockAch('upgrade_plus');
-      msg('✦ คัมภีร์ประสิทธิ์ประสาท! «' + res.name + '» ' + res.statLabel + 'เพิ่มขึ้นเป็น ' + res.statVal + ' อย่างถาวร!', 'good');
-    }
+    // เปิดเมนูให้ผู้เล่นเลือกเองว่าจะตีบวกช่องไหน แทนการไล่ลำดับอัตโนมัติ
+    openUpgradeChoiceModal(i);
+    return;
   }
   else if(it.t==='scr'){
     if(player.mantras.includes(it.key)){player.punya+=5;msg('รู้แจ้งอยู่แล้ว — แปลงเป็นปุญ +๕','good');}
@@ -5912,28 +6045,20 @@ function renderShop(n){
   svcBox.style.marginBottom = '10px';
   svcBox.innerHTML = '<h4 style="margin:0 0 6px;color:var(--gold);font-size:13px">🔨 บริการช่างตีดาบ & ช่างทอง</h4>';
 
-  // บริการตีบวก +1 (จำกัด ๑ ครั้งต่อร้าน) — ไล่ช่องถัดไปที่ยังไม่เต็มเพดาน: อาวุธ → เกราะ → มงกุฎ/ชฎา → สร้อย
-  const upgSlot = nextUpgradeTarget();
-  const slotNameMap = { wpn:'อาวุธ', arm:'เกราะ', head:'มงกุฎ/ชฎา', relic:'สร้อย' };
-  const currentPlus = upgSlot ? ((player[upgSlot].plus) || 0) : 0;
-  const upgradeCost = 50 + currentPlus * 45;
-  const maxAllowedPlus = upgSlot ? UPG_CAP[upgSlot] : 5; // ๕ เสมอทุกช่อง ทุกชั้น ไม่เปิดทางบวกทะลุหลังชั้น ๒๐
+  // บริการตีบวก +1 (จำกัด ๑ ครั้งต่อร้าน) — ให้ผู้เล่นเลือกเองว่าจะตีบวกอาวุธ เกราะ ชฎา หรือสร้อย
+  shopUpgradeMerchant = n;
+  const upgAnyAvailable = UPG_SLOT_META.some(s => player[s.key] && (player[s.key].plus || 0) < UPG_CAP[s.key]);
 
   const rUpg = document.createElement('div'); rUpg.className = 'row';
-  rUpg.innerHTML = upgSlot
-    ? '<span>🔨 <b>ตีบวก' + slotNameMap[upgSlot] + ' (+๑)</b> <small class="dim">(บวกอยู่ ' + currentPlus + '/' + maxAllowedPlus + ' · รับได้ ๑ ครั้ง/ร้าน)</small></span>'
+  rUpg.innerHTML = upgAnyAvailable
+    ? '<span>🔨 <b>บริการตีบวก</b> <small class="dim">(เลือกอาวุธ/เกราะ/ชฎา/สร้อย · รับได้ ๑ ครั้ง/ร้าน)</small></span>'
     : '<span>🔨 <b>บริการตีบวก</b> <small class="dim">(อาวุธ เกราะ มงกุฎ และสร้อยบวกเต็มเพดานหมดแล้ว)</small></span>';
   const bUpg = document.createElement('button'); bUpg.className = 'mini-btn';
-  bUpg.textContent = !upgSlot ? '★ เต็ม' : (n.blacksmithUsed ? '✓ ตีแล้ว' : '◉ ' + upgradeCost);
-  bUpg.disabled = !upgSlot || player.gold < upgradeCost || n.blacksmithUsed;
+  bUpg.textContent = !upgAnyAvailable ? '★ เต็ม' : (n.blacksmithUsed ? '✓ ตีแล้ว' : '🔨 เลือกช่อง');
+  bUpg.disabled = !upgAnyAvailable || n.blacksmithUsed;
   bUpg.onclick = () => {
-    if(!upgSlot) return;
-    player.gold -= upgradeCost;
-    n.blacksmithUsed = true;
-    const res = applyUpgradePlus(upgSlot);
-    sfx.level(); flash = 0.5;
-    msg('🔨 วาณิชตีบวก «' + res.name + '» สำเร็จ! ' + res.statLabel + 'เพิ่มเป็น ' + res.statVal + '!', 'good');
-    updateHud(); renderShop(n);
+    shopUpgradeMerchant = n;
+    openShopUpgradeChoiceModal();
   };
   rUpg.appendChild(bUpg); svcBox.appendChild(rUpg);
 
