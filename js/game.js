@@ -2619,9 +2619,12 @@ const HEADGEAR_BASE = [
   { n: 'ผ้าโพกศีรษะโยคี', r: 'common', def: 1, mp: 6, desc: 'ป้องกัน +๑, มานา +๖', lore: 'ผ้าฝ้ายทอมือของนักพรต สวมใส่สบายจิตใจสงบ' },
   { n: 'รัดเกล้าทองแดง', r: 'common', def: 2, crit: 6, desc: 'ป้องกัน +๒, คริติคอล +๖%', lore: 'รัดเกล้าโบราณ เสริมความแม่นยำในการจู่โจม' },
   { n: 'ชฎาทองคำอโยธยา', r: 'rare', def: 2, mp: 16, mBoost: 25, desc: 'ป้องกัน +๒, มานา +๑๖, คาถาแรงขึ้น +๒๕%', lore: 'ชฎาทรงยอดแหลมทองคำสลักลายกนก เปล่งรัศมีแห่งพระเวท' },
+  { n: 'ชฎาเพชรพราหมณ์', r: 'rare', def: 3, mp: 22, mBoost: 15, desc: 'ป้องกัน +๓, มานา +๒๒, คาถาแรงขึ้น +๑๕%', lore: 'ชฎาประดับเพชรของปุโรหิตหลวง เสริมพลังมนตราให้เปี่ยมล้น' },
   { n: 'หน้ากากพญายักษ์', r: 'rare', def: 4, atk: 2, desc: 'ป้องกัน +๔, โจมตี +๒, ข่มขวัญศัตรู', lore: 'หน้ากากอสูรเขี้ยวโง้ง น่าเกรงขามดุจนายทัพลงกา' },
+  { n: 'ชฎายอดเพลิงอัคคี', r: 'legendary', def: 2, atk: 3, crit: 10, desc: 'ป้องกัน +๒, โจมตี +๓, คริติคอล +๑๐%', lore: 'ชฎาทรงยอดเปลวเพลิงของนักรบพราหมณ์ เร่งเร้าพลังโจมตีให้ร้อนแรง' },
   { n: 'รัดเกล้าเพชรสุริยะ', r: 'legendary', def: 3, crit: 18, atk: 4, desc: 'ป้องกัน +๓, คริติคอล +๑๘%, โจมตี +๔', lore: 'รัดเกล้าประดับเพชรน้ำเอก เปล่งรัศมีสุริยเทพตัดจุดตาย' },
   { n: 'หน้ากากวานรเผือก', r: 'legendary', def: 3, dodge: 18, desc: 'ป้องกัน +๓, หลบหลีก +๑๘%, คล่องตัวสูง', lore: 'หน้ากากรูปหนุมาน สวมใส่แล้วว่องไวดุจลมกรด' },
+  { n: 'ชฎาเวทพรหมศาสตร์', r: 'mythic', def: 5, atk: 2, mp: 20, mBoost: 35, desc: 'ป้องกัน +๕, โจมตี +๒, มานา +๒๐, คาถาแรงขึ้น +๓๕%', lore: 'ชฎายอดแหลมของพระพรหมฤๅษี หลอมรวมมนตราขั้นสูงสุดไว้ในยอดทอง' },
   { n: 'มงกุฎชัยพิชัยพรหมมาสตร์', r: 'mythic', def: 6, atk: 6, mp: 25, desc: 'โจมตี +๖, ป้องกัน +๖, มานา +๒๕, คริ +๑๐%', lore: 'ยอดมงกุฎแห่งพระราม ผู้ใดสวมใส่จะได้รับชัยชนะในทุกสมรภูมิ' }
 ];
 
@@ -2726,42 +2729,48 @@ const WEAPON_TYPES = {
 
 const WEAPON_BASE = [
   // Tier 1
-  { n: 'มีดทองแดง', type: 'dagger', a: 3, r: 'common', lore: 'มีดสั้นหล่อจากทองแดงโบราณ น้ำหนักเบาว่องไว' },
-  { n: 'หอกไม้ไผ่เหลา', type: 'spear', a: 3, r: 'common', lore: 'หอกไม้ไผ่ปลายแหลม แทงทะลวงได้ไกล ๒ ช่อง' },
-  { n: 'กระบองศิลา', type: 'mace', a: 4, r: 'common', lore: 'กระบองหินเนื้อตัน ทุบหนักหน่วงกระเด็น' },
-  { n: 'ขวานสำริด', type: 'cleave', a: 3, r: 'common', lore: 'ขวานด้ามสั้น คมกว้างตวัดฟันกวาดรอบตัว' },
+  { n: 'มีดทองแดง', type: 'dagger', a: 3, r: 'common', tier: 1, lore: 'มีดสั้นหล่อจากทองแดงโบราณ น้ำหนักเบาว่องไว' },
+  { n: 'หอกไม้ไผ่เหลา', type: 'spear', a: 3, r: 'common', tier: 1, lore: 'หอกไม้ไผ่ปลายแหลม แทงทะลวงได้ไกล ๒ ช่อง' },
+  { n: 'กระบองศิลา', type: 'mace', a: 4, r: 'common', tier: 1, lore: 'กระบองหินเนื้อตัน ทุบหนักหน่วงกระเด็น' },
+  { n: 'ขวานสำริด', type: 'cleave', a: 3, r: 'common', tier: 1, lore: 'ขวานด้ามสั้น คมกว้างตวัดฟันกวาดรอบตัว' },
 
   // Tier 2
-  { n: 'กริชลายกนก', type: 'dagger', a: 5, r: 'rare', lore: 'กริชคดสลักลายกนก คมกริบแทงจุดตายฉับพลัน' },
-  { n: 'หอกเหล็กกล้า', type: 'spear', a: 6, r: 'rare', lore: 'หอกเหล็กเหนียวใบพาย แทงทะลวงเกราะระยะ ๒ ช่อง' },
-  { n: 'กระบองหนามเหล็ก', type: 'mace', a: 7, r: 'rare', lore: 'กระบองหุ้มเหล็กมีหนามแหลม ทุบกระดูกป่นทะลุเกราะ' },
-  { n: 'ขรรค์อัคนี', type: 'cleave', a: 6, r: 'rare', lore: 'ขรรค์เพลิงสะบัดฟันเป็นวงกว้างรอบทิศ' },
+  { n: 'กริชลายกนก', type: 'dagger', a: 5, r: 'rare', tier: 2, lore: 'กริชคดสลักลายกนก คมกริบแทงจุดตายฉับพลัน' },
+  { n: 'หอกเหล็กกล้า', type: 'spear', a: 6, r: 'rare', tier: 2, lore: 'หอกเหล็กเหนียวใบพาย แทงทะลวงเกราะระยะ ๒ ช่อง' },
+  { n: 'กระบองหนามเหล็ก', type: 'mace', a: 7, r: 'rare', tier: 2, lore: 'กระบองหุ้มเหล็กมีหนามแหลม ทุบกระดูกป่นทะลุเกราะ' },
+  { n: 'ขรรค์อัคนี', type: 'cleave', a: 6, r: 'rare', tier: 2, lore: 'ขรรค์เพลิงสะบัดฟันเป็นวงกว้างรอบทิศ' },
+  { n: 'ธนูสิงขร', type: 'bow', a: 6, r: 'rare', tier: 2, lore: 'ธนูไม้สิงขรสลักหัวราชสีห์ ยิงแม่นทะลวงระยะไกล ๕ ช่องไม่ต้องเข้าประชิด' },
 
   // Tier 3
-  { n: 'กริชราพณ์', type: 'dagger', a: 9, r: 'legendary', lore: 'กริชอาถรรพ์ของอสูรรากษส ฟันเร็วประดุจสายลมพัด' },
-  { n: 'ตรีศูลมหาราช', type: 'spear', a: 10, r: 'legendary', lore: 'ตรีศูลสามง่ามอันทรงฤทธานุภาพ แทงทะลวงวิญญาณ' },
-  { n: 'กระบองยักษ์ทวารบาล', type: 'mace', a: 12, r: 'legendary', lore: 'กระบองยักษ์สลักยันต์ ทุบกระเด็นสะเทือนปฐพี' },
-  { n: 'ขวานรามสูร', type: 'cleave', a: 11, r: 'legendary', lore: 'ขวานศักดิ์สิทธิ์ที่เคยสะบัดฟันล่อแก้วมณีเมขลา' },
+  { n: 'กริชราพณ์', type: 'dagger', a: 9, r: 'legendary', tier: 3, lore: 'กริชอาถรรพ์ของอสูรรากษส ฟันเร็วประดุจสายลมพัด' },
+  { n: 'ตรีศูลมหาราช', type: 'spear', a: 10, r: 'legendary', tier: 3, lore: 'ตรีศูลสามง่ามอันทรงฤทธานุภาพ แทงทะลวงวิญญาณ' },
+  { n: 'กระบองยักษ์ทวารบาล', type: 'mace', a: 12, r: 'legendary', tier: 3, lore: 'กระบองยักษ์สลักยันต์ ทุบกระเด็นสะเทือนปฐพี' },
+  { n: 'ขวานรามสูร', type: 'cleave', a: 11, r: 'legendary', tier: 3, lore: 'ขวานศักดิ์สิทธิ์ที่เคยสะบัดฟันล่อแก้วมณีเมขลา' },
+  { n: 'แส้อัคคีวายุ', type: 'whip', a: 10, r: 'legendary', tier: 3, lore: 'แส้เพลิงสายลมของนางยักษ์ตบะกล้า ฟาดกระตุกดึงศัตรูจากระยะ ๒ ช่องเข้าประชิด' },
 
   // Tier 4 (Epic / Mythic)
-  { n: 'ขรรค์เพชรจุติ', type: 'dagger', a: 13, r: 'mythic', lore: 'กริชประกายเพชร ตัดเกราะมารได้ดุจตัดกระดาษ' },
-  { n: 'หอกโมกขศักดิ์', type: 'spear', a: 15, r: 'mythic', lore: 'หอกวิเศษของกุมภกรรณ ไร้พ่ายในระยะ ๒ ช่อง' },
-  { n: 'คทาพรหมมาสตร์', type: 'mace', a: 17, r: 'mythic', lore: 'คทาเทวะแห่งพระพรหม ทุบมารสะท้านตรีโลก' },
-  { n: 'จักรสุทรรศน์', type: 'cleave', a: 16, r: 'mythic', lore: 'กงจักรประกายรังสีของพระนารายณ์ กวาดล้างอสูรสิ้น' },
+  { n: 'ขรรค์เพชรจุติ', type: 'dagger', a: 13, r: 'mythic', tier: 4, lore: 'กริชประกายเพชร ตัดเกราะมารได้ดุจตัดกระดาษ' },
+  { n: 'หอกโมกขศักดิ์', type: 'spear', a: 15, r: 'mythic', tier: 4, lore: 'หอกวิเศษของกุมภกรรณ ไร้พ่ายในระยะ ๒ ช่อง' },
+  { n: 'คทาพรหมมาสตร์', type: 'mace', a: 17, r: 'mythic', tier: 4, lore: 'คทาเทวะแห่งพระพรหม ทุบมารสะท้านตรีโลก' },
+  { n: 'จักรสุทรรศน์', type: 'cleave', a: 16, r: 'mythic', tier: 4, lore: 'กงจักรประกายรังสีของพระนารายณ์ กวาดล้างอสูรสิ้น' },
+  { n: 'กรงเล็บพญาราชสีห์', type: 'claw', a: 15, r: 'mythic', tier: 4, lore: 'กรงเล็บทองคำจำแลงจากราชสีห์เทวะ รัวข่วนสามฮิตติดกันไม่ให้ศัตรูตั้งตัว' },
   // Tier 5 (Supreme & Cursed - สเตตัสสูงมากแต่มีผลเสียต่อผู้ใช้)
-  { n: 'ขรรค์กระหายเลือด', type: 'dagger', a: 22, r: 'mythic', cursed: 'blood_drain', curseDesc: 'สูบเลือดผู้ใช้ ๒ HP ทุกครั้งที่ฟันโดนศัตรู', lore: 'กริชอาถรรพ์ที่กระหายโลหิต ยิ่งฟันยิ่งบ้าคลั่งแต่สูบพลังชีวิตเจ้าของ' },
-  { n: 'หอกวิญญาณสถิต', type: 'spear', a: 24, r: 'mythic', cursed: 'no_dodge', curseDesc: 'ระยะแทง ๒ ช่อง แต่ทำให้หลบหลีกกลายเป็น ๐%', lore: 'หอกโบราณที่ล่ามตรวนวิญญาณผู้ถือไว้กับพื้น แทงทะลวงไกลแต่ไร้ซึ่งความพริ้วไหว' },
-  { n: 'กระบองมารพญายม', type: 'mace', a: 26, r: 'mythic', cursed: 'sluggish', curseDesc: 'ทุบกระเด็น ๒ ช่อง เจาะเกราะ ๑๐๐% แต่ตัวหนักอึ้งทุกๆ ๓ ก้าว', lore: 'กระบองเหล็กนรกที่หนักอึ้งดุจขุนเขา ทุบมารแหลกสลายแต่ถ่วงการก้าวเดิน' },
-  { n: 'จักรโลหิตกาลกิณี', type: 'cleave', a: 25, r: 'mythic', cursed: 'max_half_heal', curseDesc: 'ฟันกวาดรอบทิศ คริ ๓๕% แต่ดื่มยาอมฤตได้ไม่เกินครึ่งหลอด', lore: 'กงจักรเปื้อนเลือดที่ปลุกสัญชาตญาณมาร กวาดล้างศัตรูแต่ปิดกั้นการฟื้นฟูกาย' }
+  { n: 'ขรรค์กระหายเลือด', type: 'dagger', a: 22, r: 'mythic', tier: 5, cursed: 'blood_drain', curseDesc: 'สูบเลือดผู้ใช้ ๒ HP ทุกครั้งที่ฟันโดนศัตรู', lore: 'กริชอาถรรพ์ที่กระหายโลหิต ยิ่งฟันยิ่งบ้าคลั่งแต่สูบพลังชีวิตเจ้าของ' },
+  { n: 'หอกวิญญาณสถิต', type: 'spear', a: 24, r: 'mythic', tier: 5, cursed: 'no_dodge', curseDesc: 'ระยะแทง ๒ ช่อง แต่ทำให้หลบหลีกกลายเป็น ๐%', lore: 'หอกโบราณที่ล่ามตรวนวิญญาณผู้ถือไว้กับพื้น แทงทะลวงไกลแต่ไร้ซึ่งความพริ้วไหว' },
+  { n: 'กระบองมารพญายม', type: 'mace', a: 26, r: 'mythic', tier: 5, cursed: 'sluggish', curseDesc: 'ทุบกระเด็น ๒ ช่อง เจาะเกราะ ๑๐๐% แต่ตัวหนักอึ้งทุกๆ ๓ ก้าว', lore: 'กระบองเหล็กนรกที่หนักอึ้งดุจขุนเขา ทุบมารแหลกสลายแต่ถ่วงการก้าวเดิน' },
+  { n: 'จักรโลหิตกาลกิณี', type: 'cleave', a: 25, r: 'mythic', tier: 5, cursed: 'max_half_heal', curseDesc: 'ฟันกวาดรอบทิศ คริ ๓๕% แต่ดื่มยาอมฤตได้ไม่เกินครึ่งหลอด', lore: 'กงจักรเปื้อนเลือดที่ปลุกสัญชาตญาณมาร กวาดล้างศัตรูแต่ปิดกั้นการฟื้นฟูกาย' }
 
 ];
 
 const ARMOR_BASE = [
   { n: 'ผ้ามัสลิน', d: 1, r: 'common', lore: 'ผ้าฝ้ายทอเนื้อบาง สวมสบายคล่องตัว' },
   { n: 'เกราะหนังจามรี', d: 3, r: 'common', lore: 'เกราะหนังหนาเย็บสองชั้น ป้องกันคมดาบเบื้องต้น' },
+  { n: 'เกราะขนนกครุฑ', d: 4, r: 'rare', affix: 'dodge', lore: 'เกราะทอจากขนปีกพญาครุฑ เบาสบายดุจไร้น้ำหนัก ช่วยหลบหลีกได้คล่องแคล่ว' },
   { n: 'เกราะโซ่ถัก', d: 5, r: 'rare', lore: 'เกราะห่วงเหล็กกล้าถักเหนียวแน่น ป้องกันการแทง' },
   { n: 'เกราะเกล็ดนาค', d: 8, r: 'legendary', lore: 'เกราะเกล็ดนาคเขียวมรกต แข็งแกร่งและเบาสบาย' },
+  { n: 'เกราะหนามพญานาคราช', d: 9, r: 'legendary', affix: 'thorns', lore: 'เกราะเกล็ดนาคราชมีหนามแหลมคมรายรอบตัว ผู้ใดฟันเข้าใส่จะถูกสะท้อนคืนทันที' },
   { n: 'เกราะวัชรัง', d: 11, r: 'legendary', lore: 'เกราะเพชรห่อหุ้มกาย ดาบมารแทงไม่ระคาย' },
+  { n: 'อาภรณ์อมฤตทิพย์', d: 13, r: 'mythic', affix: 'regen', lore: 'อาภรณ์ทอจากสายน้ำอมฤตทิพย์ ซึมซับพลังชีวิตฟื้นฟูกายผู้สวมใส่อยู่เสมอ' },
   { n: 'เกราะสุริยะเทวะ', d: 15, r: 'mythic', lore: 'เกราะทองคำเปล่งรังสีสุริยเทพ ป้องกันสูงสุดในสามโลก' },
   { n: 'เกราะกระดูกอสูรทมิฬ', d: 18, r: 'mythic', cursed: 'drain_mp', curseDesc: 'เกราะหนามหาศาล แต่เผาผลาญพลังมนตร์ ๒ MP ทุกเทิร์น', lore: 'เกราะกระดูกของพญามารโบราณ แข็งแกร่งจนดาบแทงไม่ระคายแต่สูบกลืนไอเวท' },
   { n: 'เสื้อยันต์เพลิงอเวจี', d: 12, r: 'mythic', cursed: 'fire_vuln', curseDesc: 'พลังโจมตี +๖ สะท้อนไฟ แต่รับดาเมจจากไฟและพิษแรงขึ้น ๒ เท่า', lore: 'ผ้ายันต์อาบเปลวเพลิงนรก เพิ่มพลังรุกรานแต่ทำให้ผู้สวมทนไฟและพิษไม่ได้' }
@@ -2776,7 +2785,10 @@ const RELICS = [
   { id: 'diamond_ring', name: 'ธำมรงค์เพชร', icon: '💍', r: 'legendary', desc: 'เงินดรอป +๕๐% และคริติคอล +๑๕%', lore: 'แหวนเพชรเม็ดงาม ดึงดูดทรัพย์และโชคลาภการรบ' },
   { id: 'heart_ravana', name: 'ดวงใจทศกัณฐ์', icon: '❤️‍🔥', r: 'mythic', desc: 'โจมตี +๑๐ และดูดเลือด ๕ หน่วยเมื่อฆ่าศัตรู (แต่ศัตรูตีแรงขึ้น ๒๕%)', cursed: 'harder_foes', curseDesc: 'ศัตรูทั้งหมดในวิหารตีแรงขึ้น ๒๕%', lore: 'กล่องดวงใจของพญายักษ์ที่ยังเต้นตุบๆ มอบพลังมารมหาศาลแลกกับความคลั่งของศัตรู' },
   { id: 'ring_greed', name: 'ธำมรงค์คนโลภ', icon: '💍', r: 'legendary', desc: 'เงินดรอปเพิ่มเป็น ๒.๕ เท่า (แต่ทำเหรียญหล่นเมื่อโดนตี)', cursed: 'lose_gold_hit', curseDesc: 'ทำเหรียญทองหล่นหายตามดาเมจที่โดนตี', lore: 'แหวนทองคำสลักยันต์ดึงดูดทรัพย์ ยิ่งโลภยิ่งมั่งคั่งแต่เมื่อเพลี่ยงพล้ำทรัพย์ย่อมร่วงโรย' },
-  { id: 'skull_rosary', name: 'ประคำกระดูกมาร', icon: '📿', r: 'mythic', desc: 'ร่ายคาถาทุกบทฟรี ๐ MP (แต่เสียพลังชีวิตแทน MP)', cursed: 'blood_magic', curseDesc: 'จ่ายพลังชีวิตแทนพลังมนตร์เมื่อร่ายอาคม', lore: 'สายประคำร้อยจากกะโหลกอสูร แลกไอโลหิตของตนเป็นมนตราทำลายล้าง' }
+  { id: 'skull_rosary', name: 'ประคำกระดูกมาร', icon: '📿', r: 'mythic', desc: 'ร่ายคาถาทุกบทฟรี ๐ MP (แต่เสียพลังชีวิตแทน MP)', cursed: 'blood_magic', curseDesc: 'จ่ายพลังชีวิตแทนพลังมนตร์เมื่อร่ายอาคม', lore: 'สายประคำร้อยจากกะโหลกอสูร แลกไอโลหิตของตนเป็นมนตราทำลายล้าง' },
+  { id: 'sacred_necklace', name: 'สร้อยพระธาตุแก้ว', icon: '📿', r: 'rare', desc: 'ฟื้นเลือดอัตโนมัติ ๒ หน่วยทุก ๔ เทิร์น', lore: 'สร้อยร้อยพระธาตุใสกระจ่าง แผ่บุญญาบารมีชโลมกายให้บรรเทาบาดแผลอยู่เสมอ' },
+  { id: 'third_eye', name: 'สร้อยตาที่สาม', icon: '👁️', r: 'legendary', desc: 'ได้รับประสบการณ์ (EXP) จากการสังหารศัตรูเพิ่มขึ้น ๓๐%', lore: 'สร้อยฝังพลอยตาที่สามของฤๅษีผู้หยั่งรู้ ซึมซับบทเรียนจากทุกการต่อสู้ได้เร็วกว่าผู้อื่น' },
+  { id: 'merchant_charm', name: 'สร้อยพ่อค้าเก้าแสน', icon: '💰', r: 'legendary', desc: 'ราคาสินค้าทุกชิ้นในร้านค้าของวาณิชถูกลง ๑๕%', lore: 'สร้อยเหรียญทองเก่าแก่ของวาณิชในตำนาน ผู้สวมใส่มักได้ราคาต่อรองที่ดีเสมอ' }
 
 ];
 
@@ -3895,7 +3907,7 @@ function genW(tier){
   else if(floor >= 6) maxT = 3;
 
   const t = clamp(tier || (1 + Math.floor(floorR() * maxT)), 1, 5);
-  const pool = WEAPON_BASE.filter((_, idx) => Math.floor(idx / 4) + 1 === t);
+  const pool = WEAPON_BASE.filter(w => w.tier === t);
   const base = pick(pool.length ? pool : WEAPON_BASE);
   const plus = floor > 20 ? Math.min(UPG_CAP.wpn, Math.floor((floor - 20) / 3) + 1) : 0; // ★ clamp กัน plus ทะลุเพดาน +๕
   const pName = plus ? ' +' + thaiNum(plus) : '';
@@ -3955,17 +3967,28 @@ function genA(tier){
     price: (t * 40) + (plus * 25)
   };
 
-  const affixChance = Math.min(0.9, 0.15 + floor * 0.035);
-  if (floorR() < affixChance) {
-    const af = pick(ARM_AFFIXES);
-    it.affix = af.id;
-    it.afName = af.name;
-    it.afDesc = af.d;
-    it.afColor = af.c;
-    it.name += ' [' + af.name + ']';
-    it.price += 25 + floor * 3;
-    if(it.r === 'common') it.r = 'rare';
-    else if(it.r === 'rare') it.r = 'legendary';
+  if (base.affix) {
+    // ★ เกราะบางชิ้นมีพลังแฝงติดตัวถาวร (การันตี ไม่ต้องสุ่ม) เพื่อสร้างความหลากหลายของเอฟเฟกต์
+    const baf = ARM_AFFIXES.find(a => a.id === base.affix);
+    if (baf) {
+      it.affix = baf.id;
+      it.afName = baf.name;
+      it.afDesc = baf.d;
+      it.afColor = baf.c;
+    }
+  } else {
+    const affixChance = Math.min(0.9, 0.15 + floor * 0.035);
+    if (floorR() < affixChance) {
+      const af = pick(ARM_AFFIXES);
+      it.affix = af.id;
+      it.afName = af.name;
+      it.afDesc = af.d;
+      it.afColor = af.c;
+      it.name += ' [' + af.name + ']';
+      it.price += 25 + floor * 3;
+      if(it.r === 'common') it.r = 'rare';
+      else if(it.r === 'rare') it.r = 'legendary';
+    }
   }
   return it;
 }
@@ -5063,6 +5086,7 @@ function killFoe(e){
     });
   }
   player.xp+=e.xp;player.killsTotal++;
+  if(player.relic && player.relic.id === 'third_eye') player.xp += Math.ceil(e.xp * 0.3);
   player.floorKills = (player.floorKills || 0) + 1;
   gainPetXp(1);
   if(e.burn > 0) player.usedFireKillThisFloor = true;
@@ -5408,6 +5432,10 @@ function endTurn(){
   if(player.arm && player.arm.affix === 'regen' && time % 3 === 0 && player.hp < player.mhp){
     player.hp++;
     floats.push({x:player.x, y:player.y, t:'+๑ อมฤต', c:'#2ec4a6', life:0.8});
+  }
+  if(player.relic && player.relic.id === 'sacred_necklace' && time % 4 === 0 && player.hp < player.mhp){
+    player.hp = Math.min(player.mhp, player.hp + 2);
+    floats.push({x:player.x, y:player.y, t:'+๒ พระธาตุ', c:'#f4ecdc', life:0.8});
   }
 
   // ประมวลผลสถานะติดไฟ / พิษ ของศัตรู
@@ -6121,7 +6149,8 @@ function renderShop(n){
   n.stock.forEach((it,si)=>{
     const r=document.createElement('div');r.className='row';
     const isDiscount = si === 0; // ชิ้นแรกลด 50%
-    const curPrice = isDiscount ? Math.floor(it.price * 0.5) : it.price;
+    let curPrice = isDiscount ? Math.floor(it.price * 0.5) : it.price;
+    if(player.relic && player.relic.id === 'merchant_charm') curPrice = Math.floor(curPrice * 0.85); // ส่วนลดวาณิช ๑๕%
     r.innerHTML='<span>' + (isDiscount ? '<span class="teal" style="font-weight:700">[ลด ๕๐%] </span>' : '') + it.name + statTxt(it) + '</span>';
     const b=document.createElement('button');b.className='mini-btn';
     b.textContent='◉ '+curPrice;b.disabled=player.gold<curPrice;
