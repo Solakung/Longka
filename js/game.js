@@ -2897,6 +2897,26 @@ function getFoePool(fl){
 
 function getBoss(fl){
   if(BOSSES[fl])return BOSSES[fl];
+  if(endless && player && fl === 25){
+    const ks = player.killStats || {};
+    let id = player.vengeId;
+    if(!id){
+      id = Object.keys(ks).filter(k => FOES.some(f => f.id === k)).sort((a, b) => ks[b] - ks[a])[0];
+      if(id) player.vengeId = id;
+    }
+    const base = FOES.find(f => f.id === id);
+    if(base){
+      const n = ks[id] || 1;
+      return {name: 'วิญญาณแค้น' + base.name, title: 'อสูรจากรอยกรรมของเจ้า · ถูกสังหาร ' + thaiNum(n) + ' ครั้ง', sprite: base.sprite,
+        hp: 200 + Math.min(120, n * 3), atk: Math.max(22, Math.floor(base.atk * 1.4) + 12), def: 8, xp: 410, g: 125};
+    }
+  }
+  if(endless && player && fl === 30){
+    const arm = player.arm ? player.arm.v : 0, wv = player.wpn ? player.wpn.v : 0, cons = player.consistent || 0;
+    return {name: 'เงาตนเอง', title: 'ผู้ที่ยืนอยู่ตรงหน้า... คือตัวเจ้าจริงแท้หรือ', sprite: ensureShadowSprite(CLASSES[player.cls].sprite),
+      hp: Math.min(1400, Math.floor(player.mhp * 1.8) + 80), atk: Math.floor(player.atk + wv * 0.8) + 6 + (3 - cons) * 2,
+      def: Math.floor((player.def + arm) * 0.8) + cons * 2, xp: 600, g: 300};
+  }
   if(fl%5===0 && fl>20){
     const cycle = Math.floor(fl/5) - 4;
     const btype = (Math.floor(fl/5)-1)%4;
@@ -3047,6 +3067,8 @@ const ACHIEVEMENTS = [
 
   // ขั้นเทพ / อเวจี (Platinum / Mythic)
   { id: 'abyss_conqueror', t: 'ผู้เหยียบย่ำอเวจี', d: 'ก้าวลงสู่ชั้น ๒๕ ในโหมดอเวจีไม่สิ้นสุด', tier: 'platinum', icon: '☠️' },
+  { id: 'shadow_slain', t: 'ผู้สังหารเงา', d: 'ลงดาบสังหารเงาตนเองในชั้น ๓๐', tier: 'gold', icon: '🗡️' },
+  { id: 'true_ending', t: 'ผู้โอบกอดเงา', d: 'ยื่นมือรับเงาตนเอง — ฉากจบแท้', tier: 'platinum', icon: '🌗' },
   { id: 'abyss_deep', t: 'ผู้ไร้ที่สิ้นสุด', d: 'พิชิตลึกถึงชั้น ๓๐ ในโหมดอเวจี', tier: 'platinum', icon: '👑' },
   { id: 'slayer_100', t: 'สังหารมารนับร้อย', d: 'สังหารศัตรูสะสมครบ ๑๐๐ ตนในการเล่นรอบเดียว', tier: 'platinum', icon: '🔥' },
   { id: 'rich_man', t: 'คลังทองอสูร', d: 'สะสมเหรียญทองครบ ๕๐๐ ◉ ในการเล่นรอบเดียว', tier: 'platinum', icon: '🏆' },
@@ -3618,6 +3640,7 @@ function genFloor(fl){
   if(player) player.furyStacks = 0; // k_fury รีเซ็ตเมื่อขึ้นชั้นใหม่
   if(!isBossRushMode) genFloorBounty(fl);
   floor=fl;floorR=mulberry32((seed^(fl*2654435761))>>>0);
+  refreshAvici();
   map=new Uint8Array(W*H);seen=new Uint8Array(W*H);vis=new Uint8Array(W*H);
   enemies=[];npcs=[];items=[];kills={};slashes=[];sparks=[];
   const rooms=[];
@@ -3666,7 +3689,7 @@ function genFloor(fl){
       }
     }
     // กับดักซ่อนเร้น
-    if(floorR() < (heatSettings.moreTraps ? 0.70 : 0.35)){
+    if(floorR() < ((heatSettings.moreTraps || av('reckless')) ? 0.70 : 0.35)){
       const tx = r.x + 1 + Math.floor(floorR()*(r.w-2));
       const ty = r.y + 1 + Math.floor(floorR()*(r.h-2));
       if(map[ty*W+tx]===1 && !(tx===player.x && ty===player.y)){
@@ -3742,6 +3765,8 @@ function genFloor(fl){
     const r = pick(rooms.slice(1));
     map[(r.y+1)*W + r.x+2] = 10;
   }
+  if(av('shameless')){ const ar = pick(rooms.slice(1)); map[(ar.y+1)*W + ar.x+2] = 7; }
+  if(av('reckless')){ const rr = rooms.slice(1); for(let q = 0; q < 3; q++){ const r2 = pick(rr); items.push({x: r2.cx + (q - 1), y: r2.cy, ...(q === 0 ? genW(5) : q === 1 ? genA(6) : genRelic())}); } }
   const boss=getBoss(fl);
   const n=boss?5:Math.min(12,4+Math.floor(fl*0.9));
   for(let i=0;i<n;i++){
@@ -3924,7 +3949,9 @@ function genFloor(fl){
 function spawnFoe(base,x,y){
   let hpBonus = Math.floor(floor * 1.3);
   if(heatSettings.toughFoes) hpBonus += Math.ceil((base.hp + hpBonus) * 0.30); // ★ +๓๐% ของ HP รวมจริงตามที่แจ้งในเมนู (เดิมหนักเกินในชั้นต้น)
-  const atkBonus = Math.floor(floor * 0.4);
+  let atkBonus = Math.floor(floor * 0.4);
+  if(av('wrath')) atkBonus += Math.ceil((base.atk + atkBonus) * 0.3);
+  if(av('conceit') && player){ hpBonus += player.lvl * 3; atkBonus += Math.floor(player.atk * 0.25); }
   const gBase = (base.g && !isNaN(base.g)) ? base.g : 8;
   return {...base,x,y,awake:false,maxhp:base.hp+hpBonus,hp:base.hp+hpBonus,
     atk:base.atk+atkBonus,g:gBase+(floor>>1),flash:0,bumpX:0,bumpY:0,
@@ -4155,7 +4182,7 @@ function los(x0,y0,x1,y1){
   return true;
 }
 function computeFov(){
-  vis.fill(0);const RAD=6 + (hasTal('r_sight') ? 2 : 0);
+  vis.fill(0);const RAD = av('fog') ? 2 : 6 + (hasTal('r_sight') ? 2 : 0);
   for(let y=Math.max(0,player.y-RAD);y<=Math.min(H-1,player.y+RAD);y++)
   for(let x=Math.max(0,player.x-RAD);x<=Math.min(W-1,player.x+RAD);x++){
     const d2=(x-player.x)**2+(y-player.y)**2;
@@ -4274,7 +4301,7 @@ function openCursedAltarModal(ax, ay){
     player.mhp = Math.max(10, player.mhp - wpnMhpCost);
     player.def = Math.max(0, player.def - wpnDefCost);
     player.hp = Math.min(player.hp, player.mhp);
-    player.usedCursedAltar = true;
+    player.usedCursedAltar = true; avAltarBonus();
     player.sacrificeCount = (player.sacrificeCount || 0) + 1;
     const godWpn = genW(5); // อาวุธเทวะระดับ ๕ ต้องสาปทรงพลัง
     if(player.inv.length < (player.bagMax||10)) player.inv.push(godWpn);
@@ -4292,7 +4319,7 @@ function openCursedAltarModal(ax, ay){
     player.mhp = Math.max(10, player.mhp - goldMhpCost);
     player.def = Math.max(0, player.def - goldDefCost);
     player.hp = Math.min(player.hp, player.mhp);
-    player.usedCursedAltar = true;
+    player.usedCursedAltar = true; avAltarBonus();
     player.sacrificeCount = (player.sacrificeCount || 0) + 1;
     player.gold += 150;
     msg('🩸 เลือดถูกสูบสังเวย! ได้รับเหรียญทอง ◉๑๕๐ จากแท่นบูชาบาป! (เลือดสูงสุด -' + goldMhpCost + ', ป้องกัน -' + goldDefCost + ' ถาวร)', 'good');
@@ -4694,10 +4721,10 @@ function tryMove(dx,dy){
 function waitTurn(){
   if(state!=='play')return;
   unlockAch('rest_peace');
-  player.mp=Math.min(player.mmp,player.mp+1);
+  if(!av('sloth') || time % 2 === 0) player.mp=Math.min(player.mmp,player.mp+1);
   // ★ พักสำรวมลมปราณขณะไม่มีศัตรูในสายตา: ฟื้นเลือด ๓% (ต้องแลกด้วยพลังกายที่ลดลงตามเวลา)
   if(player.hp < player.mhp && player.hunger > 0 && !enemies.some(o => o.hp > 0 && vis[o.y*W+o.x])){
-    const _rh = Math.max(1, Math.floor(player.mhp * 0.03));
+    const _rh = Math.max(1, Math.floor(player.mhp * 0.03 * (av('sloth') ? 0.5 : 1)));
     player.hp = Math.min(player.mhp, player.hp + _rh);
     floats.push({x:player.x, y:player.y, t:'+' + _rh, c:'#2ec4a6', life:0.8});
   }
@@ -4728,6 +4755,7 @@ function attackFoe(e, dirX=0, dirY=0){
     // ซุ่มโจมตีจากกอเถาวัลย์: การันตีคริติคอล ๑๐๐%
   const isStealthAmbush = isGrass(player.x, player.y);
   let critRate = isStealthAmbush ? 1.0 : 0.15;
+  if(av('wrath')) critRate = Math.min(1, critRate + 0.15);
   if(wpn.type === 'dagger') critRate += 0.20; // มีดสั้นคริติคอลสูง
   if(wpn.affix === 'sharp') critRate += 0.15;
   if(player.relic && player.relic.id === 'diamond_ring') critRate += 0.15 + (player.relic.plus || 0) * 0.01;
@@ -5270,6 +5298,7 @@ function killFoe(e){
     if(floor === 10) unlockAch('boss_maricha');
     if(floor === 15) unlockAch('boss_kumbha');
     if(floor === 20) unlockAch('victory_moksha');
+    if(endless && floor === 30) storyShadowKill();
     if(floor===FINAL && !endless){storyTwist();return;}
     stairs.locked=false;sfx.stairs();
     msg('ผนึกบันไดสลายแล้ว! ทางลงเปิดออก…','good');
@@ -5279,11 +5308,12 @@ function killFoe(e){
   }
 
   let g = (e.g !== undefined && e.g !== null && !isNaN(e.g)) ? e.g + R(Math.max(1, e.g)) : 8;
+  if(av('greed')) g = Math.floor(g * 1.5);
   if(player.relic && player.relic.id === 'diamond_ring') g = Math.floor(g * (1.5 + (player.relic.plus || 0) * 0.05));
   if(player.relic && player.relic.id === 'ring_greed') g = Math.floor(g * (2.5 + (player.relic.plus || 0) * 0.1));
   player.gold = (!isNaN(player.gold) ? player.gold : 0) + divineMul(g);
   msg(e.name+'แตกดับ! +'+e.xp+' ประสบการณ์ +'+g+' เหรียญ');
-  const r=rng();
+  const r=rng() * (av('greed') ? 0.7 : 1);
   if(r<.06)items.push({x:e.x,y:e.y,t:'pot',name:'อมฤต',heal:12+floor*2});
   else if(r<.2)items.push({x:e.x,y:e.y,t:'gold',amt:5+R(10)});
   else if(r<.27)items.push({x:e.x,y:e.y,...genGroundItem()});
@@ -5791,7 +5821,7 @@ function endTurn(){
 
   
   // ระบบลดพลังกาย (Hunger)
-  if(time % 8 === 0 && player.hunger > 0){
+  if(time % (av('greed') ? 4 : 8) === 0 && player.hunger > 0){
     player.hunger--;
   }
   if(player.hunger <= 0){
@@ -6621,9 +6651,10 @@ function enterEndless(){
   genFloor(21);
   updateHud();
   saveGame();
+  storyFloorEnter(21);
 }
 
-function victory(){
+function victory(ending){
   state='win';sfx.level();localStorage.removeItem(SAVE_KEY);
   if(isBossRushMode) unlockAch('boss_rush_clear');
   else if(getHeatMultiplier() > 1) unlockAch('heat_victory');
@@ -6636,8 +6667,13 @@ function victory(){
   saveRunItemsToStash(); // บันทึกไอเทมทั้งหมดในตัวลงหีบข้ามชาติ
 
   hallAdd(sc,true);
+    const isTrue = ending === 'true';
     const isGoodEnd = player.punya >= 80 && !player.usedCursedAltar;
-  if(isGoodEnd){
+  if(isTrue){
+    unlockAch('true_ending');
+    $('winStats').innerHTML='<span class="teal" style="font-weight:700">🌗 ฉากจบแท้: อเวจี · ยอมรับ</span><br>'+
+      'เจ้ามิได้ล้มเงาตน หากแต่โอบรับมันไว้<br>กิตติยศ <b class="gold">'+sc+'</b>';
+  } else if(isGoodEnd){
     $('winStats').innerHTML='<span class="teal" style="font-weight:700">✦ ฉากจบ: โมกษะธรรมะ (หลุดพ้นบริสุทธิ์)</span><br>'+
       'ทศกัณฐ์ล่มสลาย แสงธรรมสาดส่องทั่วเกาะลงกา<br>ดวงจิตของเจ้าหลุดพ้นจากวัฏสงสารอย่างแท้จริง!<br>กิตติยศ <b class="gold">'+sc+'</b>';
   } else {
@@ -6646,9 +6682,10 @@ function victory(){
   }
 
   // เล่นคัตซีนภาพฉากจบเต็มจอก่อนเปิดหน้าสถิติ
-  playEndingCinematic(isGoodEnd ? 'good' : 'evil', () => {
+  playEndingCinematic(isTrue || isGoodEnd ? 'good' : 'evil', () => {
     $('winStats').innerHTML += '<br>' + buildRunSummaryCard(true, sc, earnedKarma);
-  });
+  }, isTrue ? {title: '🌗 อเวจี: ยอมรับ — ฉากจบแท้', text: ENDING_TEXT.accept}
+    : isGoodEnd ? {title: '✦ โมกษธรรมะ', text: ENDING_TEXT.good} : {title: '☠ กลียุคจ้าวมาร — ผู้สืบทอดบัลลังก์ลงกา', text: ENDING_TEXT.evil});
   hallInto($('winHall'));
 
   // เพิ่มปุ่มทางเลือกดำดิ่งสู่อเวจี
@@ -6660,8 +6697,8 @@ function victory(){
     const rBtn=$('btnRebirth2');
     rBtn.parentNode.insertBefore(btnBox, rBtn);
   }
-  btnBox.innerHTML='<button class="btn" id="btnEndless" style="background:#8f2438;color:#fff;border-color:#d43d2a;box-shadow:0 5px 0 #5c1422">☠ ดำดิ่งสู่อเวจี (ลงต่อไม่สิ้นสุด)</button>';
-  $('btnEndless').onclick=enterEndless;
+  btnBox.innerHTML=isTrue ? '' : '<button class="btn" id="btnEndless" style="background:#8f2438;color:#fff;border-color:#d43d2a;box-shadow:0 5px 0 #5c1422">☠ ดำดิ่งสู่อเวจี (ลงต่อไม่สิ้นสุด)</button>';
+  if($('btnEndless')) $('btnEndless').onclick=enterEndless;
 
   show($('winOv'));
 }
@@ -6684,7 +6721,7 @@ function loadGame(){
   try{
     const s=JSON.parse(localStorage.getItem(SAVE_KEY));
     if(!s||!s.player)return false;
-    seed=s.seed;floor=s.floor;stairs=s.stairs;endless=!!s.endless;kills=s.kills||{};
+    seed=s.seed;floor=s.floor;stairs=s.stairs;endless=!!s.endless;kills=s.kills||{};refreshAvici();
     map=new Uint8Array(W*H);seen=new Uint8Array(W*H);vis=new Uint8Array(W*H);
     for(let i=0;i<W*H;i++)map[i]=+s.map[i];
     if(s.seen){for(let i=0;i<W*H;i++)seen[i]=+s.seen[i];}
@@ -7392,7 +7429,7 @@ function render(){
 }
 
 function drawMinimap(){
-  if(state!=='play'){mcv.style.display='none';return;}
+  if(state!=='play' || av('fog')){mcv.style.display='none';return;}
   mcv.style.display='block';
   mctx.fillStyle='#0d0412';mctx.fillRect(0,0,84,64);
   for(let y=0;y<H;y++)for(let x=0;x<W;x++){
@@ -7674,6 +7711,20 @@ const STORY = {
         '“ก่อนจักก้าวข้ามกำแพงสุดท้าย... ตอบตัวเองให้ได้ ว่าเจ้าซ่อนสิ่งใดไว้ มิเช่นนั้น เจ้าจักมิมีวันล้มมันลง”'
       ]
     },
+    25: {
+      who: 'วิญญาณแค้น',
+      pre: [
+        '“เจ้าคงลืมเลือนข้าไปแล้ว... แต่ข้าจำคมดาบเจ้าได้ทุกลมหายใจ”',
+        '“เจ้าคือคนแรกที่มอบความเจ็บปวด และเป็นคนสุดท้ายที่พรากความทุกข์ไปจากข้า!”'
+      ]
+    },
+    30: {
+      who: 'เงา',
+      pre: [
+        '“ในทุกภพชาติที่ผ่านมา... เจ้าเคยเอาชนะใครได้จริงรึ”',
+        '“คนที่ยืนหยัดกำชัยมาตลอดคือข้า... มิใช่เจ้า!”'
+      ]
+    },
     20: {
       who: 'ทศกัณฐ์',
       pre: [
@@ -7705,6 +7756,7 @@ let storyOpen = false, storyQueue = [];
 function storyOn(){ return !isBossRushMode && !window._selectBossRush && getSettings().story !== false; }
 function storyFlag(k){ if(!player.story) player.story = {}; if(player.story[k]) return false; player.story[k] = 1; return true; }
 
+function storyFlush(){ if(storyOpen) return; const nx = storyQueue.shift(); if(nx) showStory(nx.lines, nx.onDone, nx.speaker); }
 // lines: สตริง (บรรยาย) หรือ {who,t} · speaker = ชื่อผู้พูดเริ่มต้น
 function showStory(lines, onDone, speaker){
   if(!lines || !lines.length || !storyOn()){ if(onDone) onDone(); return; }
@@ -7723,8 +7775,7 @@ function showStory(lines, onDone, speaker){
     storyOpen = false; hide(ov);
     state = (prev === 'story' || !prev) ? 'play' : prev;
     if(onDone) onDone();
-    const nx = storyQueue.shift();
-    if(nx) showStory(nx.lines, nx.onDone, nx.speaker);
+    storyFlush();
   }
   function render(){
     const raw = lines[i];
@@ -7762,7 +7813,9 @@ function storyRunStart(cls){
   showStory(lines);
 }
 function storyFloorEnter(fl){
-  if(!player || !storyOn()) return;
+  if(!player) return;
+  storyAviciEnter(fl);
+  if(!storyOn()) return;
   const lines = [];
   if(STORY.enter[fl] && storyFlag('e' + fl)) lines.push(STORY.enter[fl]);
   const sk = getSkel();
@@ -7772,7 +7825,8 @@ function storyFloorEnter(fl){
 // คืน true ถ้าเปิดบทก่อนศึกแล้ว (ให้บอสรอ ๑ เทิร์น)
 function storyBossPre(e){
   const b = STORY.boss[floor];
-  if(!b || endless || floor > 20 || !storyOn() || !storyFlag('pre' + floor)) return false;
+  const okFloor = endless ? (floor === 25 || floor === 30) : floor <= 20;
+  if(!b || !okFloor || !storyOn() || !storyFlag('pre' + floor)) return false;
   let lines = b.pre.slice();
   if(floor === 5 && getSkel()) lines[0] = b.preReturn;
   if(floor === 15 && player.cls === 'bibhek') lines[2] = b.preBibhek3;
@@ -7790,9 +7844,10 @@ function storyBossPost(fl){
       .map(id => { const f = FOES.find(x => x.id === id); return (f ? f.name : id) + ' ' + thaiNum(ks[id]); });
     if(top.length) lines.push({who: '', t: 'ซากที่เจ้าทิ้งไว้เบื้องหลัง — ' + top.join(' · ')});
   }
-  showStory(lines, null, b.who);
+  showStory(lines, fl === 15 ? storyHiddenKarma : null, b.who);
 }
 function storyBossHp(){
+  if(endless && floor === 30){ shadowHalf(); return; }
   if(floor !== 20 || endless) return;
   for(const e of enemies){
     if(!e.boss || e.hp <= 0 || !e.maxhp) continue;
@@ -7805,6 +7860,95 @@ function storyBossHp(){
     }
   }
 }
+
+
+/* ── อเวจี ชั้น ๒๑–๓๐: สิบเศียร สิบกิเลส ── */
+const AVICI = {
+  21: {k: 'โลภะ',      w: '“จงกอบโกยอีกสิ... เท่านี้ยังมิพอยาไส้ดอก”', d: 'ของตกและทองเพิ่ม ๕๐% แต่หิวเร็วเป็นสองเท่า', greed: 1},
+  22: {k: 'โทสะ',      w: '“ฟาดฟันมันเข้าไป! บดขยี้ให้แหลกคามือ!”', d: 'ศัตรูโจมตีแรงขึ้น ๓๐% และเจ้าติดคริติคอลบ่อยขึ้น', wrath: 1},
+  23: {k: 'โมหะ',      w: '“เจ้าคิดว่าทางนี้ถูกรึ... เดินวนอยู่ในภาพลวงตาเถิด”', d: 'หมอกดำบดบังแผนที่ ทัศนวิสัยเหลือไม่กี่ช่อง', fog: 1},
+  24: {k: 'ถีนะ',      w: '“เหนื่อยล้าเกินทนแล้วมิใช่หรือ... ทอดกายลงหลับใหลเสียเถิด”', d: 'พักฟื้นเลือดได้เพียงครึ่งเดียว มานาฟื้นช้าลง', sloth: 1},
+  25: {k: 'อุทธัจจะ',   w: '“เสียงใครก้องในหัว... ผู้ใดกำลังสาปแช่งเจ้าอยู่ตรงนั้น!”', d: 'วิญญาณแค้นของศัตรูที่เจ้าสังหารมากที่สุดรออยู่ในชั้นนี้'},
+  26: {k: 'อหิริกะ',    w: '“ในเงามืดมิดนี้... ใครเล่าจักเห็นว่าเจ้าทำสิ่งใด”', d: 'แท่นบูชาลับ: พลังมหาศาล แลกบาปมหาศาล', shameless: 1},
+  27: {k: 'อโนตตัปปะ',  w: '“ผลกรรมรึ... ไว้ชาติหน้าเถิด คว้าสิ่งตรงหน้าไว้ก่อนเป็นไร!”', d: 'กับดักหนาแน่นสองเท่า แต่มียุทธภัณฑ์ระดับตำนานซ่อนอยู่', reckless: 1},
+  28: {k: 'มานะ',      w: '“เจ้าเหนือกว่าทุกชีวิตที่ทอดร่างอยู่เบื้องหลัง... จริงหรือไม่เล่า”', d: 'ศัตรูแกร่งขึ้นตามเลเวลและพลังโจมตีของเจ้า', conceit: 1},
+  29: {k: 'ทิฐิ',       w: '“เจ้าเชื่อมั่นว่าตนถือความถูกต้องมาตลอด... เจ้าแน่ใจแล้วหรือ”', d: 'คำตอบในชั้น ๑๕ ย้อนกลับมาทดสอบเจ้าอีกครั้ง'},
+  30: {k: 'วิจิกิจฉา',  w: '“เจ้าแน่ใจหรือ... ว่าผู้ที่ยืนอยู่นี้ คือตัวเจ้าจริงแท้”', d: 'เงาตนเองรออยู่เบื้องหน้า'}
+};
+let curAvici = null;
+function refreshAvici(){ curAvici = (endless && floor >= 21 && floor <= 30) ? AVICI[floor] : null; }
+function av(k){ return !!(curAvici && curAvici[k]); }
+function avAltarBonus(){
+  if(!av('shameless')) return;
+  player.sin = (player.sin || 0) + 12; player.atk += 3;
+  msg('🕯 ไร้ยางอาย — พลังมหาศาลไหลเข้าสู่กาย แต่บาปก็ทับถม (ATK +๓ · บาป +๑๒)', 'warn');
+}
+function ensureShadowSprite(name){
+  const key = 'shadow_' + name;
+  if(SPR[key]) return key;
+  const src = SPR[name]; if(!src) return name;
+  const c = document.createElement('canvas'); c.width = src.width; c.height = src.height;
+  const g = c.getContext('2d'); g.drawImage(src, 0, 0);
+  g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(10,4,22,0.9)'; g.fillRect(0, 0, c.width, c.height);
+  SPR[key] = c; SPR_SIZE[key] = SPR_SIZE[name] || 16;
+  return key;
+}
+const KARMA_Q = [['ความกลัว', 'ความโกรธ'], ['ความกังขา', 'ความอหังการ'], ['ความอาลัย', 'การปล่อยวาง']];
+function storyAsk(i, again, answers, onDone){
+  const head = again ? '“เจ้าแน่ใจแล้วหรือ... ตอบอีกครั้ง”' : '“ตอบตัวเองให้ได้ ว่าเจ้าซ่อนสิ่งใดไว้”';
+  storyChoice(head + '\n(ข้อ ' + thaiNum(i + 1) + ' จาก ๓)', KARMA_Q[i].map((lab, j) => ({label: lab, fn: () => {
+    answers[i] = j;
+    if(i < 2) storyAsk(i + 1, again, answers, onDone); else onDone(answers);
+  }})));
+}
+// ชั้น ๑๕: ตัวเลือกหยั่งจิต ๓ ประการ (ผลเงียบ ส่งต่อไปชั้น ๒๙–๓๐)
+function storyHiddenKarma(){
+  storyAsk(0, false, [], ans => {
+    player.hiddenKarma = ans;
+    if(ans[0] === 0) player.def += 1; else player.atk += 1;
+    if(ans[1] === 0){ player.mmp += 4; player.mp += 4; } else player.atk += 1;
+    if(ans[2] === 0){ player.mhp += 5; player.hp += 5; } else player.dodge = (player.dodge || 0) + 3;
+    msg('✦ คำตอบของเจ้าฝังลึกลงในจิต... บางสิ่งในกายเปลี่ยนไป', 'good');
+    updateHud();
+  });
+}
+// ชั้น ๒๙: ทดสอบซ้ำ — ยึดคำตอบเดิม = ทิฐิ (เงาแกร่งด้านป้องกัน) · เปลี่ยนใจ = ลังเล (เงาโหดด้านโจมตี)
+function storyEcho(){
+  if(!player.hiddenKarma || !storyFlag('echo29')) return;
+  storyAsk(0, true, [], ans => {
+    player.consistent = ans.filter((a, i) => a === player.hiddenKarma[i]).length;
+    msg(player.consistent >= 2 ? '🪞 เจ้ายึดมั่นในคำตอบเดิม... เงาเบื้องหน้าแข็งกร้าวขึ้น' : '🪞 เจ้าลังเล... เงาเบื้องหน้าคมกริบขึ้น', 'warn');
+  });
+}
+function storyAviciEnter(fl){
+  const a = AVICI[fl];
+  if(!a || !endless) return;
+  msg('☠ เศียรที่ ' + thaiNum(fl - 20) + ' · ' + a.k + ' — ' + a.d, 'warn');
+  const after = fl === 29 ? storyEcho : null;
+  if(storyOn() && storyFlag('av' + fl)) showStory([{who: 'เสียงกระซิบ · ' + a.k, t: a.w}], after);
+  else if(after && storyOn()) after();
+}
+function shadowHalf(){
+  for(const e of enemies){
+    if(e.id !== 'boss_30' || e.hp <= 0 || e.hp > Math.floor(e.maxhp * 0.5) || !storyFlag('shadow50')) continue;
+    sfx.boss(); shake = 8; flash = 0.5;
+    storyChoice('เงา: “จงสังหารข้าสิ แล้วสืบทอดมงกุฎทศกัณฐ์คนถัดไป... หรือว่า... เจ้าจักยอมยื่นมือมา”', [
+      {label: '⚔ ลงดาบสังหาร', style: 'background:#8f2438;color:#fff;border-color:#d43d2a', fn: () => { player.shadowPath = 'kill'; msg('เจ้าเงื้อดาบขึ้นอีกครา...', 'warn'); }},
+      {label: '🤝 ยื่นมือสู่เงา', fn: () => { player.shadowPath = 'accept'; victory('true'); }}
+    ]);
+    return;
+  }
+}
+function storyShadowKill(){
+  unlockAch('shadow_slain');
+  showStory([{who: '', t: ENDING_TEXT.kill}]);
+}
+const ENDING_TEXT = {
+  good: '“แสงเทาสาดส่องทั่วลงกา กองทัพธรรมชูธงชัยก้องเวหา... เจ้าก้าวออกจากปล่องวิหารสู่ความสงบ ทว่าเงาดำใต้ฝ่าเท้ายังคงหยุดนิ่งบนบันไดขั้นแรก ดวงตามันเฝ้ามองแผ่นหลังเจ้ามิวางตา”',
+  evil: '“บัลลังก์ทองว่างเปล่ามานานนับกัป เจ้าทอดกายนั่งลงดั่งต้องมนตร์สะกด ภาพจารึกสิบพักตร์บนผนังค่อยๆ บิดเบี้ยวเป็นใบหน้าของเจ้า... อีกสิบปีข้างหน้า ผู้กล้าคนถัดไปจักได้เผชิญหน้ากับจ้าวนครลงกาคนใหม่ ที่มีรอยยิ้มคุ้นตา”',
+  accept: '“เงามืดหลอมรวมเข้าสู่อณูวิญญาณ ไร้เสียงแตรชัย ไร้ประกายทอง มีเพียงความสงัดอันลึกซึ้ง... เจ้ามิได้เห็นเงาตนอีกต่อไป เพราะมันมิได้พลัดพราก หากแต่สถิตอยู่เคียงคู่ลมหายใจ เจ้าก้าวขึ้นบันไดสู่เบื้องบน ในฐานะมนุษย์ผู้โอบกอดทั้งแสงสว่างและความมืดไว้ในกำมือ”',
+  kill: 'ฉากจบ: ชัยชนะอันว่างเปล่า\n“ร่างเงาแหลกสลายเป็นธุลี เจ้ามีชัย... ทว่าทุกถ้อยคำแห่งความทะนง เงาได้ตรึกตรองไว้ก่อนหน้าแล้วสิ้น บันไดศิลาขั้นถัดไปทอดยาวสู่ชั้นที่สามสิบเอ็ดอันไร้ที่สิ้นสุด วังวนแห่งการประหัตประหารที่มิมีเพดานกั้น”'
+};
 
 // ── จุดหักมุมหลังพิชิตทศกัณฐ์ ── แต้มบุญสูง = เลือกทาง · แต้มบาปสูง = ไปฉากจบกลียุคเลย
 function storyChoice(prompt, options){
@@ -7820,7 +7964,7 @@ function storyChoice(prompt, options){
   options.forEach(o => {
     const b = document.createElement('button'); b.className = 'btn'; b.textContent = o.label;
     b.style.cssText = 'display:block;width:100%;margin:6px 0;font-size:13px;padding:9px 12px;' + (o.style || '');
-    b.onclick = () => { storyOpen = false; hide(ov); state = 'play'; o.fn(); };
+    b.onclick = () => { storyOpen = false; hide(ov); state = 'play'; o.fn(); storyFlush(); };
     p.appendChild(b);
   });
   ov.appendChild(p); show(ov);
@@ -7950,7 +8094,7 @@ function playCinematicPrologue(onComplete = null){
   renderSlide();
 }
 
-function playEndingCinematic(type, onFinish){
+function playEndingCinematic(type, onFinish, o){
   const ov = openCinematicModal();
 
   let html = '<div class="panel" style="max-width:480px;padding:14px;border-color:' + (type==='good'?'var(--teal)':'var(--red)') + ';box-shadow:0 0 34px rgba(0,0,0,.95);text-align:center">';
@@ -7964,10 +8108,15 @@ function playEndingCinematic(type, onFinish){
     html += '<p style="color:var(--ink);font-size:13px;line-height:1.55;margin:4px 0 14px;font-style:italic">“ผู้ปราบมัจจุราช บัดนี้กลายเป็นมัจจุราชเสียเอง… เจ้ากลืนกินดวงใจทศกัณฐ์ สวมมงกุฎ ๑๐ หน้า สถาปนาตนเป็นจ้าวมารตนใหม่ผู้ครองเกาะลงกา!”</p>';
   }
 
+  if(o){
+    html = html.replace(/<h2[\s\S]*?<\/h2>/, '<h2 style="font-family:Chakra Petch;color:' + (type === 'good' ? 'var(--teal)' : 'var(--red)') + ';margin:8px 0 4px;font-size:20px"></h2>')
+      .replace(/<p [\s\S]*?<\/p>/, '<p id="endTxtP" style="color:var(--ink);font-size:13px;line-height:1.55;margin:4px 0 14px;font-style:italic"></p>');
+  }
   html += '<button class="btn" id="btnEndComplete" style="width:100%">สู่ทำเนียบวีรชน ▶</button>';
   html += '</div>';
 
   ov.innerHTML = html;
+  if(o){ const h2 = ov.querySelector('h2'); if(h2) h2.textContent = o.title; const pp = $('endTxtP'); if(pp) pp.textContent = o.text; }
   show(ov);
 
   const c = $('cineEndCanvas');
