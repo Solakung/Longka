@@ -1511,6 +1511,7 @@ function applyYantraTattoo(yId, yx, gy){
   player.yantras = player.yantras || [];
   if(player.yantras.length >= 2) return;
   player.yantras.push(y);
+  unlockAch('yantra_tattoo');
   map[gy * W + yx] = 1; // แท่นถูกใช้แล้วกลายเป็นพื้น
   sfx.level(); flash = 0.7; shake = 8;
   msg('🛕 พระอาจารย์จารึก «' + y.name + '» ลงบนแผ่นกาย! ' + y.desc, 'good');
@@ -2212,6 +2213,7 @@ function castMantraFusion(fusionId){
     return;
   }
   player.mp -= reqMp;
+  unlockAch('mantra_fusion');
   sfx.boss(); flash = 0.6; shake = 8;
   hide($('mantraOv'));
 
@@ -2447,6 +2449,7 @@ function triggerAwaken(){
   }
   const av = AVATAR_POWERS[player.cls] || AVATAR_POWERS.ksatriya;
   player.isAwakened = 12; // อยู่ได้ 12 เทิร์น
+  unlockAch('awaken_first');
   player.awakenGauge = 0;
   flash = 0.8; shake = 10; sfx.boss();
   floats.push({x: player.x, y: player.y, t: '✦ ทรงเครื่อง ' + av.name + '!', c: '#f5c542', life: 2.5});
@@ -2552,6 +2555,17 @@ const RATIONS = [
   { id: 'jujube', name: 'พุทราทองคำ', icon: '🍎', hunger: 100, heal: 20, desc: 'อิ่มเต็ม ๑๐๐% ฟื้นเลือด +๒๐ และล้างดีบัฟ', lore: 'ผลไม้สวรรค์ที่ร่วงหล่นจากต้นกัลปพฤกษ์ ชุบชูพลังกายใจบริสุทธิ์' }
 ];
 
+// ★ อาวุธขว้าง (ตาราง THROWABLES เดิมประกาศไว้แต่ไม่เคยถูกสร้างเป็นไอเทม)
+function genThrowable(){
+  const th = pick(THROWABLES);
+  return {
+    t: 'throw', name: th.name,
+    dmg: Math.round(th.dmg * (1 + floor * 0.03)),
+    range: th.range, c: th.c, burn: th.burn || 0,
+    r: 'rare', lore: 'อาวุธขว้างระยะไกล ใช้ครั้งเดียวหมดไป',
+    price: 25 + floor * 3
+  };
+}
 function genRation(){
   const r = pick(RATIONS);
   return {
@@ -2626,6 +2640,7 @@ function socketGemToEquip(gemItem, invIdx){
   sfx.level(); flash = 0.5;
   msg('💎 ฝัง «' + gemItem.name + '» ลงใน «' + player.wpn.name + '» สำเร็จ! ' + gemItem.desc, 'good');
   floats.push({x: player.x, y: player.y, t: 'ฝังอัญมณีสำเร็จ!', c: gemItem.color, life: 1.8});
+  unlockAch('gem_socket');
   updateHud();
 }
 
@@ -3072,7 +3087,17 @@ const ACHIEVEMENTS = [
   { id: 'abyss_conqueror', t: 'ผู้เหยียบย่ำอเวจี', d: 'ก้าวลงสู่ชั้น ๒๕ ในโหมดอเวจีไม่สิ้นสุด', tier: 'platinum', icon: '☠️' },
   { id: 'abyss_deep', t: 'ผู้ไร้ที่สิ้นสุด', d: 'พิชิตลึกถึงชั้น ๓๐ ในโหมดอเวจี', tier: 'platinum', icon: '👑' },
   { id: 'slayer_100', t: 'สังหารมารนับร้อย', d: 'สังหารศัตรูสะสมครบ ๑๐๐ ตนในการเล่นรอบเดียว', tier: 'platinum', icon: '🔥' },
-  { id: 'rich_man', t: 'คลังทองอสูร', d: 'สะสมเหรียญทองครบ ๕๐๐ ◉ ในการเล่นรอบเดียว', tier: 'platinum', icon: '🏆' }
+  { id: 'rich_man', t: 'คลังทองอสูร', d: 'สะสมเหรียญทองครบ ๕๐๐ ◉ ในการเล่นรอบเดียว', tier: 'platinum', icon: '🏆' },
+  // ระบบใหม่ (Silver/Gold)
+  { id: 'gem_socket', t: 'ช่างอัญมณี', d: 'ฝังอัญมณีลงอาวุธสำเร็จ', tier: 'bronze', icon: '💎' },
+  { id: 'yantra_tattoo', t: 'ผู้สักยันต์', d: 'จารึกยันต์ศักดิ์สิทธิ์ลงบนกาย', tier: 'bronze', icon: '🛕' },
+  { id: 'set_bonus', t: 'ครบเซ็ตเทวะ', d: 'สวมไอเทมเซ็ตครบ ๒ ชิ้นจนติดโบนัส', tier: 'silver', icon: '🏹' },
+  { id: 'awaken_first', t: 'ทรงเจ้าเทวฤทธิ์', d: 'อวตารเป็นร่างเทพด้วยเกจเทวฤทธิ์', tier: 'silver', icon: '✦' },
+  { id: 'mantra_fusion', t: 'ผสานอาคม', d: 'ร่ายอาคมผสานสำเร็จ', tier: 'silver', icon: '🌪️' },
+  { id: 'bounty_hunter', t: 'นักล่าค่าหัว', d: 'สังหารเป้าหมายค่าหัวสำเร็จ', tier: 'silver', icon: '☠️' },
+  { id: 'daily_runner', t: 'ผู้แสวงบุญประจำวัน', d: 'เล่นโหมด Daily ถึงชั้น ๕', tier: 'silver', icon: '📅' },
+  { id: 'boss_rush_clear', t: 'จอมสังหารบอส', d: 'พิชิตโหมด Boss Rush ครบทุกระลอก', tier: 'gold', icon: '👑' },
+  { id: 'heat_victory', t: 'ผู้ทนเพลิงกรรม', d: 'ปราบทศกัณฐ์ขณะเปิดเพลิงกรรมท้าทาย', tier: 'platinum', icon: '🔥' },
 ];
 
 const TIER_COLORS = {
@@ -3213,6 +3238,16 @@ const BESTIARY_DATA = [
   { id: 'peacock', name: 'มยุรเทวะ', s: 'peacock', desc: 'นกยูงสวรรค์ขนมรกต แผ่รำแพนสะท้อนเวทมนตร์และโปรยขนนกลวงตา', tip: 'อย่าใช้คาถาโจมตีโดยตรง ให้ใช้อาวุธประชิดฟันทำลาย' },
   { id: 'preta_bat', name: 'ค้างคาวผีอเวจี', s: 'bat', desc: 'ค้างคาวปีศาจจากก้นบึ้งอเวจี บินข้ามสิ่งกีดขวางและดูดเลือดฟื้นฟูตนเอง', tip: 'ใช้อาวุธขว้างปาหรือธนูสอยก่อนมันบินเข้าประชิด' },
   { id: 'boss_20', name: 'ทศกัณฐ์ (บอสใหญ่ชั้น ๒๐)', s: 'boss', desc: 'พญายักษ์ ๑๐ หน้า ๒๐ กร จ้าวแห่งกรุงลงกา ผู้ครอบครองฤทธาไร้เทียมทาน', tip: 'บอสใหญ่สุดแกร่ง ต้องเตรียมยาอมฤต อาวุธตีบวก และเครื่องรางมณีโมกษะให้พร้อม!' },
+  { id: 'bat', name: 'ค้างคาวผี', s: 'bat', desc: 'ค้างคาวปีกขาดวิ่นจากถ้ำใต้วิหาร ตาแดงก่ำ บินวนสูบเลือดเหยื่อ', tip: 'สูบเลือดฟื้นตัวเอง ควรจบเร็วก่อนมันฟื้น' },
+  { id: 'chameleon', name: 'กิ้งก่าจำแลง', s: 'chameleon', desc: 'สัตว์เลื้อยคลานกลมกลืนกับผนังหิน มองไม่เห็นจนกว่าจะเข้าใกล้', tip: 'พรางตัวจนเหลือ ๒ ช่อง และจู่โจมนัดแรกแรง ×๑.๕ — เดินเข้าห้องมืดด้วยความระวัง' },
+  { id: 'kamikaze', name: 'เปรตเพลิง', s: 'kamikaze', desc: 'วิญญาณบาปที่ถูกเผาด้วยเพลิงกัลป์ ร่างปะทุรอวันระเบิด', tip: 'ตายแล้วระเบิด ๓×๓ ช่อง อย่าฟันประชิด ใช้ธนูหรือคาถาจากไกลๆ' },
+  { id: 'scorpion', name: 'แมงป่องหิมพานต์', s: 'scorpion', desc: 'แมงป่องยักษ์เกราะหนา หางพิษร้ายแรงจากป่าหิมพานต์', tip: 'เกราะหนา ใช้กระบองทะลุเกราะ และสวมเครื่องรางต้านพิษ' },
+  { id: 'shaman', name: 'รากษสหมอผี', s: 'shaman', desc: 'รากษสผู้เชี่ยวชาญเวทมนตร์ดำ ร่ายมนต์ฟื้นพวกพ้องและโจมตีระยะไกล', tip: 'ต้องสังหารก่อนเสมอ ไม่เช่นนั้นศัตรูทั้งห้องจะฟื้นไม่หยุด' },
+  { id: 'spider', name: 'แมงมุมใยอาคม', s: 'spider', desc: 'แมงมุมยักษ์ถักใยด้วยมนตร์ พ่นใยพันธนาการจากระยะไกล', tip: 'พ่นใยจากไกล ควรบุกประชิดเร็วหรือใช้คาถาโจมตี' },
+  { id: 'kinnara', name: 'กินนรจอมเวหา', s: 'kinnara', desc: 'ครึ่งนกครึ่งคนจากป่าหิมพานต์ บินว่อนเหนือพื้นอย่างว่องไว', tip: 'บินหลบการโจมตีกายภาพ ๒๕% — คาถาไม่ถูกหลบ' },
+  { id: 'wraith', name: 'ภูตผีลวงตา', s: 'wraith', desc: 'ภูตผีเงาที่แปลงกายหลอกตา ตายแล้วเงาจะแตกออกมาอีก', tip: 'ตายแล้วแตกเป็นเงาภูต ๒ ตน (เลือด ๒๕%) เตรียมอาวุธกวาดไว้จัดการ' },
+  { id: 'golem', name: 'ทวารบาลหินศิลา', s: 'golem', desc: 'รูปปั้นหินยักษ์ผู้เฝ้าประตูวิหาร ฝีเท้าสะเทือนพื้น', tip: 'เลือดและเกราะหนามาก ใช้กระบองหรือคาถา และอย่ายืนใกล้เมื่อมันกระทืบ' },
+  { id: 'berserker', name: 'ยักษ์ขวานคู่', s: 'berserker', desc: 'ยักษ์นักรบถือขวานสองมือ โลหิตพลุ่งพล่านเมื่อบาดเจ็บ', tip: 'เลือดต่ำกว่าครึ่งจะคลั่ง ATK +๔๐% — จบให้เร็วหรือถอยตั้งหลัก' },
   { id: 'vetala', name: 'เวตาลจอมขโมย', s: 'vetala', desc: 'วิญญาณสิงศพ ผิวซีดเผือด ตาเรืองเหลืองในเงามืด เคลื่อนที่รวดเร็วผิดปกติ ขโมยทรัพย์แล้วเผ่นหนี', tip: 'เคลื่อนที่ครั้งละ ๒ ช่อง ฆ่าให้ไวก่อนมันขโมยเงินแล้วหนี ฆ่าได้ไอเทมแต่เงินที่ขโมยไปจะไม่คืน' }
 ];
 
@@ -3714,6 +3749,7 @@ function genFloor(fl){
       genW(clamp(Math.floor(fl/4)+1, 1, 4)),
       genA(clamp(Math.floor(fl/4)+1, 1, 6)),
       genScrollUpg(),
+      genThrowable(),
       {...TOOL_HOOK}
     ];
     const priceScale = 1 + Math.max(0, fl - 4) * 0.12; // ★ ทองรายได้โตเร็วกว่าราคา: ราคาโตตามชั้นให้ทองยังมีค่า
@@ -4134,6 +4170,7 @@ function genGroundItem(){
   if(r<.65) return genPetEgg(); // ไข่สัตว์เลี้ยง
   if(r<.80){ let t = clamp(1 + Math.floor(floor/4), 1, 4); if(floor >= 16 && floorR() < 0.2) t = 5; return genW(t); }
   if(r<.92){ const t = clamp(1 + Math.floor((floor-1)/4), 1, ARMOR_MAX_TIER); return genA(t); }
+  if(r<.96) return genThrowable(); // อาวุธขว้าง (4%)
   return genScr();
 }
 
@@ -5289,6 +5326,7 @@ function killFoe(e){
     if(e.isBountyTarget && activeBounty && !activeBounty.hunted){
     activeBounty.hunted = true;
     player.gold += divineMul(activeBounty.reward);
+    unlockAch('bounty_hunter');
     player.punya += punyaGain(activeBounty.punya);
     sfx.level(); flash = 0.8; shake = 8;
     msg('🏆 สังหารมินิบอสค่าหัว «' + activeBounty.name + '» สำเร็จ! รับเงินรางวัล ◉' + activeBounty.reward + ' และปุญบารมี +' + activeBounty.punya + '!', 'good');
@@ -5624,6 +5662,7 @@ function endTurn(){
   if(player.invuln > 0) player.invuln--;
 
   // ประมวลผลสถานะติดไฟ / ติดพิษ ของผู้เล่น
+  if(!player._setAch && Object.keys(SET_DEFINITIONS).some(k => getSetTier(k) >= 2)){ player._setAch = true; unlockAch('set_bonus'); }
   if(statusImmune()){ player.poison = 0; player.burn = 0; }
   else if(poisonImmune()){ player.poison = 0; }
   if(player.poison > 0){
@@ -5900,14 +5939,15 @@ function useItem(i){
   const it=player.inv[i];if(!it)return;
   if(it.t==='throw'){
     // หาเป้าหมายที่มองเห็นได้ในระยะ
-    const inRange = enemies.filter(e => vis[e.y*W+e.x] && Math.max(Math.abs(e.x-player.x), Math.abs(e.y-player.y)) <= (it.range||5))
+    const inRange = enemies.filter(e => vis[e.y*W+e.x] && Math.max(Math.abs(e.x-player.x), Math.abs(e.y-player.y)) <= (it.range||5) + (hasTal('v_throw') ? 2 : 0))
       .sort((a,b) => (Math.abs(a.x-player.x)+Math.abs(a.y-player.y)) - (Math.abs(b.x-player.x)+Math.abs(b.y-player.y)));
     if(!inRange.length){
       msg('ไม่มีศัตรูในระยะขว้าง ' + thaiNum(it.range||5) + ' ช่อง', 'warn');
       return;
     }
     const t = inRange[0];
-    const d = Math.max(2, it.dmg + R(4) - (t.def >> 1));
+    let d = Math.max(2, Math.floor(it.dmg * (hasTal('v_throw') ? 2 : 1)) + R(4) - (t.def >> 1));
+    if(t.boss) d = Math.min(d, Math.max(12, Math.floor(t.maxhp * 0.25)));
     t.hp -= d; t.awake = true; t.flash = 6;
     if(it.burn) t.burn = (t.burn||0) + it.burn;
     triggerSlash(t.x, t.y, it.c || '#f5c542');
@@ -6464,12 +6504,23 @@ function descend(){
 
 /* ── ตาย / ชนะ / คะแนน ── */
 function score(){const base=floor*50+player.gold+player.lvl*30+player.punya*2+player.killsTotal*5;return Math.floor(base * getHeatMultiplier());}
+const DAILY_KEY = 'lanka_daily_v1';
+function dailyDate(){ return new Date().toISOString().slice(0, 10); } // ตรงกับ getDailySeed (UTC)
+function dailyGet(){ try { return JSON.parse(localStorage.getItem(DAILY_KEY)) || []; } catch(e){ return []; } }
+function dailyAdd(sc, win){
+  const h = dailyGet();
+  h.push({d: dailyDate(), n: CLASSES[player.cls].name + (win ? ' [โมกษะ]' : ''), f: floor, s: sc});
+  h.sort((a, b) => b.s - a.s);
+  try { localStorage.setItem(DAILY_KEY, JSON.stringify(h.slice(0, 30))); } catch(e){}
+  if(floor >= 5) unlockAch('daily_runner');
+}
 function hallGet(){try{return JSON.parse(localStorage.getItem(HALL_KEY))||[]}catch(e){return[]}}
 function hallAdd(sc, win=false){
   const h=hallGet();
   const modeTag = (endless || floor > 20) ? ' [อเวจี]' : (win ? ' [โมกษะ]' : '');
   h.push({n:CLASSES[player.cls].name + modeTag, f:floor, s:sc});
-  h.sort((a,b)=>b.s-a.s);localStorage.setItem(HALL_KEY,JSON.stringify(h.slice(0,5)));
+  h.sort((a,b)=>b.s-a.s);localStorage.setItem(HALL_KEY,JSON.stringify(h.slice(0,10)));
+  if(isDailyRun) dailyAdd(sc, win); // ★ บันทึกอันดับ Daily แยกต่างหาก
 }
 function hallInto(el){
   const h=hallGet();
@@ -6595,6 +6646,8 @@ function enterEndless(){
 
 function victory(){
   state='win';sfx.level();localStorage.removeItem(SAVE_KEY);
+  if(isBossRushMode) unlockAch('boss_rush_clear');
+  else if(getHeatMultiplier() > 1) unlockAch('heat_victory');
   const sc=score()+500;
   const k = getKarma();
   const earnedKarma = Math.floor(sc / 6) + (player.punya || 0) + 150;
@@ -6741,6 +6794,7 @@ function rerollTalents(){
 
 function selectTalent(t){
   player.talents.push(t);
+  unlockAch('talent_unlocked');
   if(player.talentPoints > 0) player.talentPoints--;
   if(player.talentPoints > 0) setTimeout(triggerTalentChoice, 400);
   sfx.level(); flash = 0.6;
@@ -8093,8 +8147,18 @@ function renderMantras(){
     r.appendChild(b); list.appendChild(r);
   });
 }
-function renderRecords(){$('recordsList').innerHTML=hallGet().map(r=>
-  '<li>'+r.n+' · ชั้น '+thaiNum(r.f)+' · กิตติยศ '+r.s+'</li>').join('')||'<li>ยังว่าง…</li>';}
+function renderRecords(){
+  let html = hallGet().map(r=>
+    '<li>'+r.n+' · ชั้น '+thaiNum(r.f)+' · กิตติยศ '+r.s+'</li>').join('')||'<li>ยังว่าง…</li>';
+  const today = dailyDate(), dl = dailyGet();
+  const row = r => '<li>'+r.n+' · ชั้น '+thaiNum(r.f)+' · กิตติยศ '+r.s+'</li>';
+  const todayList = dl.filter(r => r.d === today).slice(0, 5);
+  html += '<li style="list-style:none;margin-top:10px;color:var(--gold)"><b>📅 อันดับ Daily วันนี้ ('+today+')</b></li>'
+    + (todayList.length ? todayList.map(row).join('') : '<li class="dim">ยังไม่มีผู้ใดเล่น Daily วันนี้</li>');
+  if(dl.length) html += '<li style="list-style:none;margin-top:10px;color:var(--gold)"><b>🏆 Daily สูงสุดตลอดกาล</b></li>'
+    + dl.slice(0, 3).map(r => '<li>'+r.d+' · '+r.n+' · ชั้น '+thaiNum(r.f)+' · '+r.s+'</li>').join('');
+  $('recordsList').innerHTML = html;
+}
 function buildClassCards(){
   const box=$('classList');box.innerHTML='';
   const karma = getKarma();
