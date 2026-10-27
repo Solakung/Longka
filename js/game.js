@@ -2783,7 +2783,7 @@ const RELICS = [
 
 const WPN_AFFIXES = [
   { id: 'flame', name: 'เพลิงกัลป์', d: 'เผาศัตรู ๓ เทิร์น', c: '#ff8b1f' },
-  { id: 'vamp', name: 'สูบโลหิต', d: 'ดูดเลือด ๒๕% จากดาเมจ', c: '#d43d2a' },
+  { id: 'vamp', name: 'สูบโลหิต', d: 'ดูดเลือด ๑๒% จากดาเมจ (สูงสุด ๔ ต่อครั้ง · บอส ๒)', c: '#d43d2a' },
   { id: 'thunder', name: 'อัสนีบาต', d: 'มีโอกาสสตั๊น ๑ เทิร์น', c: '#f5c542' },
   { id: 'venom', name: 'พิษนาค', d: 'เคลือบพิษ ๔ เทิร์น', c: '#43b05c' },
   { id: 'sharp', name: 'คมกริบ', d: 'คริติคอลบ่อยขึ้น +๑๕%', c: '#2ec4a6' },
@@ -4811,7 +4811,9 @@ function attackFoe(e, dirX=0, dirY=0){
     slashColor = '#43b05c';
     floats.push({x:e.x, y:e.y-0.4, t:'พิษ!', c:'#43b05c', life:1});
   } else if(wpn.affix === 'vamp'){
-    const drain = Math.max(1, Math.floor(d * 0.25));
+    // ปรับสมดุล: เดิมดูด ๒๕% ไม่จำกัด ทำให้สายดูดเลือดฟื้นเกือบเต็มหลอดทุกศึกบอส → ๑๒% เพดาน ๔/ครั้ง (บอส ๒)
+    let drain = Math.min(4, Math.max(1, Math.floor(d * 0.12)));
+    if(e.boss) drain = Math.min(drain, 2);
     player.hp = Math.min(player.mhp, player.hp + drain);
     slashColor = '#d43d2a';
     floats.push({x:player.x, y:player.y, t:'+' + drain + ' HP', c:'#d43d2a', life:1});
