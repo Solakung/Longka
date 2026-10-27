@@ -1376,7 +1376,11 @@ const LORE_CHAPTERS = [
   { ch: 1, title: 'กำเนิดกรุงลงกา', text: '“เกาะลงกามิใช่เพียงแผ่นดินยักษ์ แต่คือเขาพระสุเมรุส่วนที่ร่วงหล่นลงสู่มหาสมุทร…”', buff: 'hp' },
   { ch: 2, title: 'อานุภาพหอกโมกขศักดิ์', text: '“หอกวิเศษที่กุมภกรรณบำเพ็ญพรตพันปีเพื่อขอพรจากพระพรหม แทงสรรพสิ่งดับดิ้น…”', buff: 'atk' },
   { ch: 3, title: 'กล่องดวงใจทศกัณฐ์', text: '“ทศกัณฐ์ถอดดวงใจฝากไว้กับพระฤๅษีโคบุตร แม้ถูกตัดเศียรย่อมงอกเงยขึ้นมาใหม่…”', buff: 'def' },
-  { ch: 4, title: 'สัจจบารมีพระอินทร์', text: '“ผู้ถือสัจจะความซื่อตรง แม้เปลวเพลิงกัลป์หรือสายฟ้าอเวจีย่อมไม่อาจแผดเผาได้…”', buff: 'mp' }
+  { ch: 4, title: 'สัจจบารมีพระอินทร์', text: '“ผู้ถือสัจจะความซื่อตรง แม้เปลวเพลิงกัลป์หรือสายฟ้าอเวจีย่อมไม่อาจแผดเผาได้…”', buff: 'mp' },
+  { ch: 5, title: 'พันธะในนาม', text: '“ทศกัณฐ์มิได้ทำสัตย์สาบานเพียงต่อองค์พระพรหม... หากแต่ให้สัญญาแก่วิญญาณทุกดวงที่ดับสูญใต้กำแพงเมือง ว่าจักมิปล่อยให้ผู้ใดต้องเคว้งคว้างในความมืดเพียงลำพัง”', buff: 'hp' },
+  { ch: 6, title: 'เงาใต้บันได', text: '“ผู้ใดที่ย่างก้าวมาถึงชั้นที่ยี่สิบ จักประจักษ์ว่าเงาตนเองทอดยาวลึกสู่ใต้พิภพ... ผู้หลงใหลจักยินดีในชัยชนะจอมปลอม ส่วนผู้ตื่นรู้จักตระหนักว่า เส้นทางที่แท้จริงเพิ่งเริ่มต้น”', buff: 'atk' },
+  { ch: 7, title: 'สิบเศียร', text: '“ทศกัณฐ์มิได้มีสิบพักตร์เพราะอิทธิฤทธิ์บารมี หากแต่เป็นภาชนะรองรับกิเลสสิบประการที่มนุษย์ละทิ้งไว้... ยามใดที่เจ้าประหัตประหาร หน้าของเขาก็จักงอกเงยขึ้นใหม่ด้วยตัณหาของเจ้าเอง”', buff: 'def' },
+  { ch: 8, title: 'พักตร์ที่สิบในคันฉ่อง', text: '“พักตร์ที่สิบแห่งพญายักษ์ มิเคยมีผู้ใดได้ยลพักตร์อันแท้จริง... เพราะมันคือเงาสะท้อนของใบหน้าผู้ที่กำลังจ้องมองเขาอยู่เสมอ”', buff: 'mp' }
 ];
 
 function readLoreScroll(chNum){
@@ -1390,6 +1394,7 @@ function readLoreScroll(chNum){
     updateHud();
     return;
   }
+  if(storyOn() && l.text && storyFlag('lore' + l.ch)) showStory([{who: '', t: 'บทที่ ' + thaiNum(l.ch) + ' · ' + l.title + '\n' + l.text}]);
   if(l.buff === 'hp'){ player.mhp += 5; player.hp += 5; }
   else if(l.buff === 'atk'){ player.atk += 1; }
   else if(l.buff === 'def'){ player.def += 1; }
@@ -4118,7 +4123,7 @@ function genGroundItem(){
   if(r<.28) return genOre(); // แร่ขุดศักดิ์สิทธิ์
   if(r<.36) return {t:'mana', name:'น้ำโสม', mana:10+floor*2, r:'common', lore:'น้ำสกัดจากโสมพันปี ฟื้นฟูพลังมนตร์'};
   if(r<.50){
-  const ch = 1 + Math.floor(floorR() * 4);
+  const ch = 1 + Math.floor(floorR() * LORE_CHAPTERS.length);
 
   return {
     t: 'lore_scroll',
@@ -5265,7 +5270,7 @@ function killFoe(e){
     if(floor === 10) unlockAch('boss_maricha');
     if(floor === 15) unlockAch('boss_kumbha');
     if(floor === 20) unlockAch('victory_moksha');
-    if(floor===FINAL && !endless){victory();return;}
+    if(floor===FINAL && !endless){storyTwist();return;}
     stairs.locked=false;sfx.stairs();
     msg('ผนึกบันไดสลายแล้ว! ทางลงเปิดออก…','good');
     items.push({x:e.x,y:e.y,...genGroundItem()});
@@ -6242,6 +6247,7 @@ function interact(n){
       sfx.level(); flash = 0.6;
       unlockAch('quest_delivery');
       updateHud();
+      showStory([STORY.hermit.deep, {who: '', t: STORY.hermit.letter}], null, 'พระดาบส');
       return;
     }
 
@@ -6262,12 +6268,14 @@ function interact(n){
         };
         if(player.inv.length < (player.bagMax||10)) player.inv.push(qScroll);
         else items.push({x:player.x, y:player.y, ...qScroll});
+        showStory([STORY.hermit.early], null, 'พระดาบส');
         msg('📜 พระดาบสประสาทพรฟื้นเต็ม! และฝาก «สาส์นลับพระเวท» ให้ช่วยนำไปส่งมอบให้แก่ฤๅษีในชั้นลึก!', 'good');
       } else {
         msg('พระดาบสประสาทพร — ร่างกายฟื้นเต็ม!', 'good');
       }
     } else {
-      msg('พระดาบสเข้าฌาน ไม่ตอบสนอง…');
+      if(player.hasDeliveryScroll && !player.deliveryDone) showStory([STORY.hermit.mid], null, 'พระดาบส');
+      else msg('พระดาบสเข้าฌาน ไม่ตอบสนอง…');
     }
   }
 }
@@ -7674,6 +7682,17 @@ const STORY = {
       ]
     }
   },
+  hermit: {
+    early: '“พักเหนื่อยก่อนเถิดเจ้าสัญจร... ผู้ที่รุ่มร้อนกระหายศึก มักทอดร่างเป็นเถ้าถ่านไวกว่าผู้ที่รู้จักสงบใจ”',
+    mid: '“สาส์นที่เจ้าถือ จงรักษาไว้ส่งให้ถึงมือ... ถ้อยคำในนั้นหาใช่ธุระของข้า แต่เป็นพันธะสัญญาที่ข้าติดค้างผู้อื่นมาเนิ่นนาน”',
+    deep: '“ข้ามิพักต้องคลี่ออกอ่านดอก... ข้ารู้แจ้งว่าอักษรทุกตัวเขียนไว้เช่นไร เพราะข้าเองคือผู้จรดพู่กันจารึกมันด้วยมือคู่นี้”',
+    letter: 'สาส์นลับแห่งพระฤๅษี\n“ถึงสหายร่วมสังสารวัฏ — ถ้อยคำที่เขาจักเอ่ยในห้องสุดท้าย จงสดับไว้ให้จงดี อย่าหลงคิดว่าการเข่นฆ่าคือบทอวสาน... กล่องดวงใจนั้นว่างเปล่า ข้ารู้แจ้ง เพราะข้าคือคนแรกที่เปิดมัน”'
+  },
+  twist: [
+    '“ร่างทศกัณฐ์ทรุดลง ทว่าไร้รอยโลหิต กายสลายเป็นละอองแสงสีเถ้าหมอง พุ่งเข้าโอบล้อมกายเจ้า”',
+    {who: 'เสียงแว่วจากความมืด', t: '“ขอบใจ... บัลลังก์ลงกามิเคยร้างรา เพราะผู้ที่ล้มข้าได้ สุดท้ายจักกลายเป็นข้าเสียเอง”'},
+    '“เงาดำใต้ฝ่าเท้าเจ้าทอดยืดยาว หันหน้าสู่บันไดเวียนศิลาที่เพิ่งเปิดออกสู่ห้วงลึกใต้ดิน”'
+  ],
   // คำพูดยามเศียรร่วง (ทศกัณฐ์ ชั้น ๒๐) — ขึ้นเป็นข้อความลอย ไม่หยุดเกม
   heads: [
     { hp: 0.75, tag: 'เศียรซ้ายร่วง', t: '“ข้าเคยละโมบครอบครองผืนพิภพ... แล้วเจ้าเล่า กักขังสิ่งใดไว้ในใจบ้าง”' },
@@ -7787,6 +7806,42 @@ function storyBossHp(){
   }
 }
 
+// ── จุดหักมุมหลังพิชิตทศกัณฐ์ ── แต้มบุญสูง = เลือกทาง · แต้มบาปสูง = ไปฉากจบกลียุคเลย
+function storyChoice(prompt, options){
+  let ov = $('storyOv');
+  if(!ov){ ov = document.createElement('div'); ov.id = 'storyOv'; ov.className = 'ov'; ov.style.zIndex = '650'; document.body.appendChild(ov); }
+  storyOpen = true; state = 'story';
+  ov.innerHTML = '';
+  const p = document.createElement('div'); p.className = 'panel';
+  p.style.cssText = 'max-width:440px;padding:14px 16px;border-color:var(--gold);box-shadow:0 0 30px rgba(0,0,0,.9);margin:auto auto 28px;text-align:center';
+  const t = document.createElement('p'); t.textContent = prompt;
+  t.style.cssText = 'color:var(--ink);font-size:14px;line-height:1.65;margin:0 0 12px;font-style:italic;white-space:pre-line';
+  p.appendChild(t);
+  options.forEach(o => {
+    const b = document.createElement('button'); b.className = 'btn'; b.textContent = o.label;
+    b.style.cssText = 'display:block;width:100%;margin:6px 0;font-size:13px;padding:9px 12px;' + (o.style || '');
+    b.onclick = () => { storyOpen = false; hide(ov); state = 'play'; o.fn(); };
+    p.appendChild(b);
+  });
+  ov.appendChild(p); show(ov);
+}
+function storyTwist(){
+  const isGoodEnd = player.punya >= 80 && !player.usedCursedAltar;
+  if(!storyOn()){ victory(); return; }
+  showStory(STORY.twist, () => {
+    if(!isGoodEnd){ victory(); return; }
+    storyChoice('“หวนคืนสู่แสงสุริยัน หรือก้าวตามเงาตนลงสู่ต้นตอแห่งกรรม”', [
+      {label: '☀ หวนคืนสู่แสงสุริยัน (จบเกมอย่างผู้มีชัย)', fn: () => victory()},
+      {label: '☠ ก้าวตามเงาตน — ลงสู่อเวจี', style: 'background:#8f2438;color:#fff;border-color:#d43d2a', fn: () => {
+        // ได้รางวัลชนะเหมือนผ่านหน้าชัยชนะ แล้วลงอเวจีต่อ
+        const sc = score() + 500, k = getKarma();
+        k.pts += Math.floor(sc / 6) + (player.punya || 0) + 150; k.unlockedBibhek = true; saveKarma(k);
+        saveRunItemsToStash(); hallAdd(sc, true);
+        enterEndless();
+      }}
+    ]);
+  });
+}
 function playCinematicPrologue(onComplete = null){
   const ov = openCinematicModal();
   let slide = 0;
