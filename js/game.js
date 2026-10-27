@@ -1404,9 +1404,9 @@ function readLoreScroll(chNum){
 
 /* ── ๑. ระบบสักยันต์โบราณ ๔ ลายครู (Sacred Yantra Tattoos) ── */
 const YANTRAS = [
-  { id: 'tiger', name: 'ยันต์เสือเผ่น', icon: '🐅', desc: 'ก้าวแรกที่เดินพุ่งเข้าหาศัตรู ทำดาเมจกระแทกพุ่งชน +๘ หน่วยทันที', color: '#ff8b1f' },
-  { id: 'hanuman', name: 'ยันต์หนุมานคลุกฝุ่น', icon: '🐒', desc: 'เมื่อโดนโจมตีถึงตาย มีโอกาส ๔๐% กลิ้งหลบและชุบชีวิตฟื้น ๑๕ HP', color: '#ffe9a3' },
-  { id: 'diamond_armor', name: 'ยันต์เกราะเพชร', icon: '🪷', desc: 'กายาทิพย์ ต้านทานสถานะผิดปกติทั้งหมด ๑๐๐% (ไม่มีวันติดพิษ ไฟ หรือมึนงง)', color: '#2ec4a6' },
+  { id: 'tiger', name: 'ยันต์เสือเผ่น', icon: '🐅', desc: 'ก้าวแรกที่เดินพุ่งเข้าหาศัตรู ทำดาเมจกระแทกพุ่งชน +๕ หน่วยทันที', color: '#ff8b1f' },
+  { id: 'hanuman', name: 'ยันต์หนุมานคลุกฝุ่น', icon: '🐒', desc: 'เมื่อโดนโจมตีถึงตาย มีโอกาส ๔๐% กลิ้งหลบและชุบชีวิตฟื้น ๑๕ HP (ใช้ได้อีกครั้งเมื่อผ่านไป ๕ ชั้น)', color: '#ffe9a3' },
+  { id: 'diamond_armor', name: 'ยันต์เกราะเพชร', icon: '🪷', desc: 'กายาทิพย์ ต้านทานสถานะผิดปกติ (พิษ ไฟ มึนงง) ได้ ๖๐% ทุกครั้งที่โดน', color: '#2ec4a6' },
   { id: 'blade_wave', name: 'ยันต์ดาบสรีกัญไชย', icon: '🗡️', desc: 'ทุกครั้งที่ฟันติดคริติคอล จะปล่อยคลื่นรังสีคมดาบพุ่งตัดศัตรูเป็นเส้นตรง ๓ ช่อง', color: '#f5c542' }
 ];
 
@@ -1437,14 +1437,14 @@ function openYantraModal(yx, gy){
   html += '<div style="display:flex;flex-direction:column;gap:8px;text-align:left;margin-bottom:12px">';
   YANTRAS.forEach(y => {
     const hasThis = player.yantras.some(py => py.id === y.id);
-    const canTattoo = player.yantras.length < maxTattoos && !hasThis;
+    const canTattoo = player.yantras.length < maxTattoos && !hasThis && player.gold >= yantraCost();
     html += '<div class="row" style="background:#1c0c19;padding:8px;border:1px solid ' + (hasThis ? y.color : 'var(--line)') + ';opacity:' + (hasThis ? '0.6' : '1') + '">';
     html += '<div><span>' + y.icon + ' <b style="color:' + y.color + ';font-size:13.5px">' + y.name + '</b></span>';
     html += '<div style="font-size:11.5px;color:var(--ink);margin-top:2px">' + y.desc + '</div></div>';
     if(hasThis){
       html += '<span style="color:' + y.color + ';font-size:11px;font-weight:700">จารึกแล้ว</span>';
     } else {
-      html += '<button class="mini-btn" ' + (canTattoo ? '' : 'disabled') + ' onclick="applyYantraTattoo(\'' + y.id + '\',' + yx + ',' + gy + ')">สักยันต์</button>';
+      html += '<button class="mini-btn" ' + (canTattoo ? '' : 'disabled') + ' onclick="applyYantraTattoo(\'' + y.id + '\',' + yx + ',' + gy + ')">สักยันต์ ◉' + yantraCost() + '</button>';
     }
     html += '</div>';
   });
@@ -1458,11 +1458,15 @@ function openYantraModal(yx, gy){
   $('btnCloseYantra').onclick = () => hide(ov);
 }
 
+function yantraCost(){ return 40 + floor * 15; } // ค่าบูชาครู: ชั้น ๓ = ๘๕ · ชั้น ๗ = ๑๔๕ · ชั้น ๑๓ = ๒๓๕ เหรียญ
 function applyYantraTattoo(yId, yx, gy){
   const y = YANTRAS.find(item => item.id === yId);
   if(!y) return;
   player.yantras = player.yantras || [];
   if(player.yantras.length >= 2) return;
+  const cost = yantraCost();
+  if(player.gold < cost){ msg('พระอาจารย์ส่ายหน้า — ค่าบูชาครูต้องใช้ ' + thaiNum(cost) + ' เหรียญ', 'warn'); return; }
+  player.gold -= cost;
   player.yantras.push(y);
   unlockAch('yantra_tattoo');
   map[gy * W + yx] = 1; // แท่นถูกใช้แล้วกลายเป็นพื้น
@@ -4742,7 +4746,7 @@ function attackFoe(e, dirX=0, dirY=0){
   let d = Math.max(1, player.atk + wpn.v + R(4) - defCut
     + ((player.head && player.head.atk) || 0)   // ★ ค่าโจมตีของมงกุฎ/ชฎา (เดิมแสดงแต่ไม่คิดจริง)
     + punyaBonus() + (player.furyStacks || 0));  // ★ ปุญฤทธิ์ + โทสะกษัตริย์
-  if(firstStrike && hasYantra('tiger')){ d += 8; floats.push({x:e.x,y:e.y-0.5,t:'เสือเผ่น +๘',c:'#ff8b1f',life:1}); }
+  if(firstStrike && hasYantra('tiger')){ d += 5; floats.push({x:e.x,y:e.y-0.5,t:'เสือเผ่น +๕',c:'#ff8b1f',life:1}); }
   if(player.talents.some(t => t.id === 'k_rage') && player.hp <= Math.floor(player.mhp * 0.35)){
     d *= 2;
     msg('👑 ขัตติยมานะสำแดงฤทธิ์! เลือดวิกฤตพลังโจมตีทวีคูณ!', 'warn');
@@ -5340,7 +5344,7 @@ const DODGE_CAP = 75; // ★ เพดานหลบหลีกรวม ป�
 // ★ ตัวช่วยตรวจทาเลนต์/ยันต์ ใช้ร่วมกันทั้งเกม
 function hasTal(id){ return !!(player && player.talents && player.talents.some(t => t.id === id)); }
 function hasYantra(id){ return !!(player && player.yantras && player.yantras.some(y => y.id === id)); }
-function statusImmune(){ return hasTal('r_immune') || hasYantra('diamond_armor'); }
+function statusImmune(){ return hasTal('r_immune') || (hasYantra('diamond_armor') && rng() < 0.6); } // ยันต์เกราะเพชร: ต้านได้ ๖๐% (เดิม ๑๐๐% ทำให้ระบบสถานะไร้ความหมาย)
 function poisonImmune(){ return statusImmune() || hasTal('ga_naga') || !!(player && player.relic && player.relic.id === 'naga_sash'); }
 function punyaGain(n){ return divineMul(player && player.cls === 'rishi' ? n * 2 : n); } // ฤๅษี: ปุญ ×๒
 function divineMul(n){ return hasTal('bi_divine') ? Math.floor(n * 1.5) : n; } // พิเภก: เหรียญ/ปุญ +๕๐%
@@ -6505,7 +6509,7 @@ function tryTalentRevive(){
       if(map[wy*W+wx] === 1 && !enemyAt(wx, wy) && !npcAt(wx, wy)){ player.x = wx; player.y = wy; break; }
     }
     how = '💎 ถอดดวงใจ! เจ้าวาร์ปหนีความตายพร้อมฟื้นเลือดครึ่งหนึ่ง';
-  } else if(hasYantra('hanuman') && player.hanumanFloor !== floor && rng() < 0.4){
+  } else if(hasYantra('hanuman') && (player.hanumanFloor === undefined || floor - player.hanumanFloor >= 5) && rng() < 0.4){
     player.hanumanFloor = floor; player.hp = Math.min(player.mhp, 15);
     how = '🐒 ยันต์หนุมานคลุกฝุ่น! เจ้ากลิ้งหลบความตายและฟื้น ๑๕ HP';
   } else if(hasTal('r_rebirth') && !player.rebirthUsed && rng() < 0.5){
