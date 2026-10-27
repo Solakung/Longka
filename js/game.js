@@ -112,145 +112,114 @@ function toggleSound(){
 const PAL={k:'#14080f',w:'#f4ecdc',g:'#f5c542',o:'#ff8b1f',r:'#d43d2a',t:'#2ec4a6',
   b:'#3a6ea5',p:'#8d55c9',s:'#e8b06a',d:'#7a4a22',f:'#ffe9a3',e:'#43b05c',
   m:'#8f2438',E:'#7fae7a',c:'#c9a86a','0':'#000000',
-  n:'#c9915a',h:'#5c3413',x:'#7a3b2e','1':'#ffffff',y:'#ffe27a'};
+  n:'#c9915a',h:'#5c3413',x:'#7a3b2e','1':'#ffffff',y:'#ffe27a',
+  S:'#f8d3a0',N:'#b4703f',K:'#2b1a2e',q:'#b8842a',u:'#f0674f',R:'#7a1d2e',z:'#b9ad94',O:'#ffb04a',Q:'#b8520f',l:'#8fe39a',v:'#2a7a3f',j:'#d99a3e',J:'#f7cf7a',W:'#d6dee8',Z:'#8795aa',X:'#4f5a74',P:'#f3a3a3',Y:'#fff3b0',H:'#6b3a1c'};
 // ── ขนาดต้นฉบับของสไปรท์ที่มีรายละเอียดสูงกว่าปกติ (ค่าเริ่มต้น 16 ถ้าไม่ระบุ) ──
-const SPR_SIZE={ warrior:32, brahmin:32, vanara:32, rishi:32, bibhek:32, garuda:32, boss:32, yaksha:32, golem:32, berserker:32, singha:32, makara:32, bat:32, scorpion:32, shaman:32, chameleon:32, kamikaze:32, spider:32, kinnara:32, wraith:32, peacock:32, preta:32, asura:32, naga:32, rakshasa:32, vetala:32 };
+const SPR_SIZE={ warrior:24, brahmin:24, vanara:24, rishi:24, bibhek:24, garuda:24, boss:32, yaksha:32, golem:32, berserker:32, singha:32, makara:32, bat:32, scorpion:32, shaman:32, chameleon:32, kamikaze:32, spider:32, kinnara:32, wraith:32, peacock:32, preta:32, asura:32, naga:32, rakshasa:32, vetala:32 };
 const SPRD={
 "warrior": [
-  "..............gggg..............",
-  ".............gggggg.............",
-  "...........gggggggggg...........",
-  ".........ggggggffgggggg.........",
-  ".......ggggggggffgggggggg.......",
-  ".....ggggggksssssssskgggggg.....",
-  "....ggggssssssshhsssssssgggg....",
-  "....gggsssssshhsshhssssssggg....",
-  "....gggssssss10ss01ssssssggg....",
-  "....gggssssssnssssnssssssggg....",
-  "....gggsssssnnssssnnsssssggg....",
-  "....gggsssssxssssssxsssssggg....",
-  ".....ggssssssssssssssssssgg.....",
-  "......ssssssssssssssssssss......",
-  ".......ssssssssssssssssss.......",
-  "......kksssssssssssssssskk......",
-  "..ggggggrrrrrrrrrrrrrrrrgggggg..",
-  ".ggggggrrrrrrrrrrrrrrrrrrgggggg.",
-  "gggggrrrrrrrrrrrrrrrrrrrrrrggggg",
-  "ggggrrrrrrrrrrrrrrrrrrrrrrrrgggg",
-  "gggrrrrryrrrrrrrrrrrrrryrrrrrggg",
-  "gggrrrrrrrrrrrrrrrrrrrrrrrrrrggg",
-  "ggddddddddddddddddddddddddddddgg",
-  "gdddddddddddddyyyydddddddddddddg",
-  ".dddddddddddddddddddddddddddddd.",
-  "..ddddddrrrrrrrrrrrrrrrrdddddd..",
-  "...ddddddddddd....ddddddddddd...",
-  "....dddddddddd....dddddddddd....",
-  ".....ddddddddd....ddddddddd.....",
-  "....dddddddddd....dddddddddd....",
-  "...ddddddddddd....ddddddddddd...",
-  "................................"
+  "..........kYgk..........",
+  "........kkggggkk........",
+  ".......kgkggggkgk.......",
+  ".......kYYYruYYYk.......",
+  "......kKggggggggKk......",
+  "......kKKKKKKKKKKk......",
+  ".....kkSSssssssskkk.....",
+  "....kKKsKKKssKKKNKKk....",
+  "....kKKsswksskwNNKKk....",
+  "...kgKKsssNssNNNkKKgk...",
+  "....kkkssssNNNNNkkkk....",
+  ".....kkkssNNNNNkkkk.....",
+  "....kurYggNNNggqqRRk....",
+  "...kSssYqqqqqqqqqSssk...",
+  "...kgggYgggrrggqqgggk...",
+  "...kSssYggguuggqqSssk...",
+  "...kSssYgggggggqqSssk...",
+  "...kgggqqqqqqqqqqgggk...",
+  "....kurqqqqYYqqqqRRk....",
+  "....kururrrRRrrRRRRk....",
+  "....kRRurrrRRrrRRRRk....",
+  ".....kkRSssRRSssRkk.....",
+  ".......kSsskkSssk.......",
+  "........kkk..kkk........"
 ],
 "brahmin": [
-  "..............wwww..............",
-  "............wwwwwwww............",
-  "..........ffffffffffff..........",
-  "........wwwwwwwwwwwwwwww........",
-  "......wwwwsssssssssssswwww......",
-  ".....wwwssssssshhssssssswww.....",
-  ".....wwsssssshhsshhssssssww.....",
-  ".....wwsssss10ssss01sssssww.....",
-  ".....wwssssssnssssnssssssww.....",
-  ".....wwsssssnnssssnnsssssww.....",
-  ".....wwsssssxssssssxsssssww.....",
-  "......wssssssssssssssssssw......",
-  ".......ssssssssssssssssss.......",
-  "........ssssssssssssssss........",
-  ".......wwssssssssssssssww.......",
-  "....wwwwwowwwwwwwwwwwwowwwww....",
-  "..wwwwwwwwwwwwwwwwwwwwwwwwwwww..",
-  "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-  "wwwwwwwoowwwwwwwwwwwwwwoowwwwwww",
-  "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-  "wwwwwoowwwwwwwwwwwwwwwwwwoowwwww",
-  "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-  "ddwwwwwwwwwwwwddddwwwwwwwwwwwwdd",
-  "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-  "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-  ".wwwwwwwwwwwwwwwwwwwwwwwwwwwwww.",
-  "..wwwwwwwwwwwwwwwwwwwwwwwwwwww..",
-  "...wwwwwwwwwwwwwwwwwwwwwwwwww...",
-  "...ddddwwwwwwwwwwwwwwwwwwdddd...",
-  "....dddddddddddddddddddddddd....",
-  ".....dddddddddddddddddddddd.....",
-  "................................"
+  "..........khk...........",
+  ".........khKKk..........",
+  "........kKKKKk..........",
+  ".......kkkKKkkkkk.......",
+  "......kKKKggggKKKk......",
+  "......kKKKKrrKKKKk......",
+  ".....kKSwwwsswwwkKk.....",
+  ".....kKssKKssKKskKk.....",
+  ".....kKsswksskwNkKk.....",
+  "......ksssNssNNNkk......",
+  "......kssssNNNNNk.......",
+  "......kkssNNNNNkkk......",
+  "....kkzzgzNNNzzzzzkk....",
+  "...k1wwwwgwzzwwwz1wwk...",
+  "...k1wwwwwgzzwwwz1wwk...",
+  "...k1wwwwwwgzwwwz1wwk...",
+  "...k1wwwwwwzgwwwz1wwQk..",
+  "...ksszwwwwzzgwwzssOQk..",
+  "...ksN1wwwwzzwgwzsOoook.",
+  "....kkooooozzooooooooQk.",
+  ".....k1wwwwzzwwwzzkQQk..",
+  ".....kzzzzzzzzzzzzkkk...",
+  "......kkSsskkSsskk......",
+  "........kkk..kkk........"
 ],
 "vanara": [
-  "..ww........................ww..",
-  ".wwww......................wwww.",
-  ".wwwwww..................wwwwww.",
-  "...wwwwwwwwwwwwwwwwwwwwwwwwww...",
-  "...wwwwwwwwwwwwwwwwwwwwwwwwww...",
-  "...wwkkkkkkkkkwwwwkkkkkkkkkww...",
-  "...wwkkk10kkkwwwwwwkkk01kkkww...",
-  "...wwkkkkkkkkkwwwwkkkkkkkkkww...",
-  "...wwwwwwwwwwwwwwwwwwwwwwwwww...",
-  "....wwwwwwwwwwwwwwwwwwwwwwww....",
-  "....wwwwwxwwwwwwwwwwwwxwwwww....",
-  ".....wwwwwwwwwwwwwwwwwwwwww.....",
-  "......wwwwwwwwwwwwwwwwwwww......",
-  ".......wwwwwwwwwwwwwwwwww.......",
-  "......wwggggggggggggggggww......",
-  "...gggggggggggggggggggggggggg...",
-  ".gggggggggggggggggggggggggggggg.",
-  "gggggggggggggggggggggggggggggggg",
-  "gggyggggggggggggggggggggggggyggg",
-  "gggggggggggggggggggggggggggggggg",
-  "ggddddddddddddddddddddddddddddgg",
-  ".dddddddddddddddddddddddddddddd.",
-  "..dddddwwwwwwwwwwwwwwwwwwddddd..",
-  "..dddddwwwwwwwwwwwwwwwwwwddddd..",
-  "...dddddddddddddddddddddddddd...",
-  "...ddddddd............ddddddd...",
-  "....dddddd............dddddd....",
-  "....dddddd............dddddd....",
-  ".....ddddd............ddddd.....",
-  "................................",
-  "................................",
-  "................................"
+  "...........kk...........",
+  ".........kkggkk.........",
+  "........kYYYYYYk........",
+  "........kggrrggk........",
+  "....k..kJJJJjjjkk..k....",
+  "...kJkkJJJJJJJJJJkkJk...",
+  "..kJjjJJjPPPuujjjkJjjk..",
+  "..kjPjJjPKKuuKKjqkjPjk..",
+  "..kjPqjjPwkuukwqqkjPqk..",
+  "...kqkjjuuuRRrrqqkkqk...",
+  "....k.kjuuwurwrqk..k....",
+  ".......kjuRRRRqkk..kk...",
+  "....kkkJjjqqqjjqqkkJJk..",
+  "...kJjjJjJJjjJJqqJjjqk..",
+  "...kJjjJjJJJJJJqqJjjjqk.",
+  "...kJjjJjJJJJJJqqJjjkjqk",
+  "...kJjjJjJJJJJJqqJjjkjqk",
+  "...kJjjJjjjjjjjqqJjjkjqk",
+  "...kSSSggggggggggSSSjqk.",
+  "....kkkurrrRRrrRRkjjqk..",
+  "......kurrrRRrrRRkkkk...",
+  "......kRJjjRRJjjRk......",
+  ".......kJjjkkJjjk.......",
+  "........kkk..kkk........"
 ],
 "rishi": [
-  "......kkkkkkkkkkkkkkkkkkkk......",
-  "....kkkkkkkkkkkkkkkkkkkkkkkk....",
-  "...kkkkkkkkkkkkkkkkkkkkkkkkkk...",
-  "..kkkkkkkkkkkkkkkkkkkkkkkkkkkk..",
-  ".kkkksssssssssssssssssssssskkkk.",
-  ".kkkkkssssssssshhssssssssskkkkk.",
-  ".kkkkkssssssshhsshhssssssskkkkk.",
-  ".kkkkkssssss10ssss01sssssskkkkk.",
-  ".kkkkksssssssnssssnssssssskkkkk.",
-  ".kkkkksssssnnssssssnnssssskkkkk.",
-  ".kkkkksssssxssssssssxssssskkkkk.",
-  ".kkkkksskkkkkksssskkkkkksskkkkk.",
-  "..kkkkkkkkkkkkkkkkkkkkkkkkkkkk..",
-  "...kkkkkkkkkkkkkkkkkkkkkkkkkk...",
-  "....ssssssssssssssssssssssss....",
-  "...kkooooooooooooooooooooookk...",
-  ".kkkkooooooooooooooooooooookkkk.",
-  "kkooooooooooooooooooooooooooookk",
-  "oooooooooooooooooooooooooooooooo",
-  "ooofoooooooooooooooooooooooofooo",
-  "oooooooooooooooooooooooooooooooo",
-  "ooddddddddddddooooddddddddddddoo",
-  "oooooooooooooooooooooooooooooooo",
-  "oooooooooooooooooooooooooooooooo",
-  ".oooooooooooooooooooooooooooooo.",
-  "..oooooooooooooooooooooooooooo..",
-  "...oooooooooooooooooooooooooo...",
-  "....oooooooooooooooooooooooo....",
-  "....ddddoooooooooooooooodddd....",
-  ".....dddddddddddddddddddddd.....",
-  "......dddddddddddddddddddd......",
-  "................................"
+  ".......kkKhhKKKkk.......",
+  "......kKhhKKKKKkKk......",
+  "......khKKKKKKKKk.......",
+  "......kKKKKKKKkkk.......",
+  "......kKggggggggKk......",
+  "......kKKKKrrKKKKk......",
+  ".....kKKwwwsswwwKKk.....",
+  ".....kKKszzsszzsKKk.....",
+  ".....kKKswksskwNKKk.....",
+  ".....kKKwwzzzzwwKKk.....",
+  ".....kKKwwwNNwwwKKk.....",
+  "......kk1wwwwwwkkk......",
+  "....kkOOwwwwwwzOOOkk....",
+  "...kOooowwwwzzzoQOook...",
+  "...kOoooSwzzzzooQOook...",
+  "...kOoooSssHHoooQOook...",
+  "...kOooooooQQoooQOook...",
+  "...kssQooooQQoooQssQk...",
+  "...ksNQQQQQQQQQQQsNk....",
+  "....kkOooooQQoooQQk.....",
+  ".....kOooooQQoooQQk.....",
+  ".....kQQQQQQQQQQQQk.....",
+  "......kkSsskkSsskk......",
+  "........kkk..kkk........"
 ],
 "preta": [
     "......EEEEEEEEEEEEEEEEEEEE......",
@@ -601,72 +570,56 @@ const SPRD={
   "................"
 ],
   "bibhek": [
-  "......gggggggggggggggggggg......",
-  "....gggggggggggggggggggggggg....",
-  "...gggggggggggggggggggggggggg...",
-  "..gggggggggggeeeeeeggggggggggg..",
-  "......ggggssssssssssssgggg......",
-  ".....gggssssssshhsssssssggg.....",
-  ".....ggsssssshhsshhssssssgg.....",
-  ".....ggsssss10ssss01sssssgg.....",
-  ".....ggssssssnssssnssssssgg.....",
-  ".....ggsssssnnssssnnsssssgg.....",
-  ".....ggsssssxssssssxsssssgg.....",
-  "......gssssssssssssssssssg......",
-  ".......ssssssssssssssssss.......",
-  "........ssssssssssssssss........",
-  ".......ggssssssssssssssgg.......",
-  "....gggggeggggggggggggeggggg....",
-  "..gggggggggggggggggggggggggggg..",
-  "gggggggggggggggggggggggggggggggg",
-  "gggggggeeggggggggggggggeeggggggg",
-  "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-  "wwwwwffwwwwwwwwwwwwwwwwwwffwwwww",
-  "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-  "eewwwwwwwwwwwweeeewwwwwwwwwwwwee",
-  "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-  "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-  ".wwwwwwwwwwwwwwwwwwwwwwwwwwwwww.",
-  "..wwwwwwwwwwwwwwwwwwwwwwwwwwww..",
-  "...wwwwwwwwwwwwwwwwwwwwwwwwww...",
-  "...eeeewwwwwwwwwwwwwwwwwweeee...",
-  "....gggggggggggggggggggggggg....",
-  ".....gggggggggggggggggggggg.....",
-  "................................"
+  ".........kgYYgk.........",
+  ".........kggggk.........",
+  ".......kkggggggkk.......",
+  "......kgkggggggkgk......",
+  "......kYYYYYYYYYYk......",
+  "......kggggrrggggk......",
+  "......klleeeeeeek.......",
+  ".....kleeKKeeKKevkk.....",
+  "....kggeeYkeekYvvggk....",
+  "....kggeeeveevvvkggk....",
+  ".....kkeeevvvvvvkkk.....",
+  "......kkeewvvwvkkk......",
+  "....kkggggvvvgggggkk....",
+  "...k1wwwggggggggz1wwk...",
+  "...k1wwwwwweewwwz1wwk...",
+  "...k1wwwwwwzzwwwz1wwk...",
+  "...kgggwwwwzzwwwzgggk...",
+  "...keezwwwwzzwwwzeezk...",
+  "...keveeeeezzeeeeevk....",
+  "....kk1wwwwzzwwwzzk.....",
+  ".....k1wwwwzzwwwzzk.....",
+  ".....kzzzzzzzzzzzzk.....",
+  "......kkleekkleekk......",
+  "........kkk..kkk........"
 ],
   "garuda": [
-  "..fff......................fff..",
-  ".ffff......................ffff.",
-  "...ggggg................ggggg...",
-  "..ggggggg..............ggggggg..",
-  ".ggooooooooooggggggoooooooooogg.",
-  ".ggooook0koooggggggoook0koooogg.",
-  ".ggooooooooooggggggoooooooooogg.",
-  "..gggooooooooggggggooooooooggg..",
-  "...ggggooooooggggggoooooogggg...",
-  "....gggggooooggggggooooggggg....",
-  ".....gggggggggggggggggggggg.....",
-  "....ffffffffffffffffffffffff....",
-  "...ffffooooooooooooooooooffff...",
-  "..ffffffooooooooooooooooffffff..",
-  ".ffffffffooooooooooooooffffffff.",
-  "fffoooooooooooooooooooooooooofff",
-  "ffooooooooooooooooooooooooooooff",
-  "oooooooooooooooooooooooooooooooo",
-  "ooooogoooooooooooooooooooogooooo",
-  "oooooooooooooooooooooooooooooooo",
-  "oooooooooooooooooooooooooooooooo",
-  "oooffooooooooooooooooooooooffooo",
-  "oooooooooooooooooooooooooooooooo",
-  "oooooooooooooooooooooooooooooooo",
-  ".oooooooooooooooooooooooooooooo.",
-  "..ooooooooooooo..ooooooooooooo..",
-  "...ooooo................ooooo...",
-  "....oooo................oooo....",
-  "....ookk................kkoo....",
-  ".....kkk................kkk.....",
-  ".....kkk................kkk.....",
-  "................................"
+  "..........kuuk..........",
+  ".........kkrrkk.........",
+  "........krrrrrrk........",
+  ".......kgrrrrrrgk.......",
+  "........k111WWkk........",
+  ".kkkk..k111WWWWk...kkkk.",
+  "kggggk.kkkkWWkkkk.kggggk",
+  "kOOOOOkWwYkWWkYwkkOOOOOk",
+  "kOOOOOkWWOOOOOOZkkOOOOOk",
+  "kgggggkWWooooooZkkgggggk",
+  "kooooookWWOoooZkkooooook",
+  "kooooookkWooookkkooooook",
+  "kggggggggggQQggggggggggk",
+  "kooooooOoqqkkqqQQooooook",
+  "kooooooOQQQrrQQQQooooook",
+  "kgggggkOoOOOOOOQQkgggggk",
+  "kQQQQQkOQQQQQQQQQkQQQQQk",
+  "kQQQQQkOoOOOOOOQQkQQQQQk",
+  "kggggkkOQQQQQQQQQkkggggk",
+  "kQQQQkkOoooooooQQkkQQQQk",
+  ".kkkk.kQyyyQQyyyQk.kkkk.",
+  ".......kyyykkyyyk.......",
+  "......kykyykkyykyk......",
+  ".......k.kk..kk.k......."
 ],
   "ration": ["................", ".....eeee.......", "....eeeeee......", "...eegggeee.....", "..eeggggggee....", ".eegffffgggee...", ".eegffffffgge...", "..gggggggggg....", "...dddddddd.....", "..dddddddddd....", "..dddddddddd....", "..dddddddddd....", "...dddddddd.....", "....dddddd......", "................", "................"],
   "gem": ["................", ".....ffffff.....", "....fttttttf....", "...fttttttttf...", "..fttwwwwwwttf..", "..ftwwwwwwwwtf..", "...twwwwwwwwt...", "....twwwwwwt....", ".....twwwwt.....", "......twwt......", ".......tt.......", "........t.......", "................", "................", "................", "................"],
@@ -1451,9 +1404,9 @@ function readLoreScroll(chNum){
 
 /* ── ๑. ระบบสักยันต์โบราณ ๔ ลายครู (Sacred Yantra Tattoos) ── */
 const YANTRAS = [
-  { id: 'tiger', name: 'ยันต์เสือเผ่น', icon: '🐅', desc: 'ก้าวแรกที่เดินพุ่งเข้าหาศัตรู ทำดาเมจกระแทกพุ่งชน +๘ หน่วยทันที', color: '#ff8b1f' },
-  { id: 'hanuman', name: 'ยันต์หนุมานคลุกฝุ่น', icon: '🐒', desc: 'เมื่อโดนโจมตีถึงตาย มีโอกาส ๔๐% กลิ้งหลบและชุบชีวิตฟื้น ๑๕ HP', color: '#ffe9a3' },
-  { id: 'diamond_armor', name: 'ยันต์เกราะเพชร', icon: '🪷', desc: 'กายาทิพย์ ต้านทานสถานะผิดปกติทั้งหมด ๑๐๐% (ไม่มีวันติดพิษ ไฟ หรือมึนงง)', color: '#2ec4a6' },
+  { id: 'tiger', name: 'ยันต์เสือเผ่น', icon: '🐅', desc: 'ก้าวแรกที่เดินพุ่งเข้าหาศัตรู ทำดาเมจกระแทกพุ่งชน +๕ หน่วยทันที', color: '#ff8b1f' },
+  { id: 'hanuman', name: 'ยันต์หนุมานคลุกฝุ่น', icon: '🐒', desc: 'เมื่อโดนโจมตีถึงตาย มีโอกาส ๔๐% กลิ้งหลบและชุบชีวิตฟื้น ๑๕ HP (ใช้ได้อีกครั้งเมื่อผ่านไป ๕ ชั้น)', color: '#ffe9a3' },
+  { id: 'diamond_armor', name: 'ยันต์เกราะเพชร', icon: '🪷', desc: 'กายาทิพย์ ต้านทานสถานะผิดปกติ (พิษ ไฟ มึนงง) ได้ ๖๐% ทุกครั้งที่โดน', color: '#2ec4a6' },
   { id: 'blade_wave', name: 'ยันต์ดาบสรีกัญไชย', icon: '🗡️', desc: 'ทุกครั้งที่ฟันติดคริติคอล จะปล่อยคลื่นรังสีคมดาบพุ่งตัดศัตรูเป็นเส้นตรง ๓ ช่อง', color: '#f5c542' }
 ];
 
@@ -1484,14 +1437,14 @@ function openYantraModal(yx, gy){
   html += '<div style="display:flex;flex-direction:column;gap:8px;text-align:left;margin-bottom:12px">';
   YANTRAS.forEach(y => {
     const hasThis = player.yantras.some(py => py.id === y.id);
-    const canTattoo = player.yantras.length < maxTattoos && !hasThis;
+    const canTattoo = player.yantras.length < maxTattoos && !hasThis && player.gold >= yantraCost();
     html += '<div class="row" style="background:#1c0c19;padding:8px;border:1px solid ' + (hasThis ? y.color : 'var(--line)') + ';opacity:' + (hasThis ? '0.6' : '1') + '">';
     html += '<div><span>' + y.icon + ' <b style="color:' + y.color + ';font-size:13.5px">' + y.name + '</b></span>';
     html += '<div style="font-size:11.5px;color:var(--ink);margin-top:2px">' + y.desc + '</div></div>';
     if(hasThis){
       html += '<span style="color:' + y.color + ';font-size:11px;font-weight:700">จารึกแล้ว</span>';
     } else {
-      html += '<button class="mini-btn" ' + (canTattoo ? '' : 'disabled') + ' onclick="applyYantraTattoo(\'' + y.id + '\',' + yx + ',' + gy + ')">สักยันต์</button>';
+      html += '<button class="mini-btn" ' + (canTattoo ? '' : 'disabled') + ' onclick="applyYantraTattoo(\'' + y.id + '\',' + yx + ',' + gy + ')">สักยันต์ ◉' + yantraCost() + '</button>';
     }
     html += '</div>';
   });
@@ -1505,11 +1458,15 @@ function openYantraModal(yx, gy){
   $('btnCloseYantra').onclick = () => hide(ov);
 }
 
+function yantraCost(){ return 40 + floor * 15; } // ค่าบูชาครู: ชั้น ๓ = ๘๕ · ชั้น ๗ = ๑๔๕ · ชั้น ๑๓ = ๒๓๕ เหรียญ
 function applyYantraTattoo(yId, yx, gy){
   const y = YANTRAS.find(item => item.id === yId);
   if(!y) return;
   player.yantras = player.yantras || [];
   if(player.yantras.length >= 2) return;
+  const cost = yantraCost();
+  if(player.gold < cost){ msg('พระอาจารย์ส่ายหน้า — ค่าบูชาครูต้องใช้ ' + thaiNum(cost) + ' เหรียญ', 'warn'); return; }
+  player.gold -= cost;
   player.yantras.push(y);
   unlockAch('yantra_tattoo');
   map[gy * W + yx] = 1; // แท่นถูกใช้แล้วกลายเป็นพื้น
@@ -2830,7 +2787,7 @@ const RELICS = [
 
 const WPN_AFFIXES = [
   { id: 'flame', name: 'เพลิงกัลป์', d: 'เผาศัตรู ๓ เทิร์น', c: '#ff8b1f' },
-  { id: 'vamp', name: 'สูบโลหิต', d: 'ดูดเลือด ๒๕% จากดาเมจ', c: '#d43d2a' },
+  { id: 'vamp', name: 'สูบโลหิต', d: 'ดูดเลือด ๑๒% จากดาเมจ (สูงสุด ๔ ต่อครั้ง · บอส ๒)', c: '#d43d2a' },
   { id: 'thunder', name: 'อัสนีบาต', d: 'มีโอกาสสตั๊น ๑ เทิร์น', c: '#f5c542' },
   { id: 'venom', name: 'พิษนาค', d: 'เคลือบพิษ ๔ เทิร์น', c: '#43b05c' },
   { id: 'sharp', name: 'คมกริบ', d: 'คริติคอลบ่อยขึ้น +๑๕%', c: '#2ec4a6' },
@@ -3361,6 +3318,9 @@ function openSettingsModal(){
   html += '<div class="row"><span>📳 สั่นตอบสนอง (Haptics)</span>';
   html += '<button class="mini-btn" id="togHap">' + (st.haptic ? 'เปิด' : 'ปิด') + '</button></div>';
 
+  html += '<div class="row"><span>📜 บทพูดและเนื้อเรื่อง</span>';
+  html += '<button class="mini-btn" id="togStory">' + (st.story !== false ? 'เปิด' : 'ปิด') + '</button></div>';
+
   html += '<div class="row"><span>📺 เส้นสแกนเรโทร CRT</span>';
   html += '<button class="mini-btn" id="togCrt">' + (st.crt ? 'เปิด' : 'ปิด') + '</button></div>';
 
@@ -3382,6 +3342,10 @@ function openSettingsModal(){
     st.haptic = !st.haptic; saveSettings(st);
     $('togHap').textContent = st.haptic ? 'เปิด' : 'ปิด';
     if(st.haptic) triggerHaptic('crit');
+  };
+  $('togStory').onclick = () => {
+    st.story = (st.story === false); saveSettings(st);
+    $('togStory').textContent = st.story !== false ? 'เปิด' : 'ปิด';
   };
   $('togCrt').onclick = () => {
     st.crt = !st.crt; saveSettings(st);
@@ -4782,7 +4746,7 @@ function attackFoe(e, dirX=0, dirY=0){
   let d = Math.max(1, player.atk + wpn.v + R(4) - defCut
     + ((player.head && player.head.atk) || 0)   // ★ ค่าโจมตีของมงกุฎ/ชฎา (เดิมแสดงแต่ไม่คิดจริง)
     + punyaBonus() + (player.furyStacks || 0));  // ★ ปุญฤทธิ์ + โทสะกษัตริย์
-  if(firstStrike && hasYantra('tiger')){ d += 8; floats.push({x:e.x,y:e.y-0.5,t:'เสือเผ่น +๘',c:'#ff8b1f',life:1}); }
+  if(firstStrike && hasYantra('tiger')){ d += 5; floats.push({x:e.x,y:e.y-0.5,t:'เสือเผ่น +๕',c:'#ff8b1f',life:1}); }
   if(player.talents.some(t => t.id === 'k_rage') && player.hp <= Math.floor(player.mhp * 0.35)){
     d *= 2;
     msg('👑 ขัตติยมานะสำแดงฤทธิ์! เลือดวิกฤตพลังโจมตีทวีคูณ!', 'warn');
@@ -4851,7 +4815,9 @@ function attackFoe(e, dirX=0, dirY=0){
     slashColor = '#43b05c';
     floats.push({x:e.x, y:e.y-0.4, t:'พิษ!', c:'#43b05c', life:1});
   } else if(wpn.affix === 'vamp'){
-    const drain = Math.max(1, Math.floor(d * 0.25));
+    // ปรับสมดุล: เดิมดูด ๒๕% ไม่จำกัด ทำให้สายดูดเลือดฟื้นเกือบเต็มหลอดทุกศึกบอส → ๑๒% เพดาน ๔/ครั้ง (บอส ๒)
+    let drain = Math.min(4, Math.max(1, Math.floor(d * 0.12)));
+    if(e.boss) drain = Math.min(drain, 2);
     player.hp = Math.min(player.mhp, player.hp + drain);
     slashColor = '#d43d2a';
     floats.push({x:player.x, y:player.y, t:'+' + drain + ' HP', c:'#d43d2a', life:1});
@@ -5290,6 +5256,7 @@ function killFoe(e){
   if(player.killsTotal >= 50) unlockAch('slayer_50');
   if(player.killsTotal >= 100) unlockAch('slayer_100');
   discoverFoe(e.id);kills[e.id]=(kills[e.id]||0)+1;
+  if(!e.boss && !String(e.id).startsWith('boss_')){ player.killStats = player.killStats || {}; player.killStats[e.id] = (player.killStats[e.id]||0)+1; }
 
   // ★ ย้ายบล็อกบอสขึ้นมาก่อนการคำนวณเหรียญ กันไม่ให้ throw ระหว่างคิดเงิน
   // (เช่นจาก const g เดิม) บล็อกไม่ให้ stairs.locked=false ทำงาน จนตันบันไดชั้น ๑๕
@@ -5303,6 +5270,7 @@ function killFoe(e){
     msg('ผนึกบันไดสลายแล้ว! ทางลงเปิดออก…','good');
     items.push({x:e.x,y:e.y,...genGroundItem()});
     player.gold+=divineMul(30+floor*2);
+    storyBossPost(floor);
   }
 
   let g = (e.g !== undefined && e.g !== null && !isNaN(e.g)) ? e.g + R(Math.max(1, e.g)) : 8;
@@ -5376,7 +5344,7 @@ const DODGE_CAP = 75; // ★ เพดานหลบหลีกรวม ป�
 // ★ ตัวช่วยตรวจทาเลนต์/ยันต์ ใช้ร่วมกันทั้งเกม
 function hasTal(id){ return !!(player && player.talents && player.talents.some(t => t.id === id)); }
 function hasYantra(id){ return !!(player && player.yantras && player.yantras.some(y => y.id === id)); }
-function statusImmune(){ return hasTal('r_immune') || hasYantra('diamond_armor'); }
+function statusImmune(){ return hasTal('r_immune') || (hasYantra('diamond_armor') && rng() < 0.6); } // ยันต์เกราะเพชร: ต้านได้ ๖๐% (เดิม ๑๐๐% ทำให้ระบบสถานะไร้ความหมาย)
 function poisonImmune(){ return statusImmune() || hasTal('ga_naga') || !!(player && player.relic && player.relic.id === 'naga_sash'); }
 function punyaGain(n){ return divineMul(player && player.cls === 'rishi' ? n * 2 : n); } // ฤๅษี: ปุญ ×๒
 function divineMul(n){ return hasTal('bi_divine') ? Math.floor(n * 1.5) : n; } // พิเภก: เหรียญ/ปุญ +๕๐%
@@ -5500,6 +5468,7 @@ function enemiesAct(){
         e._cursedChk = true;
         if(rng() < 0.3){ e.stun = 1; floats.push({x:e.x, y:e.y-0.4, t:'ถูกสะกด!', c:'#8d55c9', life:1}); }
       }
+      if(e.boss && !e.awake && storyBossPre(e)){ e.awake=true; continue; }
       e.awake=true;
     }
     if(!e.awake){
@@ -5658,6 +5627,7 @@ function endTurn(){
   if(state!=='play')return;
   enemiesAct();
   if(player.hp<=0)return;
+  storyBossHp();
   time++;
   if(player.invuln > 0) player.invuln--;
 
@@ -6500,6 +6470,7 @@ function descend(){
   hide($('stairsOv'));sfx.stairs();
   if(floor>=FINAL && !endless){victory();return;}
   genFloor(floor+1);updateHud();saveGame();
+  storyFloorEnter(floor);
 }
 
 /* ── ตาย / ชนะ / คะแนน ── */
@@ -6538,7 +6509,7 @@ function tryTalentRevive(){
       if(map[wy*W+wx] === 1 && !enemyAt(wx, wy) && !npcAt(wx, wy)){ player.x = wx; player.y = wy; break; }
     }
     how = '💎 ถอดดวงใจ! เจ้าวาร์ปหนีความตายพร้อมฟื้นเลือดครึ่งหนึ่ง';
-  } else if(hasYantra('hanuman') && player.hanumanFloor !== floor && rng() < 0.4){
+  } else if(hasYantra('hanuman') && (player.hanumanFloor === undefined || floor - player.hanumanFloor >= 5) && rng() < 0.4){
     player.hanumanFloor = floor; player.hp = Math.min(player.mhp, 15);
     how = '🐒 ยันต์หนุมานคลุกฝุ่น! เจ้ากลิ้งหลบความตายและฟื้น ๑๕ HP';
   } else if(hasTal('r_rebirth') && !player.rebirthUsed && rng() < 0.5){
@@ -6904,6 +6875,7 @@ function startRun(cls, forcedSeed = 0){
     } catch(e){}
   }
   updateHud();setControlsHint();saveGame();
+  storyRunStart(cls);
 }
 
 /* ── การแสดงผล ── */
@@ -7216,7 +7188,7 @@ function render(){
     // หมายเหตุ: ข้อมูลต้นฉบับอาจละเอียดถึง 32x32 (คมชัดในเมนู/หน้าสเตตัส)
     // แต่ในดันเจี้ยนจำกัดขนาดที่วาดจริงไว้ไม่เกิน 22px กันตัวละครดูใหญ่เกินช่อง 16px
     const pSprSize = SPR_SIZE[player.sprite] || 16;
-    const pSprDraw = Math.min(pSprSize, 22);
+    const pSprDraw = Math.min(pSprSize, 24);
     const pSprDX = (16 - pSprDraw) / 2; // จัดกึ่งกลางแนวนอนเทียบกับช่องปกติ 16px
     const pSprDY = 16 - pSprDraw;       // ยึดเท้าไว้ที่ขอบล่างช่องเดิม ส่วนหัว/ไหล่ที่ใหญ่ขึ้นล้นขึ้นด้านบน
     drawSpr(player.sprite, px + pSprDX, py + pBob + pSprDY, pSprDraw, pSprDraw, flipP, 0);
@@ -7509,7 +7481,7 @@ function openStatusModal(){
   let html = '<div class="panel" style="max-width:420px;border-color:var(--gold);box-shadow:0 0 20px rgba(245,197,66,.35)">';
   html += '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--line);padding-bottom:8px;margin-bottom:10px">';
   html += '<div style="display:flex;align-items:center;gap:10px">';
-  html += '<canvas id="statusSprite" width="40" height="40" style="image-rendering:pixelated;background:#150914;border:2px solid var(--gold)"></canvas>';
+  html += '<canvas id="statusSprite" width="56" height="56" style="image-rendering:pixelated;background:#150914;border:2px solid var(--gold)"></canvas>';
   html += '<div><h2 style="font-family:Chakra Petch;color:var(--gold);margin:0;font-size:20px">' + C.name + ' <span style="font-size:13px;color:var(--teal)">' + (player.title||'') + '</span></h2>';
   html += '<small class="teal" style="font-size:12px">ระดับ ' + thaiNum(player.lvl) + ' · ประสบการณ์ ' + player.xp + '/' + xpNeed(player.lvl) + '</small></div>';
   html += '</div>';
@@ -7602,7 +7574,7 @@ function openStatusModal(){
     const sg = scv.getContext('2d');
     sg.imageSmoothingEnabled = false;
     const img = SPR[player.sprite];
-    if(img) sg.drawImage(img, 0, 0, img.width, img.height, 4, 4, 32, 32);
+    if(img) sg.drawImage(img, 0, 0, img.width, img.height, 4, 4, 48, 48);
   }
 
   $('btnCloseStatus').onclick = () => hide(ov);
@@ -7622,6 +7594,197 @@ function openCinematicModal(){
     document.body.appendChild(ov);
   }
   return ov;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ✦ บทเรื่อง (Story) — บทพูดตามร่างที่ ๒ · ชั้น ๑–๒๐
+   ข้อจำกัด: แต่ละท่อนยาวไม่เกิน ๓ บรรทัด · เปิด/ปิดได้ในตั้งค่า (story)
+   ══════════════════════════════════════════════════════════════ */
+const STORY = {
+  open: {
+    ksatriya: '“โลหิตไพร่พลที่หลั่งริน ข้าจักชดใช้ให้สิ้นด้วยวิญญาณ\nข้ามสมุทรมาครานี้ มีเพียงชีวิตที่เหลือเป็นเดิมพัน”',
+    brahmin:  '“มนตราเจ็ดม้วน ข้าท่องจำได้จนสิ้นเสียงในปาก\nแต่กลับมิเคยล่วงรู้ ว่าต้องใช้สองเท้าย่ำหาในนรก”',
+    vanara:   '“สามสิบชีวิตที่ข้าส่งไป มิมีผู้ใดรอดกลับคืน\nข้าอาจไร้เพลงรบ... แต่ชื่อพี่น้อง ข้าจดจำไว้ครบทุกคน”',
+    bibhek:   '“ทั่วหล้าตราหน้าข้าว่าอสูรขายชาติ\nข้าเพียงอยากประจักษ์... พี่ข้าชั่วช้าด้วยกมลสันดาน หรือมีผู้ใดผลักไสให้กลายเป็นยักษ์”',
+    garuda:   '“ปีกข้าเคยโบกสยาย บดบังสุริยันได้ทั้งเวหา\nเหตุใดเหนือกำแพงนี้จึงหนักดั่งศิลา... ผู้ใดสาปแช่ง ข้าจักไปทวงถามถึงก้นบึ้ง”',
+    rishi:    '“ข้าสอนให้เจ้าจุดอัคคี แต่ลืมสอนว่าไฟเผาผลาญได้สิ้น\nเพลิงกรรมที่ลุกท่วมลงกา มีรอยมือข้าเปื้อนอยู่... ข้าจักมาดับด้วยตนเอง”'
+  },
+  // ถ้อยคำทศกัณฐ์ทักทายแต่ละชาติ ณ ชั้น ๒๐
+  dasa: {
+    ksatriya: '“ชีพที่มลาย เจ้ามิได้มาทวงแค้นแทนใคร\nเจ้าเพียงหวังให้ข้าเอ่ย... ว่ามิใช่ความผิดของเจ้าเอง”',
+    brahmin:  '“เจ้าสวดพระเวทนำทาง แต่ตาบอดต่ออักษร\nเคยถามบ้างหรือไม่... ผู้ใดจารึกบรรทัดที่เจ้าหวาดกลัว”',
+    vanara:   '“สามสิบวิญญาณ ล้วนสิงสถิตอยู่ในศิลานี้\nเจ้านับได้ถ้วนถี่... แต่นับหัวตนเองรวมไว้แล้วหรือยัง”',
+    bibhek:   '“น้องเอ๋ย เจ้าเลือกธรรม ข้าเลือกพงศ์พันธุ์\nสิบปีที่ผ่าน ข้านึกว่าชาติกำเนิดคือคำตอบ... บัดนี้ ข้ามิแน่ใจเสียแล้ว”',
+    garuda:   '“ปีกที่ร่วงโรย มิใช่ด้วยคำสาปแช่งแห่งข้า\nหากแต่เป็นซากความทะนงที่เจ้าทิ้งไว้... เจ้ายังจำเงาตนได้หรือไม่”',
+    rishi:    '“ท่านคือครูเพียงผู้เดียวที่ข้าก้มกราบ และเป็นครูผู้ชี้ทางพินาศให้ข้า\nยกอาวุธขึ้นเถิดอาจารย์... ข้ามิเคยคิดปรานีผู้ให้กำเนิดมาร”'
+  },
+  // ข้อความบรรยายเมื่อย่างเข้าชั้นแรกของแต่ละองก์
+  enter: {
+    1:  '“ไอยายะเยือกพัดผ่านปล่องศิลา เคล้ากลิ่นกำยานหม่นมัว\nทั้งที่มิมีผู้ใดจุดบูชามานานนับพันปี”',
+    6:  '“ศิลาชื้นแฉะด้วยเมือกคาว เกล็ดพญานาคหลุดลอกเกลื่อนซอกหิน\nราวกับมีสิ่งมหึมาเลื้อยผ่านรอยมืดนี้อยู่มิว่างเว้น”',
+    11: '“ไอความร้อนแผ่ซ่านจากผนังผาแดงฉาน สะท้อนเสียงกรนก้องเป็นจังหวะหนักหน่วง\nดั่งมหายักษ์กำลังจมดิ่งในนิทราอันยาวนานนับศตวรรษ”',
+    16: '“พรมสุวรรณทอดยาวจรดบัลลังก์ ผนังจารึกภาพบุรุษสิบพักตร์ในท่าประทับสงบ\nบ้างแย้มสรวล บ้างหลั่งอัสสุชล ราวกับแบ่งแยกความวิปลาสไว้คนละเสี้ยวหน้า”'
+  },
+  skel: '“ร่างโครงกระดูกไร้นาม พิงผนังเย็นเยียบ มือขวากำศาสตราเดียวกับที่เจ้าถือ\nเจ้าพร่ำบอกตนว่ามิใช่เจ้า... แต่ฝ่ามือกลับอดมิได้ที่จะเอื้อมไปคว้ามันขึ้นมา”',
+  // บทบอส: pre = ก่อนเริ่มศึก (ปรากฏเมื่อบอสเห็นผู้เล่นครั้งแรก) · post = วาจาสุดท้าย
+  boss: {
+    5: {
+      who: 'พญาขร',
+      pre: [
+        '“ใบหน้านี้ข้าจำได้... หึ หรือแค่คุ้นตา พวกเจ้าที่ก้าวลงมาล้วนมีแววตาดำดิ่งเหมือนกันหมด”',
+        '“ข้าคือปราการด่านแรกแห่งลงกา และมิเคยถอยให้แก่ผู้ใด หากจำชื่อตนเองมิได้ ก็จงจารึกมันด้วยคมดาบ!”'
+      ],
+      preReturn: '“เจ้ากลับมาอีกแล้วรึ... ซากกระดูกที่เจ้าทิ้งไว้ เจ้าคิดว่าเป็นของใครกันเล่า”',
+      post: [
+        '“ข้ามิได้ดับสูญ... เพียงล่วงหน้าไปก่อน พญาทศกัณฐ์ให้สัตย์ไว้ ว่าจักมิปล่อยผู้ใดทิ้งเคว้งในเงามืด...”',
+        '“...และสัญญานั้นเอง ที่พันธนาการพวกข้าไว้ชั่วนิรันดร์”'
+      ]
+    },
+    10: {
+      who: 'มารีศ',
+      pre: [
+        { who: 'กวางทองบาดเจ็บ', t: '“ช่วยด้วย... กวางน้อยตัวนี้บาดเจ็บเหลือแสน ได้โปรดเมตตาข้าที...”' },
+        { t: '“...หึ ลวงต่อไปก็ไร้ค่า คันศรพระรามเคยปลิดชีพข้ามาแล้วหนหนึ่ง แต่วิญญาณข้าก็ยังติดอยู่ในคุกนี้ ที่นี่มิเคยปล่อยให้ผู้ใดตายจริง!”' },
+        '“ข้าแปลงกายหลอกคนมาทั้งชาติภพ... สิ้นวิหารนี้ ข้าจักมิต้องกลายเป็นสิ่งใดอีกต่อไป!”'
+      ],
+      post: [
+        '“เจ้าคิดว่าตนกำลังตัดวงเวียนกรรมหรือ... ลองก้มมองดาบเจ้าสิ”',
+        '“ทางที่ผ่านมา เจ้าเอาคมเหล็กปักอกใครไปกี่ร้อยกี่พัน... แล้วซากพวกมันหายไปไหนหมด!”'
+      ]
+    },
+    15: {
+      who: 'กุมภกรรณ',
+      pre: [
+        '“ผู้ใดปลุกข้า... ข้าเพิ่งหลับไปได้พันปี ฝันว่ามีคนลงมาถึงก้นบึ้ง และทุกครา... ฝันนั้นมิเคยแปรเปลี่ยน”',
+        '“พี่ข้าเดินทางผิด ข้ารู้แจ้งแก่ใจ แต่เขาคือสายเลือดเดียวกับข้า นี่คือเหตุผลเดียวที่ข้าเหลืออยู่... มิต้องเข้าใจข้าดอก”',
+        '“จงยกอาวุธขึ้น ข้ามิได้กระหายชัยชนะ แต่ข้ามิเคยประนีประนอมให้ผู้ที่สู้ไม่สุดชีวิต!”'
+      ],
+      preBibhek3: '“พิเภกน้องข้า... เจ้าถือคัมภีร์ธรรม ทั้งที่สายเลือดในกายร้อนรุ่มดั่งไฟมาร เจ้าแน่ใจแล้วหรือว่าตนมิใช่อสูร”',
+      post: [
+        '“จงสดับไว้... ดวงใจพี่ข้า มิได้ฝากไว้ที่พระโคบุตรดั่งคำลือ”',
+        '“เขามิได้ซ่อนมันในกล่องแก้ว หากแต่ฝังไว้ใน \'สิ่งที่ตนมิกล้าสบตา\' และทุกคนที่ย่างกรายมาถึงที่นี่ ล้วนมีสิ่งนั้นซ่อนอยู่เช่นกัน”',
+        '“ก่อนจักก้าวข้ามกำแพงสุดท้าย... ตอบตัวเองให้ได้ ว่าเจ้าซ่อนสิ่งใดไว้ มิเช่นนั้น เจ้าจักมิมีวันล้มมันลง”'
+      ]
+    },
+    20: {
+      who: 'ทศกัณฐ์',
+      pre: [
+        '“เจ้ามาถึงแล้ว... ช้ากว่าผู้มาก่อนไม่กี่ราตรี แต่แววตาแน่วแน่กว่ามากนัก นั่งลงเถิด มิพักต้องรีบร้อน”',
+        '“เจ้าคิดว่าตนมาเพื่อสังหารข้า... หาใช่ไม่ เจ้าดั้นด้นมาเพื่อปลดปล่อยให้ข้าได้พัก และทุกคนที่เคยผ่านบัลลังก์นี้ ก็มาด้วยชะตากรรมเดียวกัน”'
+      ]
+    }
+  },
+  // คำพูดยามเศียรร่วง (ทศกัณฐ์ ชั้น ๒๐) — ขึ้นเป็นข้อความลอย ไม่หยุดเกม
+  heads: [
+    { hp: 0.75, tag: 'เศียรซ้ายร่วง', t: '“ข้าเคยละโมบครอบครองผืนพิภพ... แล้วเจ้าเล่า กักขังสิ่งใดไว้ในใจบ้าง”' },
+    { hp: 0.50, tag: 'เศียรกลางร่วง', t: '“โทสะพลุ่งพล่านแล้วใช่ไหม... ดี อย่าสะกดกลั้น ปลดปล่อยความอำมหิตของเจ้าออกมาให้สิ้น!”' },
+    { hp: 0.25, tag: 'เศียรขวาร่วง', t: '“ใกล้แล้ว... ภาพตรงหน้าเริ่มแจ่มชัด จงเบิกตาดู อย่าได้หลบเลี่ยงความจริง!”' }
+  ]
+};
+
+let storyOpen = false, storyQueue = [];
+function storyOn(){ return !isBossRushMode && !window._selectBossRush && getSettings().story !== false; }
+function storyFlag(k){ if(!player.story) player.story = {}; if(player.story[k]) return false; player.story[k] = 1; return true; }
+
+// lines: สตริง (บรรยาย) หรือ {who,t} · speaker = ชื่อผู้พูดเริ่มต้น
+function showStory(lines, onDone, speaker){
+  if(!lines || !lines.length || !storyOn()){ if(onDone) onDone(); return; }
+  if(storyOpen){ storyQueue.push({lines, onDone, speaker}); return; }
+  storyOpen = true;
+  const prev = state; state = 'story';
+  let ov = $('storyOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'storyOv'; ov.className = 'ov'; ov.style.zIndex = '650';
+    document.body.appendChild(ov);
+  }
+  let i = 0, closed = false;
+  function close(){
+    if(closed) return; closed = true;
+    storyOpen = false; hide(ov);
+    state = (prev === 'story' || !prev) ? 'play' : prev;
+    if(onDone) onDone();
+    const nx = storyQueue.shift();
+    if(nx) showStory(nx.lines, nx.onDone, nx.speaker);
+  }
+  function render(){
+    const raw = lines[i];
+    const L = typeof raw === 'string' ? {who: speaker || '', t: raw} : {who: raw.who !== undefined ? raw.who : (speaker || ''), t: raw.t};
+    ov.innerHTML = '';
+    const p = document.createElement('div'); p.className = 'panel';
+    p.style.cssText = 'max-width:440px;padding:14px 16px;border-color:var(--gold);box-shadow:0 0 30px rgba(0,0,0,.9);text-align:left;margin:auto auto 28px';
+    if(L.who){ const h = document.createElement('div'); h.textContent = L.who; h.style.cssText = 'font-family:Chakra Petch;color:var(--gold);font-size:14px;margin-bottom:6px'; p.appendChild(h); }
+    const t = document.createElement('p'); t.textContent = L.t;
+    t.style.cssText = 'color:var(--ink);font-size:14px;line-height:1.65;margin:0 0 12px;white-space:pre-line;min-height:48px' + (L.who ? '' : ';font-style:italic;color:#cbb8a0');
+    p.appendChild(t);
+    const row = document.createElement('div'); row.style.cssText = 'display:flex;justify-content:space-between;align-items:center';
+    const sk = document.createElement('button'); sk.className = 'btn ghost'; sk.textContent = 'ข้าม'; sk.style.cssText = 'font-size:12px;padding:6px 14px'; sk.onclick = close;
+    const nx = document.createElement('button'); nx.className = 'btn'; nx.id = 'btnStoryNext'; nx.textContent = (i === lines.length - 1) ? 'ตกลง ▶' : 'ถัดไป ▶'; nx.style.cssText = 'font-size:13px;padding:8px 20px';
+    nx.onclick = () => { if(i < lines.length - 1){ i++; render(); } else close(); };
+    row.appendChild(sk); row.appendChild(nx); p.appendChild(row);
+    ov.appendChild(p); show(ov);
+  }
+  render();
+}
+// คีย์ลัดขณะกล่องบทเปิด: Enter/Space/→ ถัดไป · Esc ข้าม (ดักก่อนตัวจัดการหลักของเกม)
+window.addEventListener('keydown', e => {
+  if(!storyOpen) return;
+  e.stopImmediatePropagation(); e.preventDefault();
+  if(e.repeat) return;
+  const ov = $('storyOv'); if(!ov) return;
+  if(e.key === 'Escape'){ const b = ov.querySelector('.ghost'); if(b) b.click(); }
+  else if(e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight'){ const b = $('btnStoryNext'); if(b) b.click(); }
+}, true);
+
+// ── ตัวช่วยผูกเข้ากับเกม ──
+function storyRunStart(cls){
+  const lines = [{who: '', t: STORY.open[cls] || STORY.open.ksatriya}, STORY.enter[1]];
+  if(player) { player.story = player.story || {}; player.story.e1 = 1; }
+  showStory(lines);
+}
+function storyFloorEnter(fl){
+  if(!player || !storyOn()) return;
+  const lines = [];
+  if(STORY.enter[fl] && storyFlag('e' + fl)) lines.push(STORY.enter[fl]);
+  const sk = getSkel();
+  if(sk && sk.floor === fl && storyFlag('skel' + fl)) lines.push(STORY.skel);
+  if(lines.length) showStory(lines);
+}
+// คืน true ถ้าเปิดบทก่อนศึกแล้ว (ให้บอสรอ ๑ เทิร์น)
+function storyBossPre(e){
+  const b = STORY.boss[floor];
+  if(!b || endless || floor > 20 || !storyOn() || !storyFlag('pre' + floor)) return false;
+  let lines = b.pre.slice();
+  if(floor === 5 && getSkel()) lines[0] = b.preReturn;
+  if(floor === 15 && player.cls === 'bibhek') lines[2] = b.preBibhek3;
+  if(floor === 20) lines.push({t: STORY.dasa[player.cls] || STORY.dasa.ksatriya});
+  showStory(lines, null, b.who);
+  return true;
+}
+function storyBossPost(fl){
+  const b = STORY.boss[fl];
+  if(!b || !b.post || !storyOn() || !storyFlag('post' + fl)) return;
+  const lines = b.post.slice();
+  if(fl === 10){ // แสดงสถิติสังหารจริงของรอบนี้
+    const ks = player.killStats || {};
+    const top = Object.keys(ks).sort((a, b2) => ks[b2] - ks[a]).slice(0, 3)
+      .map(id => { const f = FOES.find(x => x.id === id); return (f ? f.name : id) + ' ' + thaiNum(ks[id]); });
+    if(top.length) lines.push({who: '', t: 'ซากที่เจ้าทิ้งไว้เบื้องหลัง — ' + top.join(' · ')});
+  }
+  showStory(lines, null, b.who);
+}
+function storyBossHp(){
+  if(floor !== 20 || endless) return;
+  for(const e of enemies){
+    if(!e.boss || e.hp <= 0 || !e.maxhp) continue;
+    for(const h of STORY.heads){
+      if(e.hp / e.maxhp <= h.hp && storyFlag('head' + h.hp)){
+        floats.push({x: e.x, y: e.y - 0.6, t: h.tag, c: '#f5c542', life: 1.3});
+        msg('☠ ทศกัณฐ์: ' + h.t, 'warn');
+        shake = 6; flash = 0.35; sfx.boss();
+      }
+    }
+  }
 }
 
 function playCinematicPrologue(onComplete = null){
@@ -8170,11 +8333,11 @@ function buildClassCards(){
     if(isLocked){
       card.style.opacity = '0.55';
       card.style.filter = 'grayscale(0.85)';
-      card.innerHTML='<canvas class="mini" width="32" height="32"></canvas><h3 style="color:var(--dim)">🔒 ' + C.name + '</h3>'+
+      card.innerHTML='<canvas class="mini" width="48" height="48"></canvas><h3 style="color:var(--dim)">🔒 ' + C.name + '</h3>'+
         '<small class="red" style="font-size:10.5px">เงื่อนไข: ' + (C.req||'ปลดล็อกในภายหลัง') + '</small>'+
         '<p style="font-size:11px">' + C.desc + '</p>';
     } else {
-      card.innerHTML='<canvas class="mini" width="32" height="32"></canvas><h3>'+C.name+'</h3>'+
+      card.innerHTML='<canvas class="mini" width="48" height="48"></canvas><h3>'+C.name+'</h3>'+
         '<small>เลือด '+C.hp+' · มนตร์ '+C.mp+' · โจมตี '+C.atk+' · ป้อง '+C.def+'</small>'+
         '<p>'+C.desc+'</p>';
       card.onclick=()=>{
@@ -8186,7 +8349,7 @@ function buildClassCards(){
     const g=card.querySelector('canvas').getContext('2d');
     g.imageSmoothingEnabled=false;
     const img=SPR[C.sprite];
-    if(img)g.drawImage(img,0,0,img.width,img.height,0,0,32,32);
+    if(img)g.drawImage(img,0,0,img.width,img.height,0,0,48,48);
     box.appendChild(card);
   }
 }
